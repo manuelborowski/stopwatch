@@ -13,45 +13,39 @@ def user_add(data):
         user = dl.user.user_get(('username', "=", data['username']))
         if user:
             log.error(f'Error, user {user.username} already exists')
-            return {"status": False, "data": f'Fout, gebruiker {user.username} bestaat al'}
+            return {"status": "warning", "data": f'Fout, gebruiker "{user.username}" bestaat al'}
         user = dl.user.user_add(data)
-        if 'confirm_password' in data:
-            del data['confirm_password']
-        if 'password' in data:
-            del data['password']
+        data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
         log.info(f"Add user: {data}")
-        return {"status": True, "data": {'id': user.id}}
+        return {"status": "ok", "data": f"Gebruiker, {user.username} toegevoegd."}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": False, "data": {str(e)}}
+        return {"status": "error", "data": str(e)}
 
 
 def user_update(data):
     try:
-        user = dl.user.get_first_user(('id', "=", data['id']))
+        user = dl.user.user_get(('id', "=", data['id']))
         if user:
             del data['id']
             user = dl.user.user_update(user, data)
             if user:
-                if 'confirm_password' in data:
-                    del data['confirm_password']
-                if 'password' in data:
-                    del data['password']
+                data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
                 log.info(f"Update user: {data}")
-                return {"status": True, "data": {'id': user.id}}
-        return {"status": False, "data": f"Gebruiker met id {data['id']} bestaat niet"}
+                return {"status": "ok", "data": f"Gebruiker, {user.username} aangepast."}
+        return {"status": "warning", "data": f"Gebruiker met id {data['id']} bestaat niet"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": False, "data": {str(e)}}
+        return {"status": "error", "data": str(e)}
 
 
 def user_delete(data):
     try:
         dl.user.user_delete(data)
-        return {"status": True, "data": "Gebruikers zijn verwijderd"}
+        return {"status": "ok", "data": "Gebruikers zijn verwijderd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": False, "data": {str(e)}}
+        return {"status": "error", "data": str(e)}
 
 
 def user_get(data):
@@ -61,29 +55,6 @@ def user_get(data):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": False, "data": {str(e)}}
-
-
-############## formio forms #############
-def prepare_add_registration_form():
-    try:
-        template = msettings.get_configuration_setting('popup-new-update-user')
-        return {'template': template,
-                'defaults': {'new_password': True}}
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        raise e
-
-
-def prepare_edit_registration_form(id):
-    try:
-        user = user.get_first_user({"id": id})
-        template = msettings.get_configuration_setting('popup-new-update-user')
-        template = app.application.student.form_prepare_for_edit(template, user.to_dict())
-        return {'template': template,
-                'defaults': user.to_dict()}
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        raise e
 
 
 ############ user overview list #########

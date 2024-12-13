@@ -2,13 +2,13 @@
 // simple popup (single h2) that is removed after a specified delay (default 5s)
 export class TimedPopup {
     timer_id = null;
-    constructor(msg, color = "green", delay = 5000) {
+    constructor(status="ok", msg, delay = 5000) {
         if (this.timer_id !== null) clearTimeout(timer.timer_id);
         const overlay_div = document.createElement("div");
         overlay_div.classList.add("overlay");
         const popup_div = document.createElement("div");
         popup_div.classList.add("popup");
-        popup_div.style.borderColor = color;
+        popup_div.style.borderColor = status === "warning" ? "orange": status === "ok" ? "green" : "red";
         overlay_div.appendChild(popup_div);
         const message = document.createElement("h2");
         message.innerHTML = msg;
@@ -37,7 +37,7 @@ export class FormioPopup {
         if (defaults != null) {
             for (const [k, v] of Object.entries(defaults)) {
                 const c = this.formio_handle.getComponent(k)
-                if (c !== undefined) c.setValue(v);
+                if (c !== undefined && c !== null) c.setValue(v);
             }
         }
         this.formio_handle.on('submit', async submitted => {

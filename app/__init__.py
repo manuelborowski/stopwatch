@@ -12,8 +12,9 @@ from flask_cors import CORS
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
 # 0.1 first backup, user-view is ok
+# 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
 
-version = "0.1"
+version = "0.2"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 CORS(app, origins=[r"https//cdn.datatables.net/*", r"https://cdn.form.io/*"])

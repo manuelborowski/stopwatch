@@ -17,8 +17,7 @@ class Socketio {
             }
             if (cb) cb();
         });
-        //subscribe standard on alert-popup
-        this.subscribe_on_receive("alert-popup", (type, data) => new TimedPopup(data.msg, data.color));
+        this.subscribe_on_receive("alert-popup", (type, data) => new TimedPopup(data.status, data.data));
     }
 
     send_to_server(type, data) {

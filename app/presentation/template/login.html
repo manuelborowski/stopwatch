@@ -44,7 +44,7 @@
 <script type="module">
     import {TimedPopup} from "../../static/js/common/popup.js";
     const message = {{ message|tojson or null }};
-    if (message) new TimedPopup(message.msg, message.color);
+    if (message) new TimedPopup(message.status, message.data);
 </script>
 </body>
 </html>

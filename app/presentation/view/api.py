@@ -87,9 +87,3 @@ def user_get(**kwargs):
     ret = al.user.user_get(options)
     return(json.dumps(ret))
 
-@api.route('/api/my_ip', methods=['GET'])
-def get_my_ip(**kwargs):
-    # ret = {"ipaddress":  kwargs["remote_ip"] if "remote_ip" in kwargs else ""}
-    ret = {"ipaddress":  "127.0.0.1"}
-    return json.dumps(ret)
-

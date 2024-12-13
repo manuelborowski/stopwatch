@@ -27,11 +27,11 @@ def login():
                 return redirect(url_for('user.show'))
             else:
                 log.error(f'{sys._getframe().f_code.co_name}: Invalid username/password')
-                message = {"color": "red", "msg": "Ongeldig(e) gebruikersnaam/wachtwoord"}
+                message = {"status": "error", "data": "Ongeldig(e) gebruikersnaam/wachtwoord"}
                 return render_template('login.html', message=message)
         return render_template('login.html', message=message)
     except Exception as e:
-        message = {"color": "red", "msg": f"{str(e)}"}
+        message = {"status": "error", "data": f"{str(e)}"}
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
         return render_template('login.html', message=message)
 

@@ -16,7 +16,6 @@ log.addFilter(MyLogFilter())
 
 def datatable_get_data(table_config, parameters, paginate=True):
     try:
-        a = 1 / 0
         template = table_config.template
         sql_query = table_config.pre_sql_query()
         total_count = sql_query.count()

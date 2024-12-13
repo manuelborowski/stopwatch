@@ -71,7 +71,7 @@ export class ContextMenu {
     subscribe_post_processing = cb => this.postprocessing_cb = cb;
 
     item_clicked_with_cb = cb => {
-        cb(self.item_ids);
+        cb(this.item_ids);
         if (this.postprocessing_cb) this.postprocessing_cb(self.item_ids);
     }
 }
