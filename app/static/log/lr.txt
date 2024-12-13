@@ -1,0 +1,41 @@
+2024-03-15 11:07:23,859 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:08:07,169 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:08:37,181 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:08:57,691 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:10:26,997 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:43:02,437 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:44:39,878 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:49:00,603 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 11:58:10,779 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 12:07:51,440 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 12:55:18,435 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 12:55:59,957 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 12:56:17,466 - ERROR - leerlingrekening.app - get_users: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2024-03-15 12:56:17,466 - ERROR - leerlingrekening.app - Invalid username/password
+2024-03-15 12:57:59,309 - ERROR - leerlingrekening.app - get_users: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2024-03-15 12:58:43,827 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:02:16,319 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:03:24,950 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:03:42,702 - ERROR - leerlingrekening.app - get_users: (pymysql.err.OperationalError) (1049, "Unknown database 'studentleerling_db'")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2024-03-15 13:03:42,702 - ERROR - leerlingrekening.app - Invalid username/password
+2024-03-15 13:03:55,289 - ERROR - leerlingrekening.app - get_users: (pymysql.err.OperationalError) (1049, "Unknown database 'studentleerling_db'")
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2024-03-15 13:04:01,539 - ERROR - leerlingrekening.app - Invalid username/password
+2024-03-15 13:07:02,713 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:07:47,390 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:08:01,796 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:08:11,131 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:08:48,581 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:08:59,206 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:15:25,212 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:15:29,552 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:15:38,007 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:49:03,567 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:50:06,877 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:51:06,717 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:51:34,987 - ERROR - leerlingrekening.app - Invalid username/password
+2024-03-15 13:54:10,422 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:54:18,785 - INFO - leerlingrekening.app - user admin logged in
+2024-03-15 13:54:51,383 - INFO - leerlingrekening.app - START leerlingrekening
+2024-03-15 13:55:03,958 - INFO - leerlingrekening.app - user admin logged in

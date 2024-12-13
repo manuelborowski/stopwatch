@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="static/css/login.css" rel="stylesheet">
+    <link href="static/css/popup.css" rel="stylesheet">
+    {{ JSGlue.include() }}
+
+</head>
+<body>
+<div class="container">
+    <main class="content">
+        <div style="display: flex;">
+            <div class="login-group">
+                <h1>Aanmelden met gebruikersnaam</h1>
+                <div class="login-container">
+                    <form class="login-form" method="post">
+                        <div class="form-group">
+                            <label for="username">Gebruikersnaam:</label>
+                            <input type="text" id="username" name="username" placeholder="Gebruikersnaam aub" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Paswoord:</label>
+                            <input type="password" id="password" name="password" placeholder="Paswoord aub" required>
+                        </div>
+                        <button class="btn-ok" type="submit">OK</button>
+                    </form>
+                </div>
+                <h1>Of aanmelden via Smartschool</h1>
+                <a href="{{ url_for('auth.login_ss') }}"><img src="static/img/btn_smartschool.png"
+                                                              alt="aanmelden via smartschool"></a>
+            </div>
+            <img src="static/img/computer-repair.png" style="height: 500px;">
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p class="copyright text-muted small">{{ version }}</p>
+    </footer>
+</div>
+
+<script type="module">
+    import {TimedPopup} from "../../static/js/common/popup.js";
+    const message = {{ message|tojson or null }};
+    if (message) new TimedPopup(message.msg, message.color);
+</script>
+</body>
+</html>
