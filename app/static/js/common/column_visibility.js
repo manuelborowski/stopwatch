@@ -2,7 +2,6 @@
 export class ColumnVisibility {
     constructor(placeholder, column_list, visibility_changed_cb, id) {
         // Settings are locally stored
-        this.column_list = column_list;
         this.visibility_changed_cb = visibility_changed_cb;
         this.id = id;
         this.settings = []

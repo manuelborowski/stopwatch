@@ -15,8 +15,9 @@ from functools import wraps
 # 0.3: clean up.  Datatables to 2.1.8.  Replaced most document.ready in js to fix the order of invocation.  Updated cell_edit
 # 0.4: minor updates
 # 0.5: reworked column visibility
+# 0.6: columns visibility, in rowCallback(), cells refer to the columns that are visible, so a mapping from real to visible colums must be made.
 
-version = "0.5"
+version = "0.6"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

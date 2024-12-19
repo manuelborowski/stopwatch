@@ -74,6 +74,19 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     context_menu.subscribe_get_ids(mouse_get_ids);
     const filter_menu = new FilterMenu(document.querySelector(".filter-menu"), filter_menu_items, reload_table, ctx.table_config.view);
 
+    // when colums are hidden, this array maps the real column index on the visible column index
+    let column_shifter = [];
+    const __calc_column_shift = () => {
+        let shift = 0;
+        for (let i = 0; i < ctx.table.columns().count(); i++) {
+            if (ctx.table.column(i).visible()) {
+                column_shifter.push(i - shift);
+            } else {
+                shift++;
+                column_shifter.push(null);
+            }
+        }
+    }
 
     //Bugfix to repeat the table header at the bottom
     $("#datatable").append(
@@ -150,13 +163,16 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
             // celledit of type select: overwrite cell content with label from optionlist
             if (cell_edit.select_options) {
                 for (const [column, select] of Object.entries(cell_edit.select_options)) {
-                    row.cells[column].innerHTML = select[row.cells[column].innerHTML]
+                    if (column_shifter[column] !== null) {
+                        row.cells[column_shifter[column]].innerHTML = select[row.cells[column_shifter[column]].innerHTML];
+                    }
                 }
             }
         },
         preDrawCallback: function (settings) {
             busy_indication_on();
         },
+
         drawCallback: function (settings) {
             busy_indication_off();
             if (ctx.cell_to_color) {
@@ -167,8 +183,6 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
                     }
                 });
             }
-            // cell_toggle.display();
-            // __create_column_visibility_buttons();
         },
     }
 
@@ -181,9 +195,15 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     }
 
     ctx.table = new DataTable('#datatable', datatable_config);
-    const cell_edit = new CellEdit(ctx.table, table_config.template, cell_edit_changed_cb);
     const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-div'), table_config.template,
         (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
+    const cell_edit = new CellEdit(ctx.table, table_config.template, cell_edit_changed_cb);
+
+    __calc_column_shift();
+    // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
+    // create a translation table to go from actual column index to the reduced (with invisible columns) column index
+    ctx.table.on('column-visibility.dt', (e, settings, column, state) => __calc_column_shift());
+
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {
@@ -205,10 +225,9 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
 
     function cell_edit_changed_cb(cell, row, old_value) {
         const column = cell.index().column;
-        let value = ctx.table_config.template[column].celledit.value_type === 'int' ? parseInt(cell.data()) : cell.data();
-        let column_name = ctx.table.column(column).dataSrc()
-        let data = {id: row.data().DT_RowId, column: column_name, value}
-        update_cell_changed(data);
+        const value = ctx.table_config.template[column].celledit.value_type === 'int' ? parseInt(cell.data()) : cell.data();
+        const column_name = ctx.table.column(column).dataSrc()
+        update_cell_changed({id: row.data().DT_RowId, column: column_name, value});
     }
 
     function cell_toggle_changed_cb(cell, row, value) {
