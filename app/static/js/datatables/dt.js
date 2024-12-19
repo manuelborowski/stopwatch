@@ -6,6 +6,7 @@ import {base_init} from "../base.js";
 import {ContextMenu} from "../common/context_menu.js";
 import {FilterMenu} from "../common/filter_menu.js";
 import {CellEdit} from "./cell_edit.js";
+import {ColumnVisibility} from "../common/column_visibility.js";
 
 let column_name_to_index = {};
 export let ctx = null;
@@ -167,7 +168,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
                 });
             }
             // cell_toggle.display();
-            __create_column_visibility_buttons();
+            // __create_column_visibility_buttons();
         },
     }
 
@@ -181,45 +182,8 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
 
     ctx.table = new DataTable('#datatable', datatable_config);
     const cell_edit = new CellEdit(ctx.table, table_config.template, cell_edit_changed_cb);
-
-
-    const __create_column_visibility_buttons = () => {
-        // Settings are locally stored
-        const column_visible_div = document.querySelector('.column-visible-div');
-        column_visible_div.innerHTML = "";
-        let column_visible_settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${ctx.table_config.view}`));
-        if (!column_visible_settings || column_visible_settings.length !== ctx.table_config.template.length) {
-            column_visible_settings = []
-            ctx.table_config.template.forEach((column, i) => {
-                column_visible_settings.push({data: column.data, visible: column.visible});
-            });
-            localStorage.setItem(`ColumnsVisible-${ctx.table_config.view}`, JSON.stringify(column_visible_settings));
-        }
-        // create the buttons on top of the page
-        column_visible_settings.forEach((column, i) => {
-            if (column.visible !== 'never') {
-                const config_column = config_columns_cache[column.data];
-                let a = document.createElement('p');
-                a.appendChild(document.createTextNode(`${config_column.name}`));
-                if ('tt' in config_column) {
-                    a.setAttribute("title", config_column.tt);
-                }
-                a.setAttribute("data-column", i);
-                a.setAttribute("class", column.visible === 'yes' ? "column-visible-a" : "column-invisible-a")
-                ctx.table.column(i).visible(column.visible === 'yes');
-                a.addEventListener('click', e => {
-                    e.preventDefault();
-                    let c = ctx.table.column(e.currentTarget.dataset['column']);
-                    c.visible(!c.visible());
-                    e.currentTarget.classList.toggle('column-invisible-a')
-                    e.currentTarget.classList.toggle('column-visible-a')
-                    column_visible_settings[e.currentTarget.dataset.column].visible = c.visible() ? 'yes' : 'no';
-                    localStorage.setItem(`ColumnsVisible-${ctx.table_config.view}`, JSON.stringify(column_visible_settings));
-                });
-                column_visible_div.appendChild(a);
-            }
-        });
-    }
+    const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-div'), table_config.template,
+        (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {

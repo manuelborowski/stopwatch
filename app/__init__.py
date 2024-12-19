@@ -14,8 +14,9 @@ from functools import wraps
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
 # 0.3: clean up.  Datatables to 2.1.8.  Replaced most document.ready in js to fix the order of invocation.  Updated cell_edit
 # 0.4: minor updates
+# 0.5: reworked column visibility
 
-version = "0.4"
+version = "0.5"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
