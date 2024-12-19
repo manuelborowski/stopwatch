@@ -19,7 +19,7 @@ body {
   padding: 0;
 }
 
-nav {
+body > nav {
   display: flex;
   background-color: #007bff;
   color: white;
@@ -87,4 +87,8 @@ footer {
   left: 0;
   width: 100%;
   z-index: 1000; /* Keep it above other content */
+}
+
+.column-visible-div {
+  margin-top: 10px;
 }

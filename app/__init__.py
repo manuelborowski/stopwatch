@@ -13,8 +13,9 @@ from functools import wraps
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
 # 0.3: clean up.  Datatables to 2.1.8.  Replaced most document.ready in js to fix the order of invocation.  Updated cell_edit
+# 0.4: minor updates
 
-version = "0.3"
+version = "0.4"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

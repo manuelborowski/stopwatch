@@ -1,14 +1,10 @@
 import {socketio} from "../common/socketio.js";
 import {busy_indication_off, busy_indication_on} from "../common/common.js";
+import {base_init} from "../base.js";
 
-var _form = null;
-$(document).ready(function () {
-    socketio.subscribe_on_receive("settings", socketio_settings_ack);
-    load_formio_form();
-});
+let _form = null;
 
-
-function load_formio_form() {
+const __formio_load_form = () => {
     Formio.createForm(document.getElementById('configuration-settings'), data.template, {submitMessage: "", disableAlerts: true, noAlerts: true}).then((form) => {
         _form = form
         var button_id; // hack to set the value of the button, which was just clicked, to false again.
@@ -19,7 +15,8 @@ function load_formio_form() {
             }
         }
         form.on('submit', function (submission) {
-            socketio_transmit_setting('data', JSON.stringify((submission.data)))
+            busy_indication_on();
+            socketio.send_to_server('settings', {setting: "data", value: JSON.stringify(submission.data)});
             _form.getComponentById(button_id).setValue(false);
         })
         form.on('submitButton', button => {
@@ -28,10 +25,10 @@ function load_formio_form() {
     });
 }
 
-function socketio_settings_ack(type, data) {
+const __socketio_settings_ack = (type, data) => {
     _form.emit('submitDone')
     // setTimeout(function() {$("#configuration-settings .alert").css("display", "none");}, 1000);
-    setTimeout(function () {
+    setTimeout(() => {
         document.querySelectorAll("[ref=buttonMessageContainer]").forEach(b => b.style.display = "none");
         document.querySelectorAll("[ref=button]").forEach(b => {
             b.classList.remove('btn-success');
@@ -41,8 +38,9 @@ function socketio_settings_ack(type, data) {
     busy_indication_off();
 }
 
-function socketio_transmit_setting(setting, value) {
-    busy_indication_on();
-    socketio.send_to_server('settings', {setting: setting, value: value});
-    return false;
-}
+$(document).ready(function () {
+    socketio.subscribe_on_receive("settings", __socketio_settings_ack);
+    __formio_load_form();
+    base_init();
+});
+
