@@ -1,10 +1,7 @@
-from flask import redirect, url_for, Blueprint, render_template
+from flask import Blueprint, render_template
 from flask_login import login_required
-from app import admin_required, data
-from app.application import user as muser
+from app import admin_required
 from app.data.datatables import DatatableConfig
-import app.data.user
-import app.application.user
 from app import data as dl, application as al
 from app.presentation.view import datatable_get_data
 
@@ -20,20 +17,26 @@ def show():
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("datatable-data", lambda type, data: datatable_get_data(table_configuration, data))
 
+def value_update(type, data):
+    user = dl.user.user_get(("id", "=", data["id"]))
+    dl.user.user_update(user, {data["column"]: data["value"]})
+
+# invoked when a single cell in the table is updated
+al.socketio.subscribe_on_type("cell-update", value_update)
+
 
 class UserConfig(DatatableConfig):
     def pre_sql_query(self):
-        return app.data.user.pre_sql_query()
+        return dl.user.pre_sql_query()
+
+    def pre_sql_filter(self, q, filters):
+        return dl.user.pre_sql_filter(q, filters)
 
     def pre_sql_search(self, search):
-        return data.user.pre_sql_search(search)
-
-    def pre_sql_order(self, q, on, direction):
-        return self.pre_sql_standard_order(q, on, direction)
+        return dl.user.pre_sql_search(search)
 
     def format_data(self, l, total_count, filtered_count):
-        return app.application.user.format_data(l, total_count, filtered_count)
-
+        return al.user.format_data(l, total_count, filtered_count)
 
 table_configuration = UserConfig("user", "Gebruikers")
 

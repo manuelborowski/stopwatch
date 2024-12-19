@@ -1,7 +1,5 @@
-from flask import request, jsonify
-from sqlalchemy import or_, desc
-import time, json, sys
-from app import data
+from sqlalchemy import or_
+import sys
 
 #logging on file level
 import logging
@@ -19,10 +17,10 @@ def datatable_get_data(table_config, parameters, paginate=True):
         template = table_config.template
         sql_query = table_config.pre_sql_query()
         total_count = sql_query.count()
-        filter = None
-        if 'filter' in parameters:
-            filter = json.loads(parameters['filter'])
-            sql_query = table_config.pre_sql_filter(sql_query, filter)
+        filters = None
+        if 'filters' in parameters:
+            filters = parameters['filters']
+            sql_query = table_config.pre_sql_filter(sql_query, filters)
 
         search_value = parameters['search']['value']
         if search_value:
@@ -68,8 +66,7 @@ def datatable_get_data(table_config, parameters, paginate=True):
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
         return {"status": False, "data": str(e)}
 
-    output = {'draw': str(int(parameters['draw'])), 'recordsTotal': str(total_count),
-              'recordsFiltered': str(filtered_count), 'data': formatted_data, 'show_info': table_config.show_info()}
+    output = {'draw': str(int(parameters['draw'])), 'recordsTotal': str(total_count), 'recordsFiltered': str(filtered_count), 'data': formatted_data}
     return {"status": True, "data": output}
 
 

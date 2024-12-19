@@ -1,26 +1,15 @@
-let busy_indicator = null;
-export function busy_indication_on() {
-    // document.querySelector(".busy-indicator").style.display = "block";
-    busy_indicator = document.createElement("div");
-    busy_indicator.classList.add(".busy-indicator");
-    document.querySelector("body").appendChild(busy_indicator);
-}
 
-export function busy_indication_off() {
-    // document.querySelector(".busy-indicator").style.display = "none";
-    if (busy_indicator !== null) busy_indicator.remove();
-    busy_indicator = null;
-}
 
 var menu = [
     ["user.show", "Gebruikers", 5],
+    ["settings.show", "Instellingen", 5],
 ]
 
 export const inject_menu = new_menu => {
     menu = new_menu;
 }
 
-$(document).ready(() => {
+export const base_init = () => {
     if (suppress_navbar) return;
 
     if (default_view) { // after login, go to default (= first) page
@@ -106,5 +95,5 @@ $(document).ready(() => {
         // upgrade_div.appendChild(upgade_btn);
         // navbar_element.appendChild(upgrade_div);
     }
-});
+}
 

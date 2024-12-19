@@ -115,6 +115,17 @@ def pre_sql_query():
     return db.session.query(User)
 
 
+def pre_sql_filter(query, filters):
+    for f in filters:
+        if f['id'] == 'user-type':
+            if f['value'] != 'all':
+                query = query.filter(User.user_type == f['value'])
+        if f['id'] == 'user-level':
+            if f['value'] != 'all':
+                query = query.filter(User.level == f['value'])
+    return query
+
+
 def pre_sql_search(search_string):
     search_constraints = []
     search_constraints.append(User.username.like(search_string))
@@ -122,5 +133,7 @@ def pre_sql_search(search_string):
     search_constraints.append(User.last_name.like(search_string))
     search_constraints.append(User.email.like(search_string))
     return search_constraints
+
+
 
 

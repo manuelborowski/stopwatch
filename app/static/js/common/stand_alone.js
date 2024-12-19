@@ -1,4 +1,4 @@
-import {busy_indication_off, busy_indication_on} from "../base.js";
+import {busy_indication_off, busy_indication_on} from "./common.js";
 
 export const start_sync = async () => {
     busy_indication_on();

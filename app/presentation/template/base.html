@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
           integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.min.css"/>
     <link rel='stylesheet' href='https://cdn.form.io/formiojs/formio.full.min.css'>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.form.io/formiojs/formio.form.min.css" crossorigin="anonymous">
@@ -26,11 +26,7 @@
             <img src="{{ url_for('static', filename='img/warning.png') }}" alt="" height="40">
             <img src="{{ url_for('static', filename='img/computer-repair.png') }}" alt="" height="40">
                 {% if current_user.is_authenticated %}
-                    <ul id="navbar">
-                    <li><a class="active" href="/user">Gebruikers1</a></li>
-                    <li><a href="/user">Gebruikers2</a></li>
-                    <li><a href="/user">Gebruikers3</a></li>
-                    </ul>
+                    <ul id="navbar"></ul>
                 {% endif %}
         </div>
         <a href="{{ url_for('auth.logout') }}"><button class="btn btn-success navbar-btn">Logout</button></a>&nbsp;&nbsp;
@@ -46,7 +42,7 @@
 {% block scripts %}
     {{ JSGlue.include() }}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
             crossorigin="anonymous"></script>
@@ -68,6 +64,7 @@
         import {socketio} from "../../static/js/common/socketio.js";
         socketio.init();
     </script>
+    <script type="module" src="/static/js/base.js"></script>
 
 {% endblock %}
 </body>

@@ -17,3 +17,13 @@ hr.divider-line {
     border-top: 10px solid #007bff;
     margin-bottom: 10px;
 }
+
+table.dataTable>tbody>tr>th,table.dataTable>tbody>tr>td {
+    padding: 0;
+}
+
+
+.celledit-input {
+    margin: 0;
+}
+

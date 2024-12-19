@@ -7,18 +7,16 @@ from flask_jsglue import JSGlue
 from flask_migrate import Migrate
 from werkzeug.routing import IntegerConverter
 from functools import wraps
-from flask_cors import CORS
 
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
+# 0.3: clean up.  Datatables to 2.1.8.  Replaced most document.ready in js to fix the order of invocation.  Updated cell_edit
 
-version = "0.2"
+version = "0.3"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
-CORS(app, origins=[r"https//cdn.datatables.net/*", r"https://cdn.form.io/*"])
-# CORS(app)
 
 #  enable logging
 top_log_handle = "LIS"
@@ -96,9 +94,10 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user
+from app.presentation.view import auth, api, user, settings
 app.register_blueprint(auth.auth)
 app.register_blueprint(api.api)
 app.register_blueprint(user.user)
+app.register_blueprint(settings.settings)
 
 

@@ -157,13 +157,3 @@ def set_json_template(key, data):
 
 def get_datatables_config(key):
     return get_configuration_setting(f'{key}-datatables-template')
-
-
-# Lines with # or empty lines are ignored
-def get_list(list_name):
-    out = []
-    settings_list = get_configuration_setting(list_name)
-    if settings_list != '':
-        settings_list = settings_list.split('\n')
-        out = [r.strip() for r in settings_list if '#' not in r and r !=""]
-    return out

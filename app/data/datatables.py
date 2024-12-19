@@ -12,7 +12,6 @@ class DatatableConfig:
     suppress_cell_content = None
     enable_column_visible_selector = True
     enable_persistent_filter_settings = True
-    default_order = [2, "asc"]
     socketio_endpoint = None
 
     def show_filter_elements(self):
@@ -21,14 +20,14 @@ class DatatableConfig:
     def pre_sql_query(self):
         return None
 
-    def pre_sql_filter(self, q, filter):
+    def pre_sql_filter(self, q, filters):
         return q
 
     def pre_sql_search(self, search):
         return None
 
     def pre_sql_order(self, q, on, direction):
-        return q
+        return q.order_by(desc(text(on))) if direction == 'desc' else q.order_by(text(on))
 
     def pre_sql_paginate(self, q, start, stop):
         return q.slice(start, stop)
@@ -48,31 +47,22 @@ class DatatableConfig:
     def post_sql_paginate(self, l, start, length):
         return l[start:length]
 
-    def show_info(self):
-        return []
-
-    def get_context_menu(self):
-        return {}
-
     @property
     def template(self):
         return get_datatables_config(self.view)
 
     def create_table_config(self):
         return {
-            "buttons": self.buttons,
             "href": self.href,
             "enable_column_visible_selector": self.enable_column_visible_selector,
             "enable_persistent_filter_settings": self.enable_persistent_filter_settings,
             "template": self.template,
             "filters": self.show_filter_elements(),
             "data": f"{self.view}.data",
-            "show_info": self.show_info(),
-            "context_menu": self.get_context_menu(),
             "cell_to_color": self.cell_to_color,
             "suppress_cell_content": self.suppress_cell_content,
-            "default_order": self.default_order,
             "title": self.title,
+            "view": self.view,
             "socketio_endpoint": self.socketio_endpoint
         }
 
