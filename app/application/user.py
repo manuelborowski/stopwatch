@@ -63,6 +63,7 @@ def format_data(db_list, total_count=None, filtered_count=None):
     for i in db_list:
         em = i.to_dict()
         em.update({"row_action": i.id, "DT_RowId": i.id})
+        if i.level == 5: em.update({"overwrite_row_color": "LemonChiffon"})
         out.append(em)
     return  total_count, filtered_count, out
 

@@ -31,20 +31,22 @@ function checkbox_is_at_least_one_selected() {
     return nbr_checked !== 0
 }
 
-export function checkbox_get_ids() {
-    const ids = Array.from(document.querySelectorAll(".chbx_all:checked")).map(c => c.value);
-    return ids;
-}
+export function checkbox_get_ids() {return Array.from(document.querySelectorAll(".chbx_all:checked")).map(c => c.value);}
 
 export function clear_checked_boxes() {
     $(".chbx_all").prop('checked', false);
     $("#select_all").prop('checked', false);
 }
 
-export function get_data_of_row(id) {
-    return ctx.table.row(`#${id}`).data();
+// If checkboxes are checked, return the ids of the selected rows
+// Else, return the id of row the mouse pointer is on.
+export const mouse_get_ids = mouse_event => {
+    let ids = checkbox_get_ids();
+    if (ids.length === 0) ids = [mouse_event.target.parentElement.id];
+    return ids;
 }
 
+export function get_data_of_row(id) {return ctx.table.row(`#${id}`).data();}
 
 export function update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
@@ -55,15 +57,6 @@ export function update_cell(row_id, column_name, value) {
 function reload_table() {
     ctx.table.ajax.reload();
 }
-
-// If checkboxes are checked, return the ids of the selected lines
-// Else, return the id of line the mouse pointer is on.
-export const mouse_get_ids = mouse_event => {
-    let ids = checkbox_get_ids();
-    if (ids.length === 0) ids = [mouse_event.target.parentElement.id];
-    return ids;
-}
-
 
 export const datatables_init = (context_menu_items, filter_menu_items) => {
     ctx = {table_config, popups, current_user_is_at_least_admin, reload_table}
@@ -77,6 +70,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     // when colums are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
     const __calc_column_shift = () => {
+        column_shifter = [];
         let shift = 0;
         for (let i = 0; i < ctx.table.columns().count(); i++) {
             if (ctx.table.column(i).visible()) {
@@ -93,19 +87,11 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
-    // data (column name) is key
-    let config_columns_cache = {};
-    $.each(ctx.table_config.template, function (i, v) {
-        v.idx = i
-        config_columns_cache[v.data] = v;
-    });
-
+    // BOROWSKI
     $.each(ctx.table_config.template, function (i, v) {
         //ellipsis
         if ("ellipsis" in v) {
-            let cutoff = v.ellipsis.cutoff;
-            let wordbreak = v.ellipsis.wordbreak;
-            v.render = return_render_ellipsis(cutoff, wordbreak, true);
+            v.render = return_render_ellipsis(v.ellipsis.cutoff, v.ellipsis.wordbreak, true);
         } else if ("bool" in v) {
             v.render = function (data, type, full, meta) {
                 return data === true ? `<input type="checkbox" checked disabled/>` : '';
@@ -117,10 +103,8 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     });
 
     // get data from server and send to datatables to render it
-    var datatable_data_cb = null;
-    const data_from_server = (type, data) => {
-        datatable_data_cb(data);
-    }
+    let __datatable_data_cb = null;
+    const data_from_server = (type, data) => __datatable_data_cb(data);
     socketio.subscribe_on_receive("datatable-data", data_from_server);
 
     let datatable_config = {
@@ -130,7 +114,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         stateDuration: 0,
         ajax: function (data, cb, settings) {
             socketio.send_to_server("datatable-data", $.extend({}, data, {'filters': filter_menu.filters}));
-            datatable_data_cb = cb;
+            __datatable_data_cb = cb;
         },
         pagingType: "full_numbers",
         columns: ctx.table_config.template,
@@ -144,10 +128,10 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         lengthMenu: [100, 500, 1000],
         pageLength: 500,
 
+        // BOROWSKI
         createdRow: function (row, data, dataIndex, cells) {
-            if (data.overwrite_row_color && data.overwrite_row_color !== "") {
-                $(row).attr("style", "background-color: " + data.overwrite_row_color + ";");
-            }
+            // in format_data, it is possible to tag a line with a different backgroundcolor
+            if (data.overwrite_row_color && data.overwrite_row_color !== "") $(row).attr("style", `background-color:${data.overwrite_row_color};`);
             if (data.overwrite_cell_color && data.overwrite_cell_color.length > 0) {
                 data.overwrite_cell_color.forEach(([cn, cc]) => {
                     const ci = column_name_to_index[cn];
@@ -171,6 +155,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         },
         preDrawCallback: function (settings) {
             busy_indication_on();
+            __calc_column_shift();
         },
 
         drawCallback: function (settings) {
@@ -199,11 +184,9 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
     const cell_edit = new CellEdit(ctx.table, table_config.template, cell_edit_changed_cb);
 
-    __calc_column_shift();
     // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
     // create a translation table to go from actual column index to the reduced (with invisible columns) column index
     ctx.table.on('column-visibility.dt', (e, settings, column, state) => __calc_column_shift());
-
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {

@@ -19,7 +19,6 @@ export class ColumnVisibility {
                 a.setAttribute("title", column.tt);
                 a.setAttribute("data-column", i);
                 a.setAttribute("class", column.visible === 'yes' ? "column-visible-a" : "column-invisible-a")
-                visibility_changed_cb(i, column.visible === 'yes');
                 a.addEventListener('click', e => {
                     e.preventDefault();
                     const column = e.currentTarget.dataset.column;
