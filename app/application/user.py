@@ -64,6 +64,7 @@ def format_data(db_list, total_count=None, filtered_count=None):
         em = i.to_dict()
         em.update({"row_action": i.id, "DT_RowId": i.id})
         if i.level == 5: em.update({"overwrite_row_color": "LemonChiffon"})
+        if i.user_type == dl.user.User.USER_TYPE.OAUTH: em.update({"overwrite_cell_color": {"user_type": "lightgreen"}})
         out.append(em)
     return  total_count, filtered_count, out
 

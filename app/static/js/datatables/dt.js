@@ -67,7 +67,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     context_menu.subscribe_get_ids(mouse_get_ids);
     const filter_menu = new FilterMenu(document.querySelector(".filter-menu"), filter_menu_items, reload_table, ctx.table_config.view);
 
-    // when colums are hidden, this array maps the real column index on the visible column index
+    // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
     const __calc_column_shift = () => {
         column_shifter = [];
@@ -87,7 +87,6 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
-    // BOROWSKI
     $.each(ctx.table_config.template, function (i, v) {
         //ellipsis
         if ("ellipsis" in v) {
@@ -128,15 +127,14 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         lengthMenu: [100, 500, 1000],
         pageLength: 500,
 
-        // BOROWSKI
         createdRow: function (row, data, dataIndex, cells) {
             // in format_data, it is possible to tag a line with a different backgroundcolor
             if (data.overwrite_row_color && data.overwrite_row_color !== "") $(row).attr("style", `background-color:${data.overwrite_row_color};`);
-            if (data.overwrite_cell_color && data.overwrite_cell_color.length > 0) {
-                data.overwrite_cell_color.forEach(([cn, cc]) => {
+            if (data.overwrite_cell_color) {
+                for (const [cn, cc] of Object.entries(data.overwrite_cell_color)) {
                     const ci = column_name_to_index[cn];
                     $(cells[ci]).attr("style", `background-color: ${cc};`);
-                })
+                }
             }
         },
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
@@ -182,7 +180,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     ctx.table = new DataTable('#datatable', datatable_config);
     const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-div'), table_config.template,
         (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
-    const cell_edit = new CellEdit(ctx.table, table_config.template, cell_edit_changed_cb);
+    const cell_edit = new CellEdit(ctx.table, table_config.template, __cell_edit_changed_cb);
 
     // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
     // create a translation table to go from actual column index to the reduced (with invisible columns) column index
@@ -192,25 +190,9 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         ctx.table.draw();
     });
 
-    function cell_edit_cb(type, data) {
-        if ("status" in data) {
-            if (data.status) {
-                ctx.table.ajax.reload();
-            }
-        } else if ("reload-table" in data) {
-            ctx.table.ajax.reload();
-        }
-    }
+    function update_cell_changed(data) {socketio.send_to_server("cell-update", data);}
 
-    if ('socketio_endpoint' in table_config) {
-        socketio.subscribe_on_receive(table_config.socketio_endpoint, cell_edit_cb);
-    }
-
-    function update_cell_changed(data) {
-        socketio.send_to_server("cell-update", data);
-    }
-
-    function cell_edit_changed_cb(cell, row, old_value) {
+    function __cell_edit_changed_cb(cell, row, old_value) {
         const column = cell.index().column;
         const value = ctx.table_config.template[column].celledit.value_type === 'int' ? parseInt(cell.data()) : cell.data();
         const column_name = ctx.table.column(column).dataSrc()
