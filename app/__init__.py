@@ -17,8 +17,9 @@ from functools import wraps
 # 0.5: reworked column visibility
 # 0.6: columns visibility, in rowCallback(), cells refer to the columns that are visible, so a mapping from real to visible colums must be made.
 # 0.7: fixed issue with column-visibility and local-store of datatable settings.
+# 0.8: ellipsis and variable column width
 
-version = "0.7"
+version = "0.8"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

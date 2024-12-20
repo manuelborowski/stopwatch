@@ -186,7 +186,11 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
 
     // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
     // create a translation table to go from actual column index to the reduced (with invisible columns) column index
-    ctx.table.on('column-visibility.dt', (e, settings, column, state) => __calc_column_shift());
+    // the table is redrawn because hiding/displaying columns has impact on columns with ellipses
+    ctx.table.on('column-visibility.dt', (e, settings, column, state) => {
+        __calc_column_shift();
+        ctx.table.draw();
+    });
 
     function cell_edit_cb(type, data) {
         if ("status" in data) {

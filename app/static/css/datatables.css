@@ -25,5 +25,6 @@ table.dataTable>tbody>tr>th,table.dataTable>tbody>tr>td {
 
 .celledit-input {
     margin: 0;
+    width: 100%;
 }
 
