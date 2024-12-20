@@ -19,8 +19,9 @@ from functools import wraps
 # 0.7: fixed issue with column-visibility and local-store of datatable settings.
 # 0.8: ellipsis and variable column width
 # 0.9: cleanup.  fixed cell- and row-backgroundcolor
+# 0.10: bugfixed cell_edit.  Introduced incident.
 
-version = "0.9"
+version = "0.10"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -100,10 +101,11 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings
+from app.presentation.view import auth, api, user, settings, incident
 app.register_blueprint(auth.auth)
 app.register_blueprint(api.api)
 app.register_blueprint(user.user)
 app.register_blueprint(settings.settings)
+app.register_blueprint(incident.incident)
 
 

@@ -1,6 +1,7 @@
 
 
 var menu = [
+    ["incident.show", "Incidenten", 1],
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
 ]

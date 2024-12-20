@@ -1,4 +1,4 @@
-__all__ = ["api", "auth", "user"]
+__all__ = ["api", "auth", "user", "incident"]
 
 import json
 from app import app, version, application as al
@@ -18,7 +18,7 @@ def send_alert_to_client(status, msg):
 def datatable_get_data(table_config, data):
     ret = al.datatables.datatable_get_data(table_config, data)
     if ret["status"]:
-        al.socketio.send_to_client({"type": "datatable-data", "data": ret["data"]})
+        al.socketio.send_to_client({"type": f"{table_config.view}-datatable-data", "data": ret["data"]})
         return json.dumps(ret["data"])
     else:
         send_alert_to_client("error", ret["msg"])

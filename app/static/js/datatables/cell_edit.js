@@ -34,22 +34,29 @@ export class CellEdit {
         this.settings = settings;
         const _this = this // is required when a function is used iso =>
         if (table != null) {
-            $(table.table().body()).on('click', 'td', function () {
-                const column_index = table.cell(this).index().column;
-                if ((settings.columns && settings.columns.indexOf(column_index) > -1) || (!settings.columns)) {
-                    const cell = table.cell(this).node();
+            $(table.table().body()).on('click', 'td', (e) => {
+                this.column_index = table.cell($(e.currentTarget)).index().column;
+                if ((settings.columns && settings.columns.indexOf(this.column_index) > -1) || (!settings.columns)) {
+                    const cell = table.cell($(e.currentTarget)).node();
                     //If the cell contains an input or select element, ignore additional mouseclicks
                     if (!$(cell).find('input').length && !$(cell).find('select').length) {
-                        const old_value = _this.sanitize_value(table.cell(this).data());
-                        _this.create_input_element(cell, column_index, old_value);
-                        $(cell).on("mouseleave", e => _this.cancel(cell));  // remove edit-element when mouse leaves element
+                        const old_value = _this.sanitize_value(table.cell($(e.currentTarget)).data());
+                        this.create_input_element(cell, this.column_index, old_value);
+                        // Following is a hack to make it work in chrome, edge and firefox.  If a cell is selected for editing, move the
+                        // mouse to a neighbouring column to cancel the edit.
+                        $(table.table().body()).on("mousemove", (e)  => {
+                                const td_element = e.target.tagName === "TD" ? e.target : e.target.parentNode;
+                                const ci = table.cell($(td_element)).index().column;
+                                console.log(`${ci}, ${this.column_index}`)
+                                if (this.column_index !== ci) _this.cancel(cell, old_value);
+                        });
                     }
                 }
             });
         }
     }
 
-    create_input_element(target_cell, column_index, old_value) {
+    create_input_element = (target_cell, column_index, old_value) => {
         const setting = this.settings.input_types.find(t => t.column === column_index) || null;
         const type = setting !== null ? setting.type.toLowerCase() : null;
         const css = this.settings.input_css || "";
@@ -58,7 +65,7 @@ export class CellEdit {
                 const select = $(`<select class="${css}"></select>`);
                 $.each(setting.options, function (index, option) {
                     const selected = old_value === option.value ? "selected" : "";
-                    const option_element = $(`<option value=${option.value} ${selected}>${option.display}</option>`);
+                    const option_element = $(`<option value=${option.value} ${selected} style="z-index: 1000">${option.display}</option>`);
                     select.append(option_element);
                 });
                 select.on("change", this.update);
@@ -69,7 +76,7 @@ export class CellEdit {
                 const input = $(`<input class="${css}" value="${old_value}">`);
                 input.on("keyup", e => {
                     if (e.keyCode === 13) this.update(e)
-                    else if (e.keyCode === 27) this.cancel(e)
+                    else if (e.keyCode === 27) this.cancel(target_cell, old_value)
                 });
                 $(target_cell).html(input);
                 input.focus();
@@ -89,18 +96,21 @@ export class CellEdit {
         // Get current page and redraw
         let page_index = this.table.page.info().page;
         this.table.page(page_index).draw(false);
+        $(this.table.table().body()).off("mousemove");
     }
 
-    cancel = event => {
-        let cell = this.table.cell($(event).parents('td, th'));
-        // Set cell to it's original value and redraw
-        cell.data(cell.data());
-        this.table.draw();
+    cancel = (cell, old_value) => {
+        const column_index = this.table.cell($(cell)).index().column;
+        if (column_index in this.select_options) old_value = this.select_options[column_index][old_value];
+        $(cell).html(old_value);
+        $(this.table.table().body()).off("mousemove");
     }
 
     sanitize_value(value) {
         if (typeof (value) === 'undefined' || value === null || value.length < 1) return "";
-        if (isNaN(value)) {/* escape single quote */ value = value.replace(/'/g, "&#39;");}
+        if (isNaN(value)) {/* escape single quote */
+            value = value.replace(/'/g, "&#39;");
+        }
         return value;
     }
 }

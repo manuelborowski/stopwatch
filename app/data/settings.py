@@ -89,9 +89,8 @@ default_configuration_settings = {
     'generic-new-via-smartschool-default-level': (1, Settings.SETTING_TYPE.E_INT),
     'generic-new-via-smartschool': (True, Settings.SETTING_TYPE.E_BOOL),
 
-    'user-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
-
-    'history-datatables-template': ({}, Settings.SETTING_TYPE.E_JSON),
+    'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'incident-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),

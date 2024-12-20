@@ -20,7 +20,7 @@ def show():
     cron_component["components"].append({"label": f'({nbr+1}) {module[2]}', "tooltip": module[3], "tableView": False, "defaultValue": enabled, "key": module[0], "type": "checkbox", "input": True})
   default_settings = dl.settings.get_configuration_settings(convert_to_string=True)
   data = {'default': default_settings, 'template': settings_formio}
-  return render_template('/settings/settings.html', data=data)
+  return render_template('settings.html', data=data)
 
 
 def update_settings_cb(type, data):
@@ -84,7 +84,7 @@ settings_formio = \
                     "saveOnEnter": false
                   },
                   {
-                    "label": "Lijst template (JSON)",
+                    "label": "Lijst template (YAML)",
                     "autoExpand": false,
                     "tableView": true,
                     "key": "user-datatables-template",
@@ -96,17 +96,18 @@ settings_formio = \
             ]
           },
           {
-            "label": "Studenten",
+            "label": "Incidenten",
             "tableView": false,
-            "key": "users1",
+            "validateWhenHidden": false,
+            "key": "incidents",
             "type": "container",
             "input": true,
             "components": [
               {
-                "title": "Studenten",
+                "title": "Incidenten",
                 "theme": "primary",
                 "collapsible": true,
-                "key": "gebruikers",
+                "key": "incidenten",
                 "type": "panel",
                 "label": "Algemeen",
                 "collapsed": true,
@@ -124,11 +125,12 @@ settings_formio = \
                     "saveOnEnter": false
                   },
                   {
-                    "label": "Lijst template (JSON)",
+                    "label": "Lijst template (YAML)",
                     "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
-                    "key": "student-datatables-template",
+                    "validateWhenHidden": false,
+                    "key": "incident-datatables-template",
                     "type": "textarea",
                     "input": true
                   }
@@ -165,7 +167,7 @@ settings_formio = \
                     "saveOnEnter": false
                   },
                   {
-                    "label": "Lijst template (JSON)",
+                    "label": "Lijst template (YAML)",
                     "autoExpand": false,
                     "tableView": true,
                     "key": "history-datatables-template",
@@ -508,7 +510,7 @@ settings_formio = \
                   },
                   {
                     "label": "API sleutels",
-                    "tooltip": "Een JSON lijst van sleutels",
+                    "tooltip": "Een YAML lijst van sleutels",
                     "autoExpand": false,
                     "tableView": true,
                     "key": "api-keys",

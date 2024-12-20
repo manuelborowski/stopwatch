@@ -59,7 +59,7 @@ function reload_table() {
 }
 
 export const datatables_init = (context_menu_items, filter_menu_items) => {
-    ctx = {table_config, popups, current_user_is_at_least_admin, reload_table}
+    ctx = {table_config, reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
 
@@ -104,7 +104,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     // get data from server and send to datatables to render it
     let __datatable_data_cb = null;
     const data_from_server = (type, data) => __datatable_data_cb(data);
-    socketio.subscribe_on_receive("datatable-data", data_from_server);
+    socketio.subscribe_on_receive(`${ctx.table_config.view}-datatable-data`, data_from_server);
 
     let datatable_config = {
         autoWidth: false,
@@ -112,7 +112,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
         stateSave: true,
         stateDuration: 0,
         ajax: function (data, cb, settings) {
-            socketio.send_to_server("datatable-data", $.extend({}, data, {'filters': filter_menu.filters}));
+            socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {'filters': filter_menu.filters}));
             __datatable_data_cb = cb;
         },
         pagingType: "full_numbers",
