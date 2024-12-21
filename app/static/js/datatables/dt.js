@@ -65,7 +65,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
 
     const context_menu = new ContextMenu(document.querySelector("#datatable"), context_menu_items);
     context_menu.subscribe_get_ids(mouse_get_ids);
-    const filter_menu = new FilterMenu(document.querySelector(".filter-menu"), filter_menu_items, reload_table, ctx.table_config.view);
+    const filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, reload_table, ctx.table_config.view);
 
     // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
@@ -178,7 +178,7 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     }
 
     ctx.table = new DataTable('#datatable', datatable_config);
-    const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-div'), table_config.template,
+    const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template,
         (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
     const cell_edit = new CellEdit(ctx.table, table_config.template, __cell_edit_changed_cb);
 

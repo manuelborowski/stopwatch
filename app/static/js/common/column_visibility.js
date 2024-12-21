@@ -5,7 +5,7 @@ export class ColumnVisibility {
         this.visibility_changed_cb = visibility_changed_cb;
         this.id = id;
         this.settings = []
-        placeholder.innerHTML = "";
+        placeholder.innerHTML = "Kolommen: &nbsp;";
         this.settings = JSON.parse(localStorage.getItem(`ColumnsVisible-${id}`));
         if (!this.settings || this.settings.length !== column_list.length) {
             this.settings = column_list.map(t => ({data: t.data, visible: t.visible, name: t.name, tt: t.tt || ""}))
@@ -36,6 +36,7 @@ export class ColumnVisibility {
                     localStorage.setItem(`ColumnsVisible-${id}`, JSON.stringify(this.settings));
                 });
                 placeholder.appendChild(a);
+                placeholder.style.display = "flex";
             }
         });
     }

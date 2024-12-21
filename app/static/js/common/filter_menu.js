@@ -6,7 +6,7 @@ export class FilterMenu {
         if (menu.length > 0) {
             for (const item of menu) {
                 const form_group = document.createElement("div");
-                form_group.classList.add(".form-group");
+                form_group.classList.add(".filter-form-group");
                 const label = document.createElement("label");
                 form_group.appendChild(label);
                 label.classList.add("control-label")
@@ -15,7 +15,7 @@ export class FilterMenu {
                 if (item.type === "select") {
                     const select = document.createElement("select");
                     form_group.appendChild(select);
-                    select.classList.add("form-control", "table-filter");
+                    select.classList.add("filter-form-control", "table-filter");
                     select.addEventListener("change", () => {
                         this.store_settings();
                         changed_cb();

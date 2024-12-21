@@ -20,8 +20,9 @@ from functools import wraps
 # 0.8: ellipsis and variable column width
 # 0.9: cleanup.  fixed cell- and row-backgroundcolor
 # 0.10: bugfixed cell_edit.  Introduced incident.
+# 0.11: moved filter and column menu into navbar
 
-version = "0.10"
+version = "0.11"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

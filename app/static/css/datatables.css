@@ -1,18 +1,3 @@
-.column-invisible-a {
-    border-color: orange;
-}
-
-.column-visible-a {
-    border-color: #007bff;
-}
-
-.column-visible-div p {
-    border-style: solid;
-    border-radius: 1rem;
-    padding: 0.2rem;
-    margin-bottom: 0;
-}
-
 hr.divider-line {
     border-top: 10px solid #007bff;
     margin-bottom: 10px;
