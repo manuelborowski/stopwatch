@@ -17,10 +17,10 @@ def user_add(data):
         user = dl.user.user_add(data)
         data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
         log.info(f"Add user: {data}")
-        return {"status": "ok", "data": f"Gebruiker, {user.username} toegevoegd."}
+        return {"status": "ok", "msg": f"Gebruiker, {user.username} toegevoegd."}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": "error", "data": str(e)}
+        return {"status": "error", "msg": str(e)}
 
 
 def user_update(data):
@@ -32,8 +32,8 @@ def user_update(data):
             if user:
                 data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
                 log.info(f"Update user: {data}")
-                return {"status": "ok", "data": f"Gebruiker, {user.username} aangepast."}
-        return {"status": "warning", "data": f"Gebruiker met id {data['id']} bestaat niet"}
+                return {"status": "ok", "msg": f"Gebruiker, {user.username} aangepast."}
+        return {"status": "warning", "msg": f"Gebruiker met id {data['id']} bestaat niet"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "data": str(e)}
@@ -42,19 +42,19 @@ def user_update(data):
 def user_delete(data):
     try:
         dl.user.user_delete(data)
-        return {"status": "ok", "data": "Gebruikers zijn verwijderd"}
+        return {"status": "ok", "msg": "Gebruikers zijn verwijderd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": "error", "data": str(e)}
+        return {"status": "error", "msg": str(e)}
 
 
 def user_get(data):
     try:
         user = dl.user.user_get(('id', "=", data['id']))
-        return {"status": True, "data": user.to_dict()}
+        return {"data": user.to_dict()}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
-        return {"status": False, "data": {str(e)}}
+        return {"status": False, "msg": {str(e)}}
 
 
 ############ user overview list #########

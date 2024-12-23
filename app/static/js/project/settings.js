@@ -41,6 +41,6 @@ const __socketio_settings_ack = (type, data) => {
 $(document).ready(function () {
     socketio.subscribe_on_receive("settings", __socketio_settings_ack);
     __formio_load_form();
-    base_init();
+    base_init({});
 });
 

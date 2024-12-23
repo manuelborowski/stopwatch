@@ -1,4 +1,4 @@
-
+import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
     ["incident.show", "Incidenten", 1],
@@ -10,7 +10,7 @@ export const inject_menu = new_menu => {
     menu = new_menu;
 }
 
-export const base_init = () => {
+export const base_init = ({button_menu_items=[]}) => {
     if (suppress_navbar) return;
 
     if (default_view) { // after login, go to default (= first) page
@@ -96,5 +96,7 @@ export const base_init = () => {
         // upgrade_div.appendChild(upgade_btn);
         // navbar_element.appendChild(upgrade_div);
     }
+
+    const button_menu = new ButtonMenu(document.querySelector(".button-menu-placeholder"), button_menu_items);
 }
 

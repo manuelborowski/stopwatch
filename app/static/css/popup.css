@@ -23,3 +23,16 @@
   max-width: 90%; /* Prevent overflow on smaller screens */
   text-align: center;
 }
+
+.timed-popup-error .modal-content {
+  border-width: 5px;
+  border-color: red;
+}
+.timed-popup-warning .modal-content {
+  border-width: 5px;
+  border-color: orange;
+}
+.timed-popup-ok .modal-content {
+  border-width: 5px;
+  border-color: green;
+}

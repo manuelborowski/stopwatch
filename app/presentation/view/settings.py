@@ -215,21 +215,12 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Exporteer leerling rekening",
-                    "applyMaskOn": "change",
-                    "autoExpand": false,
-                    "tableView": true,
-                    "key": "popup-export-student-balance",
-                    "type": "textarea",
-                    "input": true
-                  },
-                  {
-                    "label": "Exporteer registraties",
+                    "label": "Nieuw incident / incident aanpassen",
                     "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
                     "validateWhenHidden": false,
-                    "key": "popup-export-registrations",
+                    "key": "popup-new-update-incident",
                     "type": "textarea",
                     "input": true
                   }
@@ -440,10 +431,52 @@ settings_formio = \
             ]
           },
           {
+            "label": "LIS badges",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "lisbadges",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "LIS badges",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "lis-badges",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Laptop Incident Systeem - badge numbers naar RFID code",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "lis-badge-rfid",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "label": "smartschool",
             "tableView": false,
             "validateWhenHidden": false,
-            "key": "smartschool",
+            "key": "smartschool1",
             "type": "container",
             "input": true,
             "components": [

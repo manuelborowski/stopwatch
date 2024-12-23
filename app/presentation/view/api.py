@@ -1,10 +1,9 @@
 from flask import request, Blueprint
-# from app.application import user as muser, settings as msettings, registration as mregistration
-# from app.application import socketio as msocketio, location as mlocation, update as mupdate, balance as mbalance, student as mstudent
 from app import log
 import json, sys, html
 from functools import wraps
 from app import application as al
+from . import popup_assemble
 
 api = Blueprint('api', __name__)
 
@@ -85,5 +84,12 @@ def user_delete(**kwargs):
 def user_get(**kwargs):
     options = request.args
     ret = al.user.user_get(options)
+    return(json.dumps(ret))
+
+@api.route('/api/popup/get', methods=['GET'])
+@admin_key_required
+def popup_get(**kwargs):
+    data = request.args
+    ret = popup_assemble(data)
     return(json.dumps(ret))
 

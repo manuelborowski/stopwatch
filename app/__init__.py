@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from flask_jsglue import JSGlue
 from flask_migrate import Migrate
+from flask_apscheduler import APScheduler
 from werkzeug.routing import IntegerConverter
 from functools import wraps
 
@@ -21,8 +22,10 @@ from functools import wraps
 # 0.9: cleanup.  fixed cell- and row-backgroundcolor
 # 0.10: bugfixed cell_edit.  Introduced incident.
 # 0.11: moved filter and column menu into navbar
+# 0.12: added students-table and sync from SDH.  When client fetches, return inband message.  Added cron.  Formio-templates/defaults are fetched iso hard-inserted in HTML.
+# Updated incidents.  Placed filters and column-visibility into navbar.  Added buttons in navbar.
 
-version = "0.11"
+version = "0.12"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -80,6 +83,10 @@ def create_admin():
 
 create_admin()
 
+SCHEDULER_API_ENABLED = True
+ap_scheduler = APScheduler()
+ap_scheduler.init_app(app)
+ap_scheduler.start()
 
 # decorator to grant access to admins only
 def admin_required(func):

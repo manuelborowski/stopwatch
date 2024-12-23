@@ -88,8 +88,8 @@ export class CellEdit {
 
     // event points to the element inside the cell, e.g. select
     update = event => {
-        const row = this.table.row(event.currentTarget.parentNode.parentNode) // parentNode.parentNode: tr element
-        const cell = this.table.cell(event.currentTarget.parentNode) // parentNode: td element
+        const row = this.table.row(event.currentTarget.closest("tr")); // parentNode.parentNode: tr element
+        const cell = this.table.cell(event.currentTarget.closest("td")); // parentNode: td element
         const old_value = cell.data();
         cell.data(event.currentTarget.value);
         this.settings.update_cb(cell, row, old_value);

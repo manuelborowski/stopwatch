@@ -1,6 +1,6 @@
 import {return_render_ellipsis} from "./ellipsis.js";
 import {socketio} from "../common/socketio.js";
-import {TimedPopup} from "../common/popup.js";
+import {AlertPopup} from "../common/popup.js";
 import {busy_indication_off, busy_indication_on} from "../common/common.js";
 import {base_init} from "../base.js";
 import {ContextMenu} from "../common/context_menu.js";
@@ -17,7 +17,7 @@ function checkbox_is_exactly_one_selected() {
     $(".chbx_all").each(function () {
         if (this.checked) nbr_checked++;
     });
-    if (nbr_checked !== 1) new TimedPopup("warning", "U moet minstens één lijn selecteren")
+    if (nbr_checked !== 1) new AlertPopup("warning", "U moet minstens één lijn selecteren")
     return nbr_checked === 1
 }
 
@@ -27,7 +27,7 @@ function checkbox_is_at_least_one_selected() {
     $(".chbx_all").each(function () {
         if (this.checked) nbr_checked++;
     });
-    if (nbr_checked === 0) new TimedPopup("warning", "U hebt niets geselecteerd, probeer nogmaals");
+    if (nbr_checked === 0) new AlertPopup("warning", "U hebt niets geselecteerd, probeer nogmaals");
     return nbr_checked !== 0
 }
 
@@ -42,7 +42,7 @@ export function clear_checked_boxes() {
 // Else, return the id of row the mouse pointer is on.
 export const mouse_get_ids = mouse_event => {
     let ids = checkbox_get_ids();
-    if (ids.length === 0) ids = [mouse_event.target.parentElement.id];
+    if (ids.length === 0) ids = [mouse_event.target.closest("tr").id];
     return ids;
 }
 
@@ -58,7 +58,7 @@ function reload_table() {
     ctx.table.ajax.reload();
 }
 
-export const datatables_init = (context_menu_items, filter_menu_items) => {
+export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[]}) => {
     ctx = {table_config, reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
@@ -279,6 +279,6 @@ export const datatables_init = (context_menu_items, filter_menu_items) => {
     $("#select_all").change(function () {
         $(".chbx_all").prop('checked', this.checked);
     });
-    base_init();
+    base_init({button_menu_items});
 }
 

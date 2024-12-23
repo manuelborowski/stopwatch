@@ -1,9 +1,15 @@
 __all__ = ["api", "auth", "user", "incident"]
 
-import json
-from app import app, version, application as al
+import json, sys
+from app import app, version, application as al, data as dl
 from flask_login import current_user
 from app import application as al
+
+#logging on file level
+import logging
+from app import MyLogFilter, top_log_handle, app
+log = logging.getLogger(f"{top_log_handle}.{__name__}")
+log.addFilter(MyLogFilter())
 
 @app.context_processor
 def inject_defaults():
@@ -24,3 +30,29 @@ def datatable_get_data(table_config, data):
         send_alert_to_client("error", ret["msg"])
         return "[]"
 
+# use only in context of a fetch call
+def fetch_return_error(msg):
+    return {"status": "error", "msg": msg}
+
+# called in the context of a fetch call
+def popup_assemble(data):
+    try:
+        if "id" in data:
+            template = dl.settings.get_configuration_setting(data["id"])
+            defaults = {}
+            if data["id"] == "popup-new-update-incident":
+                students = dl.student.student_get_m()
+                student_data = [{"label": f"{s.naam} {s.voornaam} {s.klasgroep}", "data": s.id} for s in students]
+                defaults = {"owner-name-id": student_data}
+            elif data["id"] == "popup-new-update-user":
+                if "user_id" in data:
+                    user = dl.user.user_get(("id", "=", data["user_id"]))
+                    defaults = {"user": user.to_dict()}
+            return {"template": template, "defaults": defaults}
+        return fetch_return_error(f"id was not specified")
+    except KeyError as e:
+        log.error(f'{sys._getframe().f_code.co_name}: Keyerror, popup-id not found, {e}')
+        return fetch_return_error(f'Keyerror, popup-id not found, {e}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
+        return fetch_return_error(f'Exception, {e}')

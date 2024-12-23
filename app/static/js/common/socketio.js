@@ -1,6 +1,6 @@
 import "https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
 
-import {TimedPopup} from "./popup.js";
+import {AlertPopup} from "./popup.js";
 
 class Socketio {
     receive_cbs = {}
@@ -17,7 +17,7 @@ class Socketio {
             }
             if (cb) cb();
         });
-        this.subscribe_on_receive("alert-popup", (type, data) => new TimedPopup(data.status, data.data));
+        this.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup(data.status, data.data));
     }
 
     send_to_server(type, data) {

@@ -104,6 +104,9 @@ default_configuration_settings = {
     'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
 
     'popup-new-update-user': ({}, Settings.SETTING_TYPE.E_JSON),
+    'popup-new-update-incident': ({}, Settings.SETTING_TYPE.E_JSON),
+
+    'lis-badge-rfid': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
 }

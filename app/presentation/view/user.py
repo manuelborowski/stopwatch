@@ -11,8 +11,7 @@ user = Blueprint('user', __name__)
 @admin_required
 @login_required
 def show():
-    popups = {"user_password_form": dl.settings.get_configuration_setting("popup-new-update-user")}
-    return render_template("user.html", table_config=table_configuration.create_table_config(), popups=popups)
+    return render_template("user.html", table_config=table_configuration.create_table_config())
 
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("user-datatable-data", lambda type, data: datatable_get_data(table_configuration, data))
