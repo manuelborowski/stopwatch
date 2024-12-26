@@ -86,6 +86,13 @@ def user_get(**kwargs):
     ret = al.user.user_get(options)
     return(json.dumps(ret))
 
+@api.route('/api/student/get', methods=['GET'])
+@admin_key_required
+def student_get(**kwargs):
+    options = request.args
+    ret = al.student.student_get(options)
+    return(json.dumps(ret))
+
 @api.route('/api/popup/get', methods=['GET'])
 @admin_key_required
 def popup_get(**kwargs):

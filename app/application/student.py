@@ -9,6 +9,27 @@ log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 
+def student_get(data):
+    try:
+        filter = None
+        if "id" in data:
+            filter = ("id", "=", data['id'])
+        if "rfid" in data:
+            filter = ("rfid", "=", data['rfid'])
+        if filter:
+            student = dl.student.student_get(filter)
+            if student:
+                return {"data": student.to_dict()}
+            else:
+                return {"status": "error", "msg": f"Student not found, filter {filter}"}
+        else:
+            return {"status": "error", "msg": f"No valid data {data}"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
+        return {"status": "error", "msg": {str(e)}}
+
+######################### CRON HANDLERS ##################################
+
 def student_cron_load_from_sdh(opaque=None, **kwargs):
     log.info(f"{sys._getframe().f_code.co_name}, START")
     updated_students = []

@@ -24,8 +24,9 @@ from functools import wraps
 # 0.11: moved filter and column menu into navbar
 # 0.12: added students-table and sync from SDH.  When client fetches, return inband message.  Added cron.  Formio-templates/defaults are fetched iso hard-inserted in HTML.
 # Updated incidents.  Placed filters and column-visibility into navbar.  Added buttons in navbar.
+# 0.13: added fetch to entra to get laptopinfo.  Incident, added code to get the laptops of a selected student.
 
-version = "0.12"
+version = "0.13"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -115,5 +116,3 @@ app.register_blueprint(api.api)
 app.register_blueprint(user.user)
 app.register_blueprint(settings.settings)
 app.register_blueprint(incident.incident)
-
-

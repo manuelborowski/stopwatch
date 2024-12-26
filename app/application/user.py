@@ -50,11 +50,22 @@ def user_delete(data):
 
 def user_get(data):
     try:
-        user = dl.user.user_get(('id', "=", data['id']))
-        return {"data": user.to_dict()}
+        filter = None
+        if "id" in data:
+            filter = ("id", "=", data['id'])
+        if "rfid" in data:
+            filter = ("rfid", "=", data['rfid'])
+        if filter:
+            user = dl.user.user_get(filter)
+            if user:
+                return {"data": user.to_dict()}
+            else:
+                return {"status": "error", "msg": f"User not found, filter {filter}"}
+        else:
+            return {"status": "error", "msg": f"No valid data {data}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
-        return {"status": False, "msg": {str(e)}}
+        return {"status": "error", "msg": {str(e)}}
 
 
 ############ user overview list #########

@@ -2,6 +2,7 @@
 // the popup disappears after a delay (5s) or when clicked next to the popup
 export class AlertPopup {
     timer_id = null;
+
     constructor(status = "ok", msg, delay = 5000) {
         if (this.timer_id !== null) clearTimeout(timer.timer_id);
         this.timer_id = setTimeout(() => bootbox.hideAll(), delay);
@@ -46,16 +47,16 @@ export class FormioPopup {
                 cb('submit', opaque, submitted.data);
                 overlay.remove()
             });
-            this.formio_handle.on('cancel', () => {
+            this.formio_handle.on('cancel', async () => {
                 cb('cancel', opaque)
                 overlay.remove()
             });
-            this.formio_handle.on('clear', () => {
+            this.formio_handle.on('clear', async () => {
                 cb('clear', opaque)
                 overlay.remove()
             });
             for (const event of events) {
-                this.formio_handle.on(event, () => cb(event, opaque));
+                this.formio_handle.on(event, data => cb(event, opaque, data));
             }
         }
         return true
@@ -65,4 +66,34 @@ export class FormioPopup {
         const c = this.formio_handle.getComponent(key)
         if (c !== undefined && c !== null) c.setValue(value);
     }
+
+    get_value = (key) => {
+        const c = this.formio_handle.getComponent(key)
+        if (c !== undefined && c !== null) return c.getValue();
+    }
+
+    // I have no clue how to set the options and default value of a select component.  Below is the result of trial and error
+    set_options = (key, options, default_value = null) => {
+        const c = this.formio_handle.getComponent(key)
+        if (c !== undefined && c !== null) {
+            // c.setItems(options)
+            // c.component.data.values = options;
+            c.component.data.json = options;
+            // c.selectOptions = options.map(({value, label}) => ({value, label: `<span>${label}</span>`}));
+            // c.selectItems = options;
+            // c.templateData = {}
+            // c.defaultDownloadedResources = []
+            // if (default_value) c.setValue(default_value);
+            // c.component.data.selectOptions = c.component.data.selectItems;
+            // setTimeout(() => {
+            //     if (default_value) c.component.defaultValue = default_value;
+            //     if (default_value) c.component.value = default_value;
+            //     c.redraw();
+            // }, 500);
+            c.redraw();
+            // if (default_value) c.setValue(default_value);
+            // this.formio_handle.redraw();
+        }
+    }
+
 }

@@ -21,9 +21,9 @@ def get_lis_badge_id():
     code = request.args.get('code').lower()
     lis_rfids = dl.settings.get_configuration_setting("lis-badge-rfid")
     if code in lis_rfids:
-        ret = {"status": True, "data": lis_rfids[code]}
+        ret = {"data": lis_rfids[code]}
     else:
-        ret = {"status": False, "data": "RFID code is niet gevonden in database"}
+        ret = {"status": "warning", "msg": f"RFID code, {code.upper()} is niet gevonden in database"}
     return json.dumps(ret)
 
 

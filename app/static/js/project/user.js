@@ -1,15 +1,15 @@
 import {FormioPopup} from "../common/popup.js"
 import {ctx, datatables_init} from "../datatables/dt.js";
-import {api_post, api_get} from "../common/common.js";
+import {fetch_post, fetch_get} from "../common/common.js";
 
 const __user_add = async (ids) => {
-    const user_popup = await api_get("popup_get", {id: "popup-new-update-user"})
+    const user_popup = await fetch_get("api.popup_get", {id: "popup-new-update-user"})
     if (user_popup) {
         new FormioPopup().init({
             template: user_popup.template,
             cb: async (action, opaque, data = null) => {
                 if (action === 'submit') {
-                    await api_post("user_add", data);
+                    await fetch_post("api.user_add", data);
                     ctx.reload_table();
                 }
             },
@@ -19,13 +19,13 @@ const __user_add = async (ids) => {
 }
 
 const __user_update = async (ids) => {
-    const user_popup = await api_get("popup_get", {id: "popup-new-update-user", "user_id": ids[0]})
+    const user_popup = await fetch_get("api.popup_get", {id: "popup-new-update-user", "user_id": ids[0]})
     if (user_popup) {
          new FormioPopup().init({
             template: user_popup.template,
             cb: async (action, opaque, data = null) => {
                 if (action === 'submit') {
-                    await api_post("user_update", data);
+                    await fetch_post("api.user_update", data);
                     ctx.reload_table();
                 }
             },
@@ -37,7 +37,7 @@ const __user_update = async (ids) => {
 const __users_delete = async (ids) => {
     bootbox.confirm("Wilt u deze gebruiker(s) verwijderen?", async result => {
         if (result) {
-            await api_post("user_delete", ids)
+            await fetch_post("api.user_delete", ids)
             ctx.reload_table();
         }
     });

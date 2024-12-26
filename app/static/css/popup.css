@@ -1,38 +1,45 @@
 /* Fullscreen overlay */
 .overlay {
-  position: fixed; /* Ensure it stays on top and covers the viewport */
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  display: flex; /* Use flexbox for centering */
-  justify-content: center; /* Horizontally center */
-  align-items: center; /* Vertically center */
-  z-index: 1000; /* Ensure it sits above other elements */
+    position: fixed; /* Ensure it stays on top and covers the viewport */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+    z-index: 1000; /* Ensure it sits above other elements */
 }
 
 /* Popup content */
 .popup {
-  background-color: #fff; /* White background for the popup */
-  padding: 20px; /* Add some padding */
-  border-radius: 8px; /* Rounded corners */
-  border-style: solid;
-  border-width: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-  max-width: 90%; /* Prevent overflow on smaller screens */
-  text-align: center;
+    background-color: #fff; /* White background for the popup */
+    padding: 20px; /* Add some padding */
+    border-radius: 8px; /* Rounded corners */
+    border-style: solid;
+    border-width: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    max-width: 90%; /* Prevent overflow on smaller screens */
+    text-align: center;
 }
 
 .timed-popup-error .modal-content {
-  border-width: 5px;
-  border-color: red;
+    border-width: 5px;
+    border-color: red;
 }
+
 .timed-popup-warning .modal-content {
-  border-width: 5px;
-  border-color: orange;
+    border-width: 5px;
+    border-color: orange;
 }
+
 .timed-popup-ok .modal-content {
-  border-width: 5px;
-  border-color: green;
+    border-width: 5px;
+    border-color: green;
+}
+
+.formio-component-table td, th {
+    padding: 0;
+    padding-right: 20px;
 }

@@ -5,6 +5,7 @@ hr.divider-line {
 
 table.dataTable>tbody>tr>th,table.dataTable>tbody>tr>td {
     padding: 0;
+    border: 1px solid black;
 }
 
 

@@ -35,20 +35,22 @@ def fetch_return_error(msg):
     return {"status": "error", "msg": msg}
 
 # called in the context of a fetch call
-def popup_assemble(data):
+def popup_assemble(params):
     try:
-        if "id" in data:
-            template = dl.settings.get_configuration_setting(data["id"])
+        if "id" in params:
+            template = dl.settings.get_configuration_setting(params["id"])
             defaults = {}
-            if data["id"] == "popup-new-update-incident":
+            optional = {}
+            if params["id"] == "popup-new-update-incident":
                 students = dl.student.student_get_m()
-                student_data = [{"label": f"{s.naam} {s.voornaam} {s.klasgroep}", "data": s.id} for s in students]
+                student_data = sorted([{"label": f"{s.naam} {s.voornaam} {s.klasgroep}", "data": s.leerlingnummer} for s in students], key=lambda x: x["label"])
                 defaults = {"owner-name-id": student_data}
-            elif data["id"] == "popup-new-update-user":
-                if "user_id" in data:
-                    user = dl.user.user_get(("id", "=", data["user_id"]))
+                optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
+            elif params["id"] == "popup-new-update-user":
+                if "user_id" in params:
+                    user = dl.user.user_get(("id", "=", params["user_id"]))
                     defaults = {"user": user.to_dict()}
-            return {"template": template, "defaults": defaults}
+            return {"template": template, "defaults": defaults, "data": optional}
         return fetch_return_error(f"id was not specified")
     except KeyError as e:
         log.error(f'{sys._getframe().f_code.co_name}: Keyerror, popup-id not found, {e}')
