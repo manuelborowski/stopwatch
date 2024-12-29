@@ -1,8 +1,14 @@
 from email.policy import default
-
 from app import db
 from sqlalchemy_serializer import SerializerMixin
 from app import data as dl
+
+#logging on file level
+import logging, sys
+from app import MyLogFilter, top_log_handle, app
+log = logging.getLogger(f"{top_log_handle}.{__name__}")
+log.addFilter(MyLogFilter())
+
 
 class Incident(db.Model, SerializerMixin):
     __tablename__ = 'incidents'
@@ -12,12 +18,21 @@ class Incident(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     lis_badge_id = db.Column(db.Integer, default=-1)
-    owner = db.Column(db.String(256), default=None)
-    laptop = db.Column(db.String(256), default=None)
-    info = db.Column(db.String(256), default=None)
-    spare_laptop = db.Column(db.String(256), default=None)
+    owner_name = db.Column(db.String(256), default=None)
+    owner_id = db.Column(db.String(256), default=None)
+    laptop_type = db.Column(db.String(256), default=None)
+    laptop_name = db.Column(db.String(256), default=None)
+    laptop_serial = db.Column(db.String(256), default=None)
+    spare_laptop_name = db.Column(db.String(256), default=None)
+    spare_laptop_serial = db.Column(db.String(256), default=None)
     charger = db.Column(db.String(256), default=None)
+    info = db.Column(db.String(256), default=None)
     type = db.Column(db.String(256), default=None)
+    drop_damage = db.Column(db.Boolean, default=False)
+    water_damage = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(256), default=None)
+    location = db.Column(db.String(256), default=None)
+    time = db.Column(db.DateTime, default=None)
 
 
 class History(db.Model, SerializerMixin):
@@ -30,6 +45,8 @@ class History(db.Model, SerializerMixin):
     incident_id = db.Column(db.Integer)
     info = db.Column(db.String(256), default=None)
     type = db.Column(db.String(256), default=None)
+    drop_damage = db.Column(db.Boolean, default=False)
+    water_damage = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
@@ -55,6 +72,15 @@ def incident_delete(ids=None):
     return dl.models.delete_multiple(Incident, ids=ids)
 
 
+def commit():
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+
 ############ incident overview list #########
 def filter(query_in):
     return query_in
@@ -75,8 +101,8 @@ def pre_sql_search(search_string):
     search_constraints = []
     search_constraints.append(Incident.id.like(search_string))
     search_constraints.append(Incident.lis_badge_id.like(search_string))
-    search_constraints.append(Incident.owner.like(search_string))
-    search_constraints.append(Incident.laptop.like(search_string))
+    search_constraints.append(Incident.owner_name.like(search_string))
+    search_constraints.append(Incident.laptop_name.like(search_string))
     return search_constraints
 
 

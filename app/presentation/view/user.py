@@ -5,9 +5,9 @@ from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
 from app.presentation.view import datatable_get_data
 
-user = Blueprint('user', __name__)
+bp_user = Blueprint('user', __name__)
 
-@user.route('/user', methods=['GET', 'POST'])
+@bp_user.route('/user', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():

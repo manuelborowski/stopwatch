@@ -1,7 +1,17 @@
 import {AlertPopup} from "./popup.js";
 
 export const fetch_post = async (endpoint, body) => {
-    const response = await fetch(Flask.url_for(`api.${endpoint}`), {headers: {'x-api-key': api_key,}, method: 'POST', body: JSON.stringify(body),});
+    const response = await fetch(Flask.url_for(endpoint), {headers: {'x-api-key': api_key,}, method: 'POST', body: JSON.stringify(body),});
+    const data = await response.json();
+    if ("status" in data) {
+        new AlertPopup(data.status, data.msg);
+        return null;
+    }
+    return data
+}
+
+export const fetch_update = async (endpoint, body) => {
+    const response = await fetch(Flask.url_for(endpoint), {headers: {'x-api-key': api_key,}, method: 'UPDATE', body: JSON.stringify(body),});
     const data = await response.json();
     if ("status" in data) {
         new AlertPopup(data.status, data.msg);

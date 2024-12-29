@@ -46,7 +46,7 @@ export const mouse_get_ids = mouse_event => {
     return ids;
 }
 
-export function get_data_of_row(id) {return ctx.table.row(`#${id}`).data();}
+export function datatable_row_data_get(id) {return ctx.table.row(`#${id}`).data();}
 
 export function update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
@@ -54,18 +54,18 @@ export function update_cell(row_id, column_name, value) {
     ctx.table.cell(row_idx, column_idx).data(value);
 }
 
-function reload_table() {
+export function datatable_reload_table() {
     ctx.table.ajax.reload();
 }
 
 export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[]}) => {
-    ctx = {table_config, reload_table}
+    ctx = {table_config, reload_table: datatable_reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
 
     const context_menu = new ContextMenu(document.querySelector("#datatable"), context_menu_items);
     context_menu.subscribe_get_ids(mouse_get_ids);
-    const filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, reload_table, ctx.table_config.view);
+    const filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, datatable_reload_table, ctx.table_config.view);
 
     // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
@@ -126,7 +126,6 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         },
         lengthMenu: [100, 500, 1000],
         pageLength: 500,
-
         createdRow: function (row, data, dataIndex, cells) {
             // in format_data, it is possible to tag a line with a different backgroundcolor
             if (data.overwrite_row_color && data.overwrite_row_color !== "") $(row).attr("style", `background-color:${data.overwrite_row_color};`);
@@ -177,6 +176,8 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         $("#datatable").attr("width", table_config.width);
     }
 
+    DataTable.type('num', 'className', 'dt-left');
+    DataTable.defaults.column.orderSequence = ['desc', 'asc'];
     ctx.table = new DataTable('#datatable', datatable_config);
     const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template,
         (column, visible) => ctx.table.column(column).visible(visible), table_config.view);

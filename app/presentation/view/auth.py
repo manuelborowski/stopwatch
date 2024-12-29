@@ -9,9 +9,9 @@ from app import MyLogFilter, top_log_handle
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
-auth = Blueprint('auth', __name__, )
+bp_auth = Blueprint('auth', __name__, )
 
-@auth.route('/', methods=["GET", 'POST'])
+@bp_auth.route('/', methods=["GET", 'POST'])
 def login():
     try:
         message = None
@@ -35,7 +35,7 @@ def login():
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
         return render_template('login.html', message=message)
 
-@auth.route('/logout')
+@bp_auth.route('/logout')
 @login_required
 def logout():
     log.info(u'User logged out')
@@ -50,7 +50,7 @@ SMARTSCHOOL_ALLOWED_BASE_ROLES = [
 ]
 
 
-@auth.route('/ss', methods=['POST', 'GET'])
+@bp_auth.route('/ss', methods=['POST', 'GET'])
 def login_ss():
     if 'version' in request.args:
         profile = json.loads(request.args['profile'])

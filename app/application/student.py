@@ -4,7 +4,6 @@ import sys, requests
 #logging on file level
 import logging
 from app import MyLogFilter, top_log_handle, app
-
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
@@ -39,7 +38,7 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
     try:
         # check for new, updated or deleted students
         sdh_student_url = app.config["SDH_GET_STUDENT_URL"]
-        sdh_key = app.config["SDH_GET_API_KEY"]
+        sdh_key = app.config["SDH_API_KEY"]
         res = requests.get(sdh_student_url, headers={'x-api-key': sdh_key})
         if res.status_code == 200:
             sdh_students = res.json()

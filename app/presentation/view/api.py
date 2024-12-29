@@ -5,7 +5,7 @@ from functools import wraps
 from app import application as al
 from . import popup_assemble
 
-api = Blueprint('api', __name__)
+bp_api = Blueprint('api', __name__)
 
 def api_core(api_level, func, *args, **kwargs):
     try:
@@ -55,7 +55,7 @@ def admin_key_required(func):
         return wrapper
 
 
-@api.route('/api/user/add', methods=['POST'])
+@bp_api.route('/api/user/add', methods=['POST'])
 @admin_key_required
 def user_add(**kwargs):
     data = json.loads(request.data)
@@ -63,7 +63,7 @@ def user_add(**kwargs):
     return(json.dumps(ret))
 
 
-@api.route('/api/user/update', methods=['POST'])
+@bp_api.route('/api/user/update', methods=['POST'])
 @admin_key_required
 def user_update(**kwargs):
     data = json.loads(request.data)
@@ -71,7 +71,7 @@ def user_update(**kwargs):
     return(json.dumps(ret))
 
 
-@api.route('/api/user/delete', methods=['POST'])
+@bp_api.route('/api/user/delete', methods=['POST'])
 @admin_key_required
 def user_delete(**kwargs):
     data = json.loads(request.data)
@@ -79,21 +79,21 @@ def user_delete(**kwargs):
     return(json.dumps(ret))
 
 
-@api.route('/api/user/get', methods=['GET'])
+@bp_api.route('/api/user/get', methods=['GET'])
 @admin_key_required
 def user_get(**kwargs):
     options = request.args
     ret = al.user.user_get(options)
     return(json.dumps(ret))
 
-@api.route('/api/student/get', methods=['GET'])
+@bp_api.route('/api/student/get', methods=['GET'])
 @admin_key_required
 def student_get(**kwargs):
     options = request.args
     ret = al.student.student_get(options)
     return(json.dumps(ret))
 
-@api.route('/api/popup/get', methods=['GET'])
+@bp_api.route('/api/popup/get', methods=['GET'])
 @admin_key_required
 def popup_get(**kwargs):
     data = request.args

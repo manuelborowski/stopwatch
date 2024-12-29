@@ -1,11 +1,10 @@
-from flask_login import current_user
 from app import log, db
-from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
+from sqlalchemy_serializer import SerializerMixin
 import json, yaml, re, sys
 
 
-class Settings(db.Model):
+class Settings(db.Model, SerializerMixin):
     __tablename__ = 'settings'
 
     class SETTING_TYPE:
@@ -20,17 +19,15 @@ class Settings(db.Model):
     name = db.Column(db.String(256))
     value = db.Column(MEDIUMTEXT)
     type = db.Column(db.String(256))
-    user_id = db.Column(db.Integer)
-
-    UniqueConstraint('name', 'user_id')
+    username = db.Column(db.String(256))
 
 
 # return: found, value
 # found: if True, setting was found else not
 # value ; if setting was found, returns the value
-def get_setting(name, id=-1, convert_to_string=False):
+def get_setting(name, user=None, convert_to_string=False):
     try:
-        setting = Settings.query.filter_by(name=name, user_id=id if id > -1 else current_user.id).first()
+        setting = Settings.query.filter_by(name=name, username=user).first()
         if setting.type == Settings.SETTING_TYPE.E_INT:
             value = int(setting.value)
         elif setting.type == Settings.SETTING_TYPE.E_FLOAT:
@@ -50,14 +47,14 @@ def get_setting(name, id=-1, convert_to_string=False):
     return True, value
 
 
-def add_setting(name, value, type, id=-1):
+def add_setting(name, value, type=Settings.SETTING_TYPE.E_STRING, user=None):
     try:
         if type == Settings.SETTING_TYPE.E_JSON:
             value = json.dumps(value)
-        setting = Settings(name=name, value=str(value), type=type, user_id=id if id > -1 else current_user.id)
+        setting = Settings(name=name, value=str(value), type=type, username=user)
         db.session.add(setting)
         db.session.commit()
-        log.info('add: {}'.format(setting.log()))
+        log.info(f'add: {setting.to_dict()}')
         return True
     except Exception as e:
         db.session.rollback()
@@ -65,9 +62,9 @@ def add_setting(name, value, type, id=-1):
         raise e
 
 
-def set_setting(name, value, id=-1):
+def set_setting(name, value, user=None):
     try:
-        setting = Settings.query.filter_by(name=name, user_id=id if id > -1 else current_user.id).first()
+        setting = Settings.query.filter_by(name=name, username=user).first()
         if setting:
             if setting.type == Settings.SETTING_TYPE.E_BOOL:
                 value = 'True' if value else 'False'
@@ -91,6 +88,8 @@ default_configuration_settings = {
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'incident-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'spare-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'lis-badge-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
@@ -107,6 +106,9 @@ default_configuration_settings = {
     'popup-new-update-incident': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'lis-badge-rfid': ({}, Settings.SETTING_TYPE.E_JSON),
+    'lis-locations': ({}, Settings.SETTING_TYPE.E_YAML),
+    'lis-state': ({}, Settings.SETTING_TYPE.E_YAML),
+    'lis-spare-laptops': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
 }
@@ -119,23 +121,23 @@ def get_configuration_settings(convert_to_string=False):
     return configuration_settings
 
 
-def set_configuration_setting(setting, value):
+def set_configuration_setting(setting, value, user=None):
     if None == value:
         value = default_configuration_settings[setting][0]
-    ret = set_setting(setting, value, 1)
+    ret = set_setting(setting, value, user=user)
     if setting in setting_changed_cb:
         for cb in setting_changed_cb[setting]:
             cb[0](value, cb[1])
     return ret
 
 
-def get_configuration_setting(setting, convert_to_string=False):
-    found, value = get_setting(setting, 1, convert_to_string=convert_to_string)
+def get_configuration_setting(setting, convert_to_string=False, user=None):
+    found, value = get_setting(setting, user=user, convert_to_string=convert_to_string)
     if found:
         return value
     else:
         default_setting = default_configuration_settings[setting]
-        add_setting(setting, default_setting[0], default_setting[1], 1)
+        add_setting(setting, default_setting[0], default_setting[1], user=user)
         return default_setting[0]
 
 

@@ -42,9 +42,13 @@ def popup_assemble(params):
             defaults = {}
             optional = {}
             if params["id"] == "popup-new-update-incident":
-                students = dl.student.student_get_m()
-                student_data = sorted([{"label": f"{s.naam} {s.voornaam} {s.klasgroep}", "data": s.leerlingnummer} for s in students], key=lambda x: x["label"])
-                defaults = {"owner-name-id": student_data}
+                locations = dl.settings.get_configuration_setting("lis-locations")
+                location_options = [{"label": v["label"], "data": k} for (k, v) in locations.items()]
+                states = dl.settings.get_configuration_setting("lis-state")
+                states_options = [{"label": v["label"], "data": k} for (k, v) in states.items()]
+                states_default = "preparation"
+                defaults = {"incident-location": {"options": location_options},
+                            "incident-status": {"options": states_options, "default": states_default}}
                 optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
             elif params["id"] == "popup-new-update-user":
                 if "user_id" in params:

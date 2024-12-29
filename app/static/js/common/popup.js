@@ -37,7 +37,8 @@ export class FormioPopup {
                 const c = this.formio_handle.getComponent(k)
                 if (c !== undefined && c !== null) {
                     if (c.type === "select") {
-                        c.component.data.json = v;
+                        c.component.data.json = v.options;
+                        if ("default" in v) c.setValue(v.default);
                     } else c.setValue(v);
                 }
             }
@@ -76,9 +77,13 @@ export class FormioPopup {
     set_options = (key, options, default_value = null) => {
         const c = this.formio_handle.getComponent(key)
         if (c !== undefined && c !== null) {
+            setTimeout(() => {
+                c.component.data.json = options
+                c.redraw();
+            }, 500);
             // c.setItems(options)
             // c.component.data.values = options;
-            c.component.data.json = options;
+            // c.component.data.json = options;
             // c.selectOptions = options.map(({value, label}) => ({value, label: `<span>${label}</span>`}));
             // c.selectItems = options;
             // c.templateData = {}
@@ -90,7 +95,7 @@ export class FormioPopup {
             //     if (default_value) c.component.value = default_value;
             //     c.redraw();
             // }, 500);
-            c.redraw();
+            // c.redraw();
             // if (default_value) c.setValue(default_value);
             // this.formio_handle.redraw();
         }

@@ -25,8 +25,9 @@ from functools import wraps
 # 0.12: added students-table and sync from SDH.  When client fetches, return inband message.  Added cron.  Formio-templates/defaults are fetched iso hard-inserted in HTML.
 # Updated incidents.  Placed filters and column-visibility into navbar.  Added buttons in navbar.
 # 0.13: added fetch to entra to get laptopinfo.  Incident, added code to get the laptops of a selected student.
+# 0.14: added tables for staff and spares.  Added popups to add a single spare or a list.
 
-version = "0.13"
+version = "0.14"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -110,9 +111,10 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, incident
-app.register_blueprint(auth.auth)
-app.register_blueprint(api.api)
-app.register_blueprint(user.user)
-app.register_blueprint(settings.settings)
-app.register_blueprint(incident.incident)
+from app.presentation.view import auth, api, user, settings, incident, spare
+app.register_blueprint(auth.bp_auth)
+app.register_blueprint(api.bp_api)
+app.register_blueprint(user.bp_user)
+app.register_blueprint(settings.bp_settings)
+app.register_blueprint(incident.bp_incident)
+app.register_blueprint(spare.bp_spare)

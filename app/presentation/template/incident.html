@@ -3,6 +3,7 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        let data = {{ (data or {})|tojson }};
     </script>
     <script type="module" src="/static/js/project/incident.js"></script>
 {% endblock %}

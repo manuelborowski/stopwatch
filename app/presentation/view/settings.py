@@ -6,9 +6,9 @@ from app.presentation.view import send_alert_to_client
 from app.application import cron_table
 import json
 
-settings = Blueprint('settings', __name__)
+bp_settings = Blueprint('settings', __name__)
 
-@settings.route('/settings', methods=['GET', 'POST'])
+@bp_settings.route('/settings', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():
@@ -131,6 +131,92 @@ settings_formio = \
                     "tableView": true,
                     "validateWhenHidden": false,
                     "key": "incident-datatables-template",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "Reserve",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "incidents1",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Reserve laptops",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "spares",
+                "type": "panel",
+                "label": "Algemeen",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
+                  },
+                  {
+                    "label": "Lijst template (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "spare-datatables-template",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "LIS badges",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "incidents2",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "LIS badges",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "spares",
+                "type": "panel",
+                "label": "Algemeen",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
+                  },
+                  {
+                    "label": "Lijst template (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "lis-badge-datatables-template",
                     "type": "textarea",
                     "input": true
                   }
@@ -459,12 +545,138 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Laptop Incident Systeem - badge numbers naar RFID code",
+                    "label": "Laptop Incident Systeem - badge numbers naar RFID code (JSON)",
                     "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
                     "validateWhenHidden": false,
                     "key": "lis-badge-rfid",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "Locaties (YAML)",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "locations",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Locaties",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "lis-badges",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Locaties (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "lis-locations",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "Incident States",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "incident-states",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Incident Toestanden",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "lis-badges",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Incident Toestanden (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "lis-state",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "label": "spare laptops",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "lis-spare-laptops",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Reserve laptops",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "lis-badges",
+                "type": "panel",
+                "label": "Cardpresso",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan ",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true
+                  },
+                  {
+                    "label": "Reserve laptops (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "spare-laptops",
                     "type": "textarea",
                     "input": true
                   }
