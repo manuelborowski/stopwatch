@@ -1,0 +1,21 @@
+.form-row {
+    display: flex;
+}
+
+.form-row > * {
+    margin-right: 10px;
+}
+
+.form-row button {
+    margin: 3px;
+}
+
+.form-element {
+    display: flex;
+    align-items: center;
+}
+
+.form-element > * {
+    display: inline-block;
+    margin-right: 10px;
+}

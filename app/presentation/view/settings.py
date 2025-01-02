@@ -8,7 +8,7 @@ import json
 
 bp_settings = Blueprint('settings', __name__)
 
-@bp_settings.route('/settings', methods=['GET', 'POST'])
+@bp_settings.route('/settingsshow', methods=['GET', 'POST'])
 @admin_required
 @login_required
 def show():

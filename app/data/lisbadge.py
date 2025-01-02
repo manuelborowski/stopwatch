@@ -10,33 +10,31 @@ log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 
-class Spare(db.Model, SerializerMixin):
-    __tablename__ = 'spares'
+class LisBadge(db.Model, SerializerMixin):
+    __tablename__ = 'lisbadges'
 
     id = db.Column(db.Integer, primary_key=True)
     rfid = db.Column(db.String(256), default=None)
     label = db.Column(db.String(256), default=None)
-    serial = db.Column(db.String(256), default=None)
-    active = db.Column(db.Boolean, default=True)    # long term
 
 def add(data = {}):
-    return dl.models.add_single(Spare, data)
+    return dl.models.add_single(LisBadge, data)
 
 
 def update(incident, data={}):
-    return dl.models.update_single(Spare, incident, data)
+    return dl.models.update_single(LisBadge, incident, data)
 
 
 def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
-    return dl.models.get_multiple(Spare, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
+    return dl.models.get_multiple(LisBadge, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
 def get(filters=[]):
-    return dl.models.get_first_single(Spare, filters)
+    return dl.models.get_first_single(LisBadge, filters)
 
 
 def delete(ids=None):
-    return dl.models.delete_multiple(Spare, ids=ids)
+    return dl.models.delete_multiple(LisBadge, ids=ids)
 
 
 def commit():
@@ -53,7 +51,7 @@ def filter(query_in):
     return query_in
 
 def pre_sql_query():
-    return db.session.query(Spare)
+    return db.session.query(LisBadge)
 
 
 def pre_sql_filter(query, filters):
@@ -62,8 +60,8 @@ def pre_sql_filter(query, filters):
 
 def pre_sql_search(search_string):
     search_constraints = []
-    search_constraints.append(Spare.id.like(search_string))
-    search_constraints.append(Spare.rfid.like(search_string))
+    search_constraints.append(LisBadge.id.like(search_string))
+    search_constraints.append(LisBadge.rfid.like(search_string))
     return search_constraints
 
 

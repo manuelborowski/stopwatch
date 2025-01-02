@@ -1,36 +1,52 @@
 import {AlertPopup} from "./popup.js";
 
-export const fetch_post = async (endpoint, body) => {
-    const response = await fetch(Flask.url_for(endpoint), {headers: {'x-api-key': api_key,}, method: 'POST', body: JSON.stringify(body),});
-    const data = await response.json();
+const __handle_fetch = async resp => {
+    const data = await resp.json();
     if ("status" in data) {
         new AlertPopup(data.status, data.msg);
         return null;
     }
     return data
+}
+
+export const fetch_post = async (endpoint, body) => {
+    const response = await fetch(Flask.url_for(endpoint), {method: 'POST', body: JSON.stringify(body),});
+    return __handle_fetch(response);
 }
 
 export const fetch_update = async (endpoint, body) => {
-    const response = await fetch(Flask.url_for(endpoint), {headers: {'x-api-key': api_key,}, method: 'UPDATE', body: JSON.stringify(body),});
-    const data = await response.json();
-    if ("status" in data) {
-        new AlertPopup(data.status, data.msg);
-        return null;
-    }
-    return data
+    const response = await fetch(Flask.url_for(endpoint), {method: 'UPDATE', body: JSON.stringify(body),});
+    return __handle_fetch(response);
 }
 
-export const fetch_get = async (endpoint, args) => {
-    const respone = await fetch(Flask.url_for(endpoint, args), {headers: {'x-api-key': api_key,}});
-    const data = await respone.json();
-    if ("status" in data) {
-        new AlertPopup(data.status, data.msg);
-        return null;
+export const fetch_get = async (endpoint, args = {}) => {
+    const response = await fetch(Flask.url_for(endpoint, args));
+    return __handle_fetch(response);
+}
+
+export const fetch_delete = async (endpoint, args) => {
+    const response = await fetch(Flask.url_for(endpoint, args), {method: "DELETE"});
+    return __handle_fetch(response);
+}
+
+export const form_default_set = (defaults) => {
+    for (const def of defaults) {
+        const field = document.getElementById(def.id);
+        if (def.type === "select") {
+            field.innerHTML = "";
+            for (const option of def.options) {
+                const o = document.createElement("option");
+                o.label = option.label;
+                o.value = option.value;
+                o.selected = (def.default || null) === option.value;
+                field.appendChild(o);
+            }
+        }
     }
-    return data
 }
 
 let busy_indicator = null;
+
 export function busy_indication_on() {
     // document.querySelector(".busy-indicator").style.display = "block";
     busy_indicator = document.createElement("div");

@@ -31,8 +31,13 @@ class DatatableConfig:
     def pre_sql_paginate(self, q, start, stop):
         return q.slice(start, stop)
 
-    def format_data(self, l, total_count, filtered_count):
-        return total_count, filtered_count, l
+    def format_data(self, db_list, total_count=None, filtered_count=None):
+        out = []
+        for i in db_list:
+            em = i.to_dict()
+            em.update({"row_action": i.id, "DT_RowId": i.id})
+            out.append(em)
+        return total_count, filtered_count, out
 
     def post_sql_filter(self, l, filter, count):
         return count, l

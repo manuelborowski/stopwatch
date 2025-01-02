@@ -2,8 +2,6 @@ from flask import request, Blueprint
 from app import log
 import json, sys, html
 from functools import wraps
-from app import application as al
-from . import popup_assemble
 
 bp_api = Blueprint('api', __name__)
 
@@ -53,50 +51,3 @@ def admin_key_required(func):
         def wrapper(*args, **kwargs):
             return api_core(5, func, *args, **kwargs)
         return wrapper
-
-
-@bp_api.route('/api/user/add', methods=['POST'])
-@admin_key_required
-def user_add(**kwargs):
-    data = json.loads(request.data)
-    ret = al.user.user_add(data)
-    return(json.dumps(ret))
-
-
-@bp_api.route('/api/user/update', methods=['POST'])
-@admin_key_required
-def user_update(**kwargs):
-    data = json.loads(request.data)
-    ret = al.user.user_update(data)
-    return(json.dumps(ret))
-
-
-@bp_api.route('/api/user/delete', methods=['POST'])
-@admin_key_required
-def user_delete(**kwargs):
-    data = json.loads(request.data)
-    ret = al.user.user_delete(data)
-    return(json.dumps(ret))
-
-
-@bp_api.route('/api/user/get', methods=['GET'])
-@admin_key_required
-def user_get(**kwargs):
-    options = request.args
-    ret = al.user.user_get(options)
-    return(json.dumps(ret))
-
-@bp_api.route('/api/student/get', methods=['GET'])
-@admin_key_required
-def student_get(**kwargs):
-    options = request.args
-    ret = al.student.student_get(options)
-    return(json.dumps(ret))
-
-@bp_api.route('/api/popup/get', methods=['GET'])
-@admin_key_required
-def popup_get(**kwargs):
-    data = request.args
-    ret = popup_assemble(data)
-    return(json.dumps(ret))
-

@@ -8,19 +8,15 @@ log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 
-def student_get(data):
+def get(data):
     try:
-        filter = None
-        if "id" in data:
-            filter = ("id", "=", data['id'])
-        if "rfid" in data:
-            filter = ("rfid", "=", data['rfid'])
-        if filter:
-            student = dl.student.student_get(filter)
+        filters = [(k, "=", v) for k,v in data.items()]
+        if filters:
+            student = dl.student.get(filters)
             if student:
                 return {"data": student.to_dict()}
             else:
-                return {"status": "error", "msg": f"Student not found, filter {filter}"}
+                return {"status": "error", "msg": f"Student not found, filter {filters}"}
         else:
             return {"status": "error", "msg": f"No valid data {data}"}
     except Exception as e:
@@ -44,7 +40,7 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
             sdh_students = res.json()
             if sdh_students['status']:
                 log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_students["data"])} students from SDH')
-                db_students = dl.student.student_get_m()
+                db_students = dl.student.get_m()
                 db_leerlingnummer_to_student = {s.leerlingnummer: s for s in db_students}
                 for sdh_student in sdh_students["data"]:
                     if sdh_student["leerlingnummer"] in db_leerlingnummer_to_student:
@@ -72,9 +68,9 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
                 deleted_students = [v for (k, v) in db_leerlingnummer_to_student.items()]
                 for student in deleted_students:
                     log.info(f'{sys._getframe().f_code.co_name}, Delete student {student.leerlingnummer}')
-                dl.student.student_add_m(new_students)
-                dl.student.student_update_m(updated_students)
-                dl.student.student_delete_m(students=deleted_students)
+                dl.student.add_m(new_students)
+                dl.student.update_m(updated_students)
+                dl.student.delete_m(students=deleted_students)
                 log.info(f'{sys._getframe().f_code.co_name}, students add {len(new_students)}, update {nbr_updated}, delete {len(deleted_students)}')
             else:
                 log.info(f'{sys._getframe().f_code.co_name}, error retrieving students from SDH, {sdh_students["data"]}')
@@ -90,8 +86,8 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
 def student_cron_post_processing(opaque=None):
     try:
         log.info(f'{sys._getframe().f_code.co_name}: START')
-        changed_new_student = dl.student.student_get_m([("changed", "!", "")])
-        changed_new_student.extend(dl.student.student_get_m([("new", "=", True)]))
+        changed_new_student = dl.student.get_m([("changed", "!", "")])
+        changed_new_student.extend(dl.student.get_m([("new", "=", True)]))
         for student in changed_new_student:
             student.new = False
             student.changed = ""

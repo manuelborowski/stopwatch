@@ -10,6 +10,8 @@ class Student(db.Model, SerializerMixin):
     date_format = '%d/%m/%Y'
     datetime_format = '%d/%m/%Y %H:%M'
 
+    serialize_rules = ("klasgroep",)
+
     id = db.Column(db.Integer(), primary_key=True)
 
     voornaam = db.Column(db.String(256), default='')
@@ -59,31 +61,31 @@ def commit():
     return app.data.models.commit()
 
 
-def student_add(data={}, commit=True):
+def add(data={}, commit=True):
     return app.data.models.add_single(Student, data, commit, timestamp=True)
 
 
-def student_add_m(data=[]):
+def add_m(data=[]):
     return app.data.models.add_multiple(Student, data, timestamp=True)
 
 
-def student_update(student, data={}, commit=True):
+def update(student, data={}, commit=True):
     return app.data.models.update_single(Student, student, data, commit, timestamp=True)
 
 
-def student_update_m(data=[]):
+def update_m(data=[]):
     return app.data.models.update_multiple(Student, data, timestamp=True)
 
 
-def student_delete_m(ids=[], students=[]):
+def delete_m(ids=[], students=[]):
     return app.data.models.delete_multiple(Student, ids, students)
 
 
-def student_get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
+def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
     return app.data.models.get_multiple(Student, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
-def student_get(filters=[]):
+def get(filters=[]):
     return app.data.models.get_first_single(Student, filters)
 
 ############ student overview list #########

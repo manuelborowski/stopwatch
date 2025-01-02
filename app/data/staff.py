@@ -38,27 +38,27 @@ def commit():
     return app.data.models.commit()
 
 
-def staff_add(data = {}, commit=True):
+def add(data = {}, commit=True):
     return app.data.models.add_single(Staff, data, commit, timestamp=True)
 
 
-def staff_add_m(data = []):
+def add_m(data = []):
     return app.data.models.add_multiple(Staff, data)
 
 
-def staff_update(staff, data={}, commit=True):
+def update(staff, data={}, commit=True):
     return app.data.models.update_single(Staff, staff, data, commit, timestamp=True)
 
 
-def staff_delete_m(ids=[], staffs=[]):
+def delete_m(ids=[], staffs=[]):
     return app.data.models.delete_multiple(Staff, ids, staffs)
 
 
-def staff_get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
+def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
     return app.data.models.get_multiple(Staff, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
-def staff_get(filters=[]):
+def get(filters=[]):
     return app.data.models.get_first_single(Staff, filters)
 
 
@@ -67,7 +67,7 @@ def staff_get(filters=[]):
 # changed: a list of properties that are changed
 # property#1: the first property changed
 # property#2: ....
-def staff_change_m(data = [], overwrite=False):
+def change_m(data = [], overwrite=False):
     try:
         for d in data:
             staff = d['staff']

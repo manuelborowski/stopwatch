@@ -72,27 +72,27 @@ class User(UserMixin, db.Model, SerializerMixin):
         return '<User: {}/{}>'.format(self.id, self.username)
 
 
-def user_add(data = {}):
+def add(data = {}):
     if 'password' in data:
         data['password_hash'] = generate_password_hash(data['password'])
     return dl.models.add_single(User, data)
 
 
-def user_update(user, data={}):
+def update(user, data={}):
     if 'password' in data:
         data['password_hash'] = generate_password_hash(data['password'])
     return dl.models.update_single(User, user, data)
 
 
-def user_get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
+def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
     return dl.models.get_multiple(User, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
-def user_get(filters=[]):
+def get(filters=[]):
     return dl.models.get_first_single(User, filters)
 
 
-def user_delete(ids=None):
+def delete(ids=None):
     return dl.models.delete_multiple(User, ids=ids)
 
 

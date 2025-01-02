@@ -26,8 +26,9 @@ from functools import wraps
 # Updated incidents.  Placed filters and column-visibility into navbar.  Added buttons in navbar.
 # 0.13: added fetch to entra to get laptopinfo.  Incident, added code to get the laptops of a selected student.
 # 0.14: added tables for staff and spares.  Added popups to add a single spare or a list.
+# 0.15: added lis-badge.  Various large updates
 
-version = "0.14"
+version = "0.15"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -111,10 +112,11 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, incident, spare
+from app.presentation.view import auth, api, user, settings, incident, spare, lisbadge
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
 app.register_blueprint(incident.bp_incident)
 app.register_blueprint(spare.bp_spare)
+app.register_blueprint(lisbadge.bp_lisbadge)

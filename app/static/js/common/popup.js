@@ -37,7 +37,7 @@ export class FormioPopup {
                 const c = this.formio_handle.getComponent(k)
                 if (c !== undefined && c !== null) {
                     if (c.type === "select") {
-                        c.component.data.json = v.options;
+                        if ("options" in v) c.component.data.json = v.options;
                         if ("default" in v) c.setValue(v.default);
                     } else c.setValue(v);
                 }
@@ -65,7 +65,10 @@ export class FormioPopup {
 
     set_value = (key, value) => {
         const c = this.formio_handle.getComponent(key)
-        if (c !== undefined && c !== null) c.setValue(value);
+        if (c !== undefined && c !== null) setTimeout(() => {
+            c.setValue(value);
+            c.redraw();
+            }, 500);
     }
 
     get_value = (key) => {

@@ -8,13 +8,13 @@ log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 
-def user_add(data):
+def add(data):
     try:
-        user = dl.user.user_get(('username', "=", data['username']))
+        user = dl.user.get(('username', "=", data['username']))
         if user:
             log.error(f'Error, user {user.username} already exists')
-            return {"status": "warning", "data": f'Fout, gebruiker "{user.username}" bestaat al'}
-        user = dl.user.user_add(data)
+            return {"status": "warning", "msg": f'Fout, gebruiker "{user.username}" bestaat al'}
+        user = dl.user.add(data)
         data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
         log.info(f"Add user: {data}")
         return {"status": "ok", "msg": f"Gebruiker, {user.username} toegevoegd."}
@@ -23,12 +23,12 @@ def user_add(data):
         return {"status": "error", "msg": str(e)}
 
 
-def user_update(data):
+def update(data):
     try:
-        user = dl.user.user_get(('id', "=", data['id']))
+        user = dl.user.get(('id', "=", data['id']))
         if user:
             del data['id']
-            user = dl.user.user_update(user, data)
+            user = dl.user.update(user, data)
             if user:
                 data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
                 log.info(f"Update user: {data}")
@@ -39,16 +39,16 @@ def user_update(data):
         return {"status": "error", "data": str(e)}
 
 
-def user_delete(data):
+def delete(ids):
     try:
-        dl.user.user_delete(data)
+        dl.user.delete(ids)
         return {"status": "ok", "msg": "Gebruikers zijn verwijderd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
 
-def user_get(data):
+def get(data):
     try:
         filter = None
         if "id" in data:
@@ -56,7 +56,7 @@ def user_get(data):
         if "rfid" in data:
             filter = ("rfid", "=", data['rfid'])
         if filter:
-            user = dl.user.user_get(filter)
+            user = dl.user.get(filter)
             if user:
                 return {"data": user.to_dict()}
             else:

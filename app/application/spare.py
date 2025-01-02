@@ -9,7 +9,11 @@ log.addFilter(MyLogFilter())
 
 def add(f_data):
     try:
-        spare = dl.spare.spare_add(f_data)
+        find_spare = dl.spare.get(("rfid", "=", f_data["rfid"]))
+        if find_spare:
+            log.error(f'{sys._getframe().f_code.co_name}: rfid already present, {f_data["rfid"]}')
+            return {"status": "error", "msg": f'Rfid code, {f_data["rfid"]}, bestaat al'}
+        spare = dl.spare.add(f_data)
         log.info(f'{sys._getframe().f_code.co_name}: spare added, {f_data}')
         return {"id": spare.id}
     except Exception as e:
@@ -18,10 +22,14 @@ def add(f_data):
 
 def update(f_data):
     try:
-        spare = dl.spare.spare_get(("id", "=", f_data["id"]))
+        find_spare = dl.spare.get(("rfid", "=", f_data["rfid"]))
+        if find_spare:
+            log.error(f'{sys._getframe().f_code.co_name}: rfid already present, {f_data["rfid"]}')
+            return {"status": "error", "msg": f'Rfid code, {f_data["rfid"]}, bestaat al'}
+        spare = dl.spare.get(("id", "=", f_data["id"]))
         if spare:
             del f_data["id"]
-            spare = dl.spare.spare_update(spare, f_data)
+            spare = dl.spare.update(spare, f_data)
             log.info(f'{sys._getframe().f_code.co_name}: spare updated, {f_data}')
             return {"id": spare.id}
         log.error(f'{sys._getframe().f_code.co_name}: spare not found, id {f_data["id"]}')
@@ -29,13 +37,3 @@ def update(f_data):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
-
-########### incident overview list #########
-def format_data(db_list, total_count=None, filtered_count=None):
-    out = []
-    for i in db_list:
-        em = i.to_dict()
-        em.update({"row_action": i.id, "DT_RowId": i.id})
-        out.append(em)
-    return  total_count, filtered_count, out
-

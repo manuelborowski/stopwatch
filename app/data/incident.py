@@ -52,7 +52,7 @@ class History(db.Model, SerializerMixin):
     time = db.Column(db.DateTime, default=None)
 
 
-def incident_add(data = {}):
+def add(data = {}):
     return dl.models.add_single(Incident, data)
 
 
@@ -60,15 +60,15 @@ def incident_update(incident, data={}):
     return dl.models.update_single(Incident, incident, data)
 
 
-def incident_get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
+def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):
     return dl.models.get_multiple(Incident, filters=filters, fields=fields, order_by=order_by, first=first, count=count, active=active)
 
 
-def incident_get(filters=[]):
+def get(filters=[]):
     return dl.models.get_first_single(Incident, filters)
 
 
-def incident_delete(ids=None):
+def delete(ids=None):
     return dl.models.delete_multiple(Incident, ids=ids)
 
 

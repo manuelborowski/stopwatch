@@ -16,11 +16,11 @@ def login():
     try:
         message = None
         if request.method == "POST":
-            user = dl.user.user_get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
+            user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
             if user is not None and user.verify_password(request.form["password"]):
                 login_user(user)
                 log.info(f'user {user.username} logged in')
-                user = dl.user.user_update(user, {"last_login": datetime.datetime.now()})
+                user = dl.user.update(user, {"last_login": datetime.datetime.now()})
                 if not user:
                     log.error('Could not save timestamp')
                 # Ok, continue
@@ -67,9 +67,9 @@ def login_ss():
                 profile['first_name'] = profile['name']
                 profile['last_name'] = profile['surname']
                 user.email = profile['email']
-                user = muser.user_update(user, profile)
+                user = muser.update(user, profile)
             else:
-                user = muser.user_add(profile)
+                user = muser.add(profile)
                 # if msettings.get_configuration_setting('generic-new-via-smartschool'):
                 #     profile['first_name'] = profile['name']
                 #     profile['last_name'] = profile['surname']

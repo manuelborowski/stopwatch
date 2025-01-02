@@ -8,6 +8,22 @@ log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 
+def get(data):
+    try:
+        filters = [(k, "=", v) for k,v in data.items()]
+        if filters:
+            staff = dl.staff.get(filters)
+            if staff:
+                return {"data": staff.to_dict()}
+            else:
+                return {"status": "error", "msg": f"Staff not found, filter {filters}"}
+        else:
+            return {"status": "error", "msg": f"No valid data {data}"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
+        return {"status": "error", "msg": {str(e)}}
+
+######################### CRON HANDLERS ##################################
 def staff_cron_load_from_sdh(opaque=None, **kwargs):
     log.info(f"{sys._getframe().f_code.co_name}, START")
     updated_staffs = []
@@ -22,7 +38,7 @@ def staff_cron_load_from_sdh(opaque=None, **kwargs):
             sdh_staffs = res.json()
             if sdh_staffs['status']:
                 log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_staffs["data"])} staffs from SDH')
-                db_staffs = dl.staff.staff_get_m()
+                db_staffs = dl.staff.get_m()
                 db_code_to_staff = {s.code: s for s in db_staffs}
                 for sdh_staff in sdh_staffs["data"]:
                     if sdh_staff["code"] in db_code_to_staff:
@@ -48,8 +64,8 @@ def staff_cron_load_from_sdh(opaque=None, **kwargs):
                 for staff in deleted_staffs:
                     updated_staffs.append({"staff": staff, "delete": True, "changed": ["delete"]})
                     log.info(f'{sys._getframe().f_code.co_name}, Delete staff {staff.code}')
-                dl.staff.staff_add_m(new_staffs)
-                dl.staff.staff_change_m(updated_staffs)
+                dl.staff.add_m(new_staffs)
+                dl.staff.change_m(updated_staffs)
                 log.info(f'{sys._getframe().f_code.co_name}, staffs add {len(new_staffs)}, update {nbr_updated}, delete {len(deleted_staffs)}')
             else:
                 log.info(f'{sys._getframe().f_code.co_name}, error retrieving staffs from SDH, {sdh_staffs["data"]}')
@@ -65,15 +81,15 @@ def staff_cron_load_from_sdh(opaque=None, **kwargs):
 def staff_cron_post_processing(opaque=None, **kwargs):
     log.info(f"{sys._getframe().f_code.co_name}, START")
     try:
-        db_staffs = dl.staff.staff_get_m(("changed", "!", ""))
-        db_staffs += dl.staff.staff_get_m(("new", "=", True))
+        db_staffs = dl.staff.get_m(("changed", "!", ""))
+        db_staffs += dl.staff.get_m(("new", "=", True))
         for staff in db_staffs:
             staff.new = False
             staff.changed = ""
             staff.changed_old = ""
         dl.staff.commit()
-        db_staffs = dl.staff.staff_get_m(("delete", "=", True))
-        dl.staff.staff_delete_m(staffs=db_staffs)
+        db_staffs = dl.staff.get_m(("delete", "=", True))
+        dl.staff.delete_m(staffs=db_staffs)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
