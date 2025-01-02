@@ -27,8 +27,9 @@ from functools import wraps
 # 0.13: added fetch to entra to get laptopinfo.  Incident, added code to get the laptops of a selected student.
 # 0.14: added tables for staff and spares.  Added popups to add a single spare or a list.
 # 0.15: added lis-badge.  Various large updates
+# 0.16: small bugfix in incident.  Updated CSS
 
-version = "0.15"
+version = "0.16"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

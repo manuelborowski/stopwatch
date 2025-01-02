@@ -62,11 +62,13 @@ const __incident_new_cb = async () => {
                     bootbox.prompt({
                         title: "Scan de LIS badge",
                         callback: async res => {
-                            const [valid_code, code] = badge_raw2hex(res);
-                            if (valid_code) {
-                                const badge = await fetch_get("incident.lis_badge", {"rfid": code})
-                                if (badge) {
-                                    document.getElementById("lis-badge-field").value = badge.data.id;
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                if (valid_code) {
+                                    const badge = await fetch_get("incident.lis_badge", {"rfid": code})
+                                    if (badge) {
+                                        document.getElementById("lis-badge-field").value = badge.data.id;
+                                    }
                                 }
                             }
                         }
@@ -78,14 +80,16 @@ const __incident_new_cb = async () => {
                     bootbox.prompt({
                         title: "Scan de badge van de eigenaar",
                         callback: async res => {
-                            const [valid_code, code] = badge_raw2hex(res);
-                            if (valid_code) {
-                                if (document.getElementById("laptop-type-field").value === "leerling") {
-                                    const user = await fetch_get("incident.student", {rfid: code});
-                                    if (user) owner_field.val(user.data.leerlingnummer).trigger("change");
-                                } else {
-                                    const user = await fetch_get("incident.staff", {rfid: code});
-                                    if (user) owner_field.val(user.data.code).trigger("change");
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                if (valid_code) {
+                                    if (document.getElementById("laptop-type-field").value === "leerling") {
+                                        const user = await fetch_get("incident.student", {rfid: code});
+                                        if (user) owner_field.val(user.data.leerlingnummer).trigger("change");
+                                    } else {
+                                        const user = await fetch_get("incident.staff", {rfid: code});
+                                        if (user) owner_field.val(user.data.code).trigger("change");
+                                    }
                                 }
                             }
                         }
