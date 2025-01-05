@@ -1,4 +1,4 @@
-import {datatables_init, datatable_row_data_get, datatable_reload_table} from "../datatables/dt.js";
+import {datatables_init, datatable_row_data_from_id, datatable_reload_table} from "../datatables/dt.js";
 import {AlertPopup} from "../common/popup.js";
 import {fetch_update, fetch_post, fetch_get} from "../common/common.js";
 import {badge_raw2hex} from "../common/rfid.js";
@@ -62,7 +62,7 @@ const __dialog_new_single_spare = async (default_id = null, default_auto_increme
                 document.getElementById("id-field").addEventListener("input", () => {
                     const id = document.getElementById("id-field").value;
                     if (id !== "") {
-                        const data = datatable_row_data_get(id);
+                        const data = datatable_row_data_from_id(id);
                         new_spare = data === undefined;
                         if (!new_spare) {
                             document.getElementById('rfid-field').value = data.rfid;

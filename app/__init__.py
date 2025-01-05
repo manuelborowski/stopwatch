@@ -28,8 +28,10 @@ from functools import wraps
 # 0.14: added tables for staff and spares.  Added popups to add a single spare or a list.
 # 0.15: added lis-badge.  Various large updates
 # 0.16: small bugfix in incident.  Updated CSS
+# 0.17: added history.  Added helper functions for forms.  Added datatable cell renderer for labels.  Incident form reused for incident update/state change.
+# Added event buttons/select to table.  Added template-post-processing to e.g. replace a value with a label.
 
-version = "0.16"
+version = "0.17"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

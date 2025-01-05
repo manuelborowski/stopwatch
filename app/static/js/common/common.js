@@ -45,6 +45,17 @@ export const form_default_set = (defaults) => {
     }
 }
 
+export const form_populate = data => {
+    for (const [field_name, value] of Object.entries(data)) {
+        const field = document.querySelector(`[name=${field_name}]`);
+        if (field) {
+            if (field.type === "checkbox") field.checked = value;
+            else field.value = value;
+        }
+    }
+}
+
+
 let busy_indicator = null;
 
 export function busy_indication_on() {

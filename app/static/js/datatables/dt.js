@@ -46,7 +46,11 @@ export const mouse_get_ids = mouse_event => {
     return ids;
 }
 
-export function datatable_row_data_get(id) {return ctx.table.row(`#${id}`).data();}
+export function datatable_row_data_from_id(id) {return ctx.table.row(`#${id}`).data();}
+
+export const datatable_row_data_from_target = target => {
+    return ctx.table.row(target.target.closest("tr")).data();
+}
 
 export function update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
@@ -57,6 +61,12 @@ export function update_cell(row_id, column_name, value) {
 export function datatable_reload_table() {
     ctx.table.ajax.reload();
 }
+
+let table_loaded_cb = []
+export const datatable_loaded_subscribe = (cb, opaque) => {
+    table_loaded_cb.push({cb, opaque});
+}
+
 
 export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[]}) => {
     ctx = {table_config, reload_table: datatable_reload_table}
@@ -87,16 +97,15 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         $('<tfoot/>').append($("#datatable thead tr").clone())
     );
 
+    // check special options in the columns
     $.each(ctx.table_config.template, function (i, v) {
         //ellipsis
         if ("ellipsis" in v) {
             v.render = return_render_ellipsis(v.ellipsis.cutoff, v.ellipsis.wordbreak, true);
         } else if ("bool" in v) {
-            v.render = function (data, type, full, meta) {
-                return data === true ? `<input type="checkbox" checked disabled/>` : '';
-                // let is_checked = data === true ? "checked" : "";
-                // return `<input type="checkbox" ${is_checked}/>`;
-            };
+            v.render = function (data, type, full, meta) {return data === true ? `<input type="checkbox" checked disabled/>` : '';};
+        } else if ("label" in v) {
+            v.render = function (data, type, full, meta) {return v.label.labels[data];}
         }
         column_name_to_index[v.data] = i;
     });
@@ -164,6 +173,9 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                         if (ctx.suppress_cell_content) $(this.node()).html("");
                     }
                 });
+            }
+            for (const item of table_loaded_cb) {
+                item.cb(item.opaque);
             }
         },
     }

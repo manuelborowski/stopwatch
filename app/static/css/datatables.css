@@ -14,3 +14,13 @@ table.dataTable>tbody>tr>th,table.dataTable>tbody>tr>td {
     width: 100%;
 }
 
+.dt-incell-row {
+    display: flex;
+}
+
+.dt-incell-row > * {
+    margin-right: 5px;
+}
+.dt-incell-row > a {
+    padding: 0;
+}

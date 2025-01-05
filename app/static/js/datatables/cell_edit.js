@@ -47,7 +47,6 @@ export class CellEdit {
                         $(table.table().body()).on("mousemove", (e)  => {
                                 const td_element = e.target.tagName === "TD" ? e.target : e.target.parentNode;
                                 const ci = table.cell($(td_element)).index().column;
-                                console.log(`${ci}, ${this.column_index}`)
                                 if (this.column_index !== ci) _this.cancel(cell, old_value);
                         });
                     }

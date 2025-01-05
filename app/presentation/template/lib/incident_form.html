@@ -5,7 +5,7 @@
     <div class="form-row">
         <div class="form-element">
             <label>Type laptop
-                <select id="laptop-type-field" name="latop_type">
+                <select id="laptop-type-field" name="laptop_type" class="form-group-1">
                     <option value="leerling" selected>Leerling</option>
                     <option value="personeel">Personeel</option>
                     <option value="reserve">Reserve</option>
@@ -15,29 +15,29 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>LIS badgenummer (*)<input id="lis-badge-field" name="lis_badge_id"></label>
+            <label>LIS badgenummer (*)<input id="lis-badge-field" name="lis_badge_id" class="form-group-1"></label>
         </div>
-        <a type="button" id="lis-badge-scan" class="btn btn-success">Scan LIS badge</a>
+        <button id="lis-badge-scan" class="btn btn-success form-group-1">Scan LIS badge</button>
     </div>
     <div class="form-row" id="owner-row">
         <div class="form-element">
-            <label>Eigenaar (*)<select id="owner-field" name="owner_id"></select></label>
+            <label>Eigenaar (*)<select id="owner-field" name="owner_id" class="form-group-1"></select></label>
         </div>
-        <a type="button" id="owner-badge-scan" class="btn btn-success">Scan badge van eigenaar</a>
+        <button id="owner-badge-scan" class="btn btn-success form-group-1">Scan badge van eigenaar</button>
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Laptop (*)<select id="laptop-field" style="min-width: 400px" name="laptop_serial"></select>
-            </label>
+            <label>Laptop (*)<select id="laptop-field" style="min-width: 400px" name="laptop_serial"
+                                     class="form-group-1"></select></label>
         </div>
-        <a type="button" id="laptop-code-scan" class="btn btn-success">Scan laptop label</a>
+        <button id="laptop-code-scan" class="btn btn-success form-group-1">Scan laptop label</button>
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Wachtwoord<input id="password-field" name="password"></label>
+            <label>Wachtwoord<input id="password-field" name="owner_password"></label>
         </div>
         <div class="form-element">
-            <label><input type="checkbox" id="password-default-chk" name="password_default">Standaard paswoord?</label>
+            <label><input type="checkbox" id="password-default-chk" name="owner_password_default">Standaard paswoord?</label>
         </div>
     </div>
     <div class="form-row">
@@ -47,14 +47,15 @@
         <div class="form-element">
             <label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label>
         </div>
+        <button id="spare-badge-scan" class="btn btn-success">Scan badge van reservelaptop</button>
     </div>
     <div class="form-row">
         <div class="form-element">
             <label>Type incident (*)
                 <select id="lis-type-field" name="type">
-                    <option value="hardware">Hardware</option>
                     <option value="software">Software</option>
                     <option value="herinstalleren">Herinstalleren</option>
+                    <option value="hardware">Hardware</option>
                 </select>
             </label>
         </div>
@@ -65,17 +66,18 @@
             <label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label>
         </div>
     </div>
-    <div class="form-row">
+    <div class="form-row" hidden>
         <div class="form-element">
-            <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1" name="info"></textarea></label>
+            <div style="display: flex; flex-direction: column">
+                <p><b>Vorige info:</b></p>
+                <p id="info_previous"></p>
+            </div>
         </div>
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Locatie<select id="location-field" name="location"> </select></label>
-        </div>
-        <div class="form-element">
-            <label>Status<select id="state-field" name="status"> </select></label>
+            <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1"
+                                 name="info"></textarea></label>
         </div>
     </div>
 </form>

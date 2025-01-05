@@ -1,4 +1,4 @@
-import {datatable_reload_table, datatable_row_data_get, datatables_init} from "../datatables/dt.js";
+import {datatable_reload_table, datatable_row_data_from_id, datatables_init} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update} from "../common/common.js";
 import {AlertPopup} from "../common/popup.js";
 import {badge_raw2hex} from "../common/rfid.js";
@@ -61,7 +61,7 @@ const __dialog_new_single_lis_badge = async (default_id = null, default_auto_inc
                 document.getElementById("id-field").addEventListener("input", () => {
                     const id = document.getElementById("id-field").value;
                     if (id !== "") {
-                        const data = datatable_row_data_get(id);
+                        const data = datatable_row_data_from_id(id);
                         new_badge = data === undefined;
                         if (!new_badge) {
                             document.getElementById('rfid-field').value = data.rfid;

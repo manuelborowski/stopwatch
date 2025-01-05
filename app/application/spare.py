@@ -37,3 +37,19 @@ def update(f_data):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
+
+def get(data):
+    try:
+        filters = [(k, "=", v) for k,v in data.items()]
+        if filters:
+            spare = dl.spare.get(filters)
+            if spare:
+                return {"data": spare.to_dict()}
+            else:
+                return {"status": "error", "msg": f"Spare niet gevonden, filter {filters}"}
+        else:
+            return {"status": "error", "msg": f"No valid data {data}"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
+        return {"status": "error", "msg": {str(e)}}
+

@@ -51,18 +51,18 @@ class DatatableConfig:
     def post_sql_paginate(self, l, start, length):
         return l[start:length]
 
+    def post_process_template(self, template):
+        return template
+
     @property
     def template(self):
         return get_datatables_config(self.view)
 
     def create_table_config(self):
+        template = self.post_process_template(self.template)
         return {
             "href": self.href,
-            "enable_column_visible_selector": self.enable_column_visible_selector,
-            "enable_persistent_filter_settings": self.enable_persistent_filter_settings,
-            "template": self.template,
-            "filters": self.show_filter_elements(),
-            "data": f"{self.view}.data",
+            "template": template,
             "cell_to_color": self.cell_to_color,
             "suppress_cell_content": self.suppress_cell_content,
             "title": self.title,

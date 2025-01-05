@@ -23,24 +23,42 @@ def show():
         default_location = location_options[0]["value"]
         dl.settings.add_setting("default-location", default_location, user=current_user.username)
     data = {"locations": {"options": location_options, "default": default_location}}
-    return render_template("incident.html", table_config=config.create_table_config(), data=data)
+    return render_template("incident.html", table_config=config.create_table_config(), view_data=data)
 
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("incident-datatable-data", lambda type, data: datatable_get_data(config, data))
 
-@bp_incident.route('/incident', methods=['POST'])
+@bp_incident.route('/incident', methods=['POST', "UPDATE", "GET"])
 @login_required
 def incident():
+    ret = {}
     if request.method == "POST":
         data = json.loads(request.data)
         ret = al.incident.add(data)
-        return json.dumps(ret)
-
+    if request.method == "UPDATE":
+        data = json.loads(request.data)
+        ret = al.incident.update(data)
+    if request.method == "GET":
+        data = request.args
+        ret = al.incident.get(data)
+    return json.dumps(ret)
 
 @bp_incident.route('/incident/badge/lis', methods=['GET'])
 @login_required
 def lis_badge():
     ret = al.lisbadge.get(request.args)
+    return json.dumps(ret)
+
+@bp_incident.route('/incident/spare', methods=['GET'])
+@login_required
+def spare():
+    ret = al.spare.get(request.args)
+    return json.dumps(ret)
+
+@bp_incident.route('/incident/history', methods=['GET'])
+@login_required
+def history():
+    ret = al.history.get(request.args)
     return json.dumps(ret)
 
 @bp_incident.route('/incident/student/', methods=['GET'])
@@ -71,35 +89,37 @@ def staff_options():
     ret = {"options": staff_options}
     return json.dumps(ret)
 
-@bp_incident.route('/incident/location/default', methods=['POST'])
+@bp_incident.route('/incident/location', methods=['POST', "GET"])
 @login_required
-def location_default():
-    data = json.loads(request.data)
-    if "location" in data:
-        dl.settings.set_setting("default-location", data["location"], user=current_user.username)
-        ret = {"data": "ok"}
-    else:
-        ret = {"status": "warning", "msg": f"location parameter niet gevonden"}
-    return json.dumps(ret)
+def location():
+    try:
+        if request.method == "POST":
+            data = json.loads(request.data)
+            dl.settings.set_setting("default-location", data["default"], user=current_user.username)
+            ret = {"data": "ok"}
+            return json.dumps(ret)
+        if request.method == "GET":
+            locations = dl.settings.get_configuration_setting("lis-locations")
+            location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
+            found, default_location = dl.settings.get_setting("default-location", current_user.username)
+            if not found:
+                default_location = location_options[0]["value"]
+                dl.settings.add_setting("default-location", default_location, user=current_user.username)
+            data = {"locations": {"options": location_options, "default": default_location}}
+            return json.dumps(data)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
+        return fetch_return_error(f'Exception, {e}')
+
 
 @bp_incident.route('/incident/form', methods=['GET'])
 @login_required
 def form():
     try:
         if request.method == "GET":
-            locations = dl.settings.get_configuration_setting("lis-locations")
-            location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
-            _, location_default = dl.settings.get_setting("default-location", current_user.username)
-            states = dl.settings.get_configuration_setting("lis-state")
-            states_options = [{"label": v["label"], "value": k} for (k, v) in states.items()]
-            states_default = "preparation"
             optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
-            defaults = [
-                {"id": "location-field", "type": "select",  "options": location_options, "default": location_default},
-                {"id": "state-field", "type": "select",  "options": states_options, "default": states_default},
-            ]
             template = open(pathlib.Path("app/presentation/template/lib/incident_form.html")).read()
-            return {"template": template, "defaults": defaults, "data": optional}
+            return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
         return fetch_return_error(f'Exception, {e}')
@@ -114,6 +134,23 @@ class Config(DatatableConfig):
 
     def pre_sql_search(self, search):
         return dl.incident.pre_sql_search(search)
+
+    def post_process_template(self, template):
+        locations = dl.settings.get_configuration_setting("lis-locations")
+        location_labels = {k: v["label"] for (k, v) in locations.items()}
+        states = dl.settings.get_configuration_setting("lis-state")
+        state_labels = {k: v["label"] for (k, v) in states.items()}
+        for column in template:
+            if column["data"] == "state":
+                column["label"] = {"labels": state_labels}
+            if column["data"] == "location":
+                column["label"] = {"labels": location_labels}
+            if column["data"] == "info":
+                column["ellipsis"] = {"cutoff": 50, "wordbreak": True}
+        return template
+
+    def format_data(self, db_list, total_count=None, filtered_count=None):
+        return al.incident.format_data(db_list, total_count, filtered_count)
 
 config = Config("incident", "Incidenten")
 

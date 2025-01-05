@@ -18,45 +18,31 @@ class Incident(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     lis_badge_id = db.Column(db.Integer, default=-1)
+    priority = db.Column(db.Integer, default=1)
     owner_name = db.Column(db.String(256), default=None)
     owner_id = db.Column(db.String(256), default=None)
+    owner_password = db.Column(db.String(256), default=None)
+    owner_password_default = db.Column(db.Boolean, default=False)
     laptop_type = db.Column(db.String(256), default=None)
     laptop_name = db.Column(db.String(256), default=None)
     laptop_serial = db.Column(db.String(256), default=None)
     spare_laptop_name = db.Column(db.String(256), default=None)
     spare_laptop_serial = db.Column(db.String(256), default=None)
-    charger = db.Column(db.String(256), default=None)
+    charger = db.Column(db.Boolean, default=False)
     info = db.Column(db.String(256), default=None)
     type = db.Column(db.String(256), default=None)
     drop_damage = db.Column(db.Boolean, default=False)
     water_damage = db.Column(db.Boolean, default=False)
-    status = db.Column(db.String(256), default=None)
+    state = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
+    user = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
-
-
-class History(db.Model, SerializerMixin):
-    __tablename__ = 'histories'
-
-    date_format = '%d/%m/%Y'
-    datetime_format = '%d/%m/%Y %H:%M'
-
-    id = db.Column(db.Integer, primary_key=True)
-    incident_id = db.Column(db.Integer)
-    info = db.Column(db.String(256), default=None)
-    type = db.Column(db.String(256), default=None)
-    drop_damage = db.Column(db.Boolean, default=False)
-    water_damage = db.Column(db.Boolean, default=False)
-    status = db.Column(db.String(256), default=None)
-    location = db.Column(db.String(256), default=None)
-    time = db.Column(db.DateTime, default=None)
-
 
 def add(data = {}):
     return dl.models.add_single(Incident, data)
 
 
-def incident_update(incident, data={}):
+def update(incident, data={}):
     return dl.models.update_single(Incident, incident, data)
 
 
@@ -78,8 +64,6 @@ def commit():
     except Exception as e:
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
-
 
 ############ incident overview list #########
 def filter(query_in):
