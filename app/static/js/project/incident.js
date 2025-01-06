@@ -1,11 +1,10 @@
 import {datatable_loaded_subscribe, datatable_reload_table, datatable_row_data_from_target, datatables_init} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} from "../common/common.js";
 import {badge_raw2hex} from "../common/rfid.js";
-import {AlertPopup} from "../common/popup.js";
+import {AlertPopup, FormioPopup} from "../common/popup.js";
 
 const __incident_show_form = async (params = {}) => {
     const incident_update = "id" in params;
-
     const __set_owner_options = async (placeholder, type) => {
         //populate options of owner field
         if (["leerling", "personeel"].includes(type)) {
@@ -26,7 +25,7 @@ const __incident_show_form = async (params = {}) => {
     }
 
     const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
-    const form = await fetch_get("incident.form")
+    const form = await fetch_get("incident.form", {form: "incident"});
     if (form) {
         let owner_field = null;
         bootbox.dialog({
@@ -194,6 +193,46 @@ const __incident_show_form = async (params = {}) => {
     }
 }
 
+const __view_history = async (ids) => {
+    const id = ids[0];
+    const form = await fetch_get("incident.form", {form: "history"});
+    if (form) {
+        let owner_field = null;
+        bootbox.dialog({
+            title: "Incidentent historiek",
+            size: "xl",
+            message: form.template,
+            buttons: {
+                cancel: {
+                    label: "Annuleer", className: "btn-secondary", callback: async () => {
+                    }
+                },
+            },
+            onShown: async () => {
+                form_default_set(form.defaults);
+                const incident = await fetch_get("incident.incident", {id: id});
+                const histories = await fetch_get("incident.history", {incident_id: id});
+                const history_table = document.querySelector("#history-table");
+                for (const h of histories.data) {
+                    let tr = "<tr>";
+                    for (const e of ["user", "priority", "state", "location", "info", "time", "type", "drop_damage", "water_damage"]) {
+                        let val = h[e];
+                        if (e === "state") val = histories.label.state[val].label;
+                        if (e === "location") val = histories.label.location[val].label;
+                        if (val === true) val = "&#10003;"
+                        if (val === false) val = "";
+                        tr += `<td>${val}</td>`
+                    }
+                    tr += "</tr>";
+                    history_table.innerHTML += tr;
+                }
+                form_populate(incident.data);
+                setTimeout(() => document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true), 200);
+            },
+        });
+    }
+}
+
 const __save_default_location = () => {
     view_data.locations.default = document.querySelector("#location-default").value;
     const status = fetch_post("incident.location", {default: view_data.locations.default})
@@ -214,6 +253,10 @@ const button_menu_items = [
         default: view_data.locations.default,
         cb: __save_default_location
     },
+]
+
+const context_menu_items = [
+    {type: "item", label: 'Historiek', iconscout: 'plus-circle', cb: __view_history},
 ]
 
 const __table_loaded = opaque => {
@@ -237,5 +280,5 @@ const __table_loaded = opaque => {
 
 $(document).ready(function () {
     datatable_loaded_subscribe(__table_loaded, null);
-    datatables_init({button_menu_items});
+    datatables_init({button_menu_items, context_menu_items});
 });

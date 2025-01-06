@@ -1,5 +1,5 @@
 import {datatables_init} from "../datatables/dt.js";
-import {fetch_get, form_default_set} from "../common/common.js";
+import {fetch_get} from "../common/common.js";
 
 const filter_menu_items = [
     {

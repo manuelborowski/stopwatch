@@ -59,6 +59,9 @@ def spare():
 @login_required
 def history():
     ret = al.history.get(request.args)
+    locations = dl.settings.get_configuration_setting("lis-locations")
+    states = dl.settings.get_configuration_setting("lis-state")
+    ret.update({"label": {"location": locations, "state": states}})
     return json.dumps(ret)
 
 @bp_incident.route('/incident/student/', methods=['GET'])
@@ -117,8 +120,14 @@ def location():
 def form():
     try:
         if request.method == "GET":
-            optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
-            template = open(pathlib.Path("app/presentation/template/lib/incident_form.html")).read()
+            form = request.args.get('form')
+            optional = []
+            template = ""
+            if form == "incident":
+                optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
+                template = open(pathlib.Path("app/presentation/template/lib/incident_form.html")).read()
+            if form == "history":
+                template = open(pathlib.Path("app/presentation/template/lib/history_form.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')

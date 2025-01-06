@@ -103,7 +103,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         if ("ellipsis" in v) {
             v.render = return_render_ellipsis(v.ellipsis.cutoff, v.ellipsis.wordbreak, true);
         } else if ("bool" in v) {
-            v.render = function (data, type, full, meta) {return data === true ? `<input type="checkbox" checked disabled/>` : '';};
+            v.render = function (data, type, full, meta) {return data === true ? "&#10003;" : "";};
         } else if ("label" in v) {
             v.render = function (data, type, full, meta) {return v.label.labels[data];}
         }

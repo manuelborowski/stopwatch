@@ -31,8 +31,9 @@ from functools import wraps
 # 0.17: added history.  Added helper functions for forms.  Added datatable cell renderer for labels.  Incident form reused for incident update/state change.
 # Added event buttons/select to table.  Added template-post-processing to e.g. replace a value with a label.
 # 0.18: added history overview page.  Bugfix select2, make sure it is done initializing before changing its value.
+# 0.19: on incident overview page, added a context-menu and popup to display history
 
-version = "0.18"
+version = "0.19"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
