@@ -30,8 +30,9 @@ from functools import wraps
 # 0.16: small bugfix in incident.  Updated CSS
 # 0.17: added history.  Added helper functions for forms.  Added datatable cell renderer for labels.  Incident form reused for incident update/state change.
 # Added event buttons/select to table.  Added template-post-processing to e.g. replace a value with a label.
+# 0.18: added history overview page.  Bugfix select2, make sure it is done initializing before changing its value.
 
-version = "0.17"
+version = "0.18"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -115,7 +116,7 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, incident, spare, lisbadge
+from app.presentation.view import auth, api, user, settings, incident, spare, lisbadge, history
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
@@ -123,3 +124,4 @@ app.register_blueprint(settings.bp_settings)
 app.register_blueprint(incident.bp_incident)
 app.register_blueprint(spare.bp_spare)
 app.register_blueprint(lisbadge.bp_lisbadge)
+app.register_blueprint(history.bp_history)

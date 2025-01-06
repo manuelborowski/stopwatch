@@ -139,6 +139,49 @@ settings_formio = \
             ]
           },
           {
+            "label": "Incidenten historiek",
+            "tableView": false,
+            "validateWhenHidden": false,
+            "key": "incidents-history",
+            "type": "container",
+            "input": true,
+            "components": [
+              {
+                "title": "Incidenten Historiek",
+                "theme": "primary",
+                "collapsible": true,
+                "key": "incidenten-historiek",
+                "type": "panel",
+                "label": "Algemeen",
+                "collapsed": true,
+                "input": false,
+                "tableView": false,
+                "components": [
+                  {
+                    "label": "Opslaan",
+                    "showValidations": false,
+                    "theme": "warning",
+                    "tableView": false,
+                    "key": "submit",
+                    "type": "button",
+                    "input": true,
+                    "saveOnEnter": false
+                  },
+                  {
+                    "label": "Lijst template (YAML)",
+                    "applyMaskOn": "change",
+                    "autoExpand": false,
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "incident-history-datatables-template",
+                    "type": "textarea",
+                    "input": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
             "label": "Reserve",
             "tableView": false,
             "validateWhenHidden": false,

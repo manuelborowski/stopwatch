@@ -49,8 +49,11 @@ export const form_populate = data => {
     for (const [field_name, value] of Object.entries(data)) {
         const field = document.querySelector(`[name=${field_name}]`);
         if (field) {
-            if (field.type === "checkbox") field.checked = value;
-            else field.value = value;
+            if (field.type === "checkbox") {
+                field.checked = value;
+            } else if (field.classList.contains("select2-hidden-accessible")) { // select2 type
+                $(`[name=${field_name}]`).val(value).trigger("change");
+            } else field.value = value;
         }
     }
 }

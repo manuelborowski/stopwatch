@@ -32,6 +32,11 @@ def add(data):
         data["state"] = "started"
         data["user"] = current_user.username
         incident = dl.incident.add(data)
+        if incident:
+            # store some data in history
+            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "type": incident.type, "drop_damage": incident.drop_damage,
+                            "water_damage": incident.water_damage, "state": incident.state, "location": incident.location, "user": incident.user, "time": incident.time, }
+            history = dl.history.add(history_data)
         log.info(f'{sys._getframe().f_code.co_name}: incident added, {data}')
         return {"status": "ok", "msg": f"Incident, {incident.id} toegevoegd."}
     except Exception as e:
@@ -42,48 +47,41 @@ def update(data):
     try:
         incident = dl.incident.get(("id", "=", data["id"]))
         if incident:
-            # store some data in history
-            history_data = {
-                "incident_id": incident.id,
-                "priority": incident.priority,
-                "info": incident.info,
-                "type": incident.type,
-                "drop_damage": incident.drop_damage,
-                "water_damage": incident.water_damage,
-                "state": incident.state,
-                "location": incident.location,
-                "user": incident.user,
-                "time": incident.time,
-            }
-            history = dl.history.add(history_data)
-            if history:
-                data["time"] = datetime.datetime.now()
-                data["user"] = current_user.username
-                del data["id"]
-                incident = dl.incident.update(incident, data)
+            # if the info field is empty, but the previous was not, copy that...
+            if data["info"] == "":
+                history_latest = dl.history.get_m(("incident_id", "=", data["id"]), order_by="-id", first=True)
+                if history_latest:
+                    data["info"] = history_latest.info
+            data["time"] = datetime.datetime.now()
+            data["user"] = current_user.username
+            del data["id"]
+            incident = dl.incident.update(incident, data)
+            if incident:
                 if "event" in data:
                     __event(incident, data["event"])
+                # store some data in history
+                history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "type": incident.type, "drop_damage": incident.drop_damage,
+                    "water_damage": incident.water_damage, "state": incident.state, "location": incident.location, "user": incident.user, "time": incident.time,}
+                history = dl.history.add(history_data)
                 log.info(f'{sys._getframe().f_code.co_name}: incident updated, {data}')
                 return {"id": incident.id}
-            log.error(f'{sys._getframe().f_code.co_name}: could not add incident history, incident id {data["id"]}')
-            return {"status": "error", "msg": f'Kan incident historiek niet toevoegen, incident id {data["id"]}'}
         log.error(f'{sys._getframe().f_code.co_name}: incident not found, id {data["id"]}')
         return {"status": "error", "msg": f'Incident niet gevonden, id {data["id"]}'}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
-def get(data):
+def get(data={}):
     try:
         filters = [(k, "=", v) for k,v in data.items()]
-        if filters:
-            incident = dl.incident.get(filters)
-            if incident:
-                return {"data": incident.to_dict()}
+        incidents = dl.incident.get_m(filters)
+        if incidents:
+            if len(incidents) > 1:
+                return {"data": [i.to_dict() for i in incidents]}
             else:
-                return {"status": "error", "msg": f"Incident niet gevonden, filter {filters}"}
+                return {"data": incidents[0].to_dict()}
         else:
-            return {"status": "error", "msg": f"No valid data {data}"}
+            return {"status": "error", "msg": f"Incident niet gevonden, filter {filters}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}

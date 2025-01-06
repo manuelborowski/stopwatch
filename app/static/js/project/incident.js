@@ -18,7 +18,7 @@ const __incident_show_form = async (params = {}) => {
                 }
                 if (placeholder.hasClass("select2-hidden-accessible")) placeholder.empty().select2('destroy').trigger("change")
                 placeholder.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
-                placeholder.val(data[0].id).trigger("change");
+                await placeholder.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
             }
         } else {
             document.getElementById("owner-row").hidden = true;
@@ -173,15 +173,14 @@ const __incident_show_form = async (params = {}) => {
                     const incident = await fetch_get("incident.incident", {id: params.id});
                     const histories = await fetch_get("incident.history", {incident_id: params.id});
                     let infos = histories.data.map(e => e.info).filter(e => e !== "").join("<br>");
-                    infos += incident.data["info"] !== "" ? "<br>" + incident.data["info"] : "";
                     if (infos !== "") {
                         const previous_info_field = document.getElementById("info_previous");
                         previous_info_field.innerHTML = infos;
                         previous_info_field.closest(".form-row").hidden = false;
                     }
                     incident.data["info"] = "";
-                    document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true)
                     form_populate(incident.data);
+                    setTimeout(() => document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true), 200);
                 }
 
                 // hide/display water and drop-damage checkboxes

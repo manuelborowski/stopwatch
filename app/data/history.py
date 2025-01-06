@@ -63,6 +63,10 @@ def pre_sql_query():
 
 
 def pre_sql_filter(query, filters):
+    for f in filters:
+        if f['id'] == 'incident-id':
+            if f['value'] != 'all':
+                query = query.filter(History.incident_id == f['value'])
     return query
 
 
