@@ -31,66 +31,35 @@ al.socketio.subscribe_on_type("incident-datatable-data", lambda type, data: data
 @bp_incident.route('/incident', methods=['POST', "UPDATE", "GET"])
 @login_required
 def incident():
-    ret = {}
-    if request.method == "POST":
-        data = json.loads(request.data)
-        ret = al.incident.add(data)
-    if request.method == "UPDATE":
-        data = json.loads(request.data)
-        ret = al.incident.update(data)
-    if request.method == "GET":
-        data = request.args
-        ret = al.incident.get(data)
-    return json.dumps(ret)
+    try:
+        ret = {}
+        if request.method == "POST":
+            data = json.loads(request.data)
+            ret = al.incident.add(data)
+        if request.method == "UPDATE":
+            data = json.loads(request.data)
+            ret = al.incident.update(data)
+        if request.method == "GET":
+            ret = al.models.get(dl.incident.Incident, request.args)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
 
-@bp_incident.route('/incident/badge/lis', methods=['GET'])
+@bp_incident.route('/incident/label', methods=['GET'])
 @login_required
-def lis_badge():
-    ret = al.lisbadge.get(request.args)
-    return json.dumps(ret)
-
-@bp_incident.route('/incident/spare', methods=['GET'])
-@login_required
-def spare():
-    ret = al.spare.get(request.args)
-    return json.dumps(ret)
-
-@bp_incident.route('/incident/history', methods=['GET'])
-@login_required
-def history():
-    ret = al.history.get(request.args)
+def label():
     locations = dl.settings.get_configuration_setting("lis-locations")
     states = dl.settings.get_configuration_setting("lis-state")
-    ret.update({"label": {"location": locations, "state": states}})
-    return json.dumps(ret)
+    return json.dumps({"location": locations, "incident_state": states})
 
-@bp_incident.route('/incident/student/', methods=['GET'])
+@bp_incident.route('/incident/default', methods=['GET'])
 @login_required
-def student():
-    ret = al.student.get(request.args)
-    return json.dumps(ret)
-
-@bp_incident.route('/incident/student/option', methods=['GET'])
-@login_required
-def student_options():
-    students = dl.student.get_m()
-    student_options = sorted([{"label": f"{s.naam} {s.voornaam} {s.klasgroep}", "data": s.leerlingnummer} for s in students], key=lambda x: x["label"])
-    ret = {"options": student_options}
-    return json.dumps(ret)
-
-@bp_incident.route('/incident/staff/', methods=['GET'])
-@login_required
-def staff():
-    ret = al.staff.get(request.args)
-    return json.dumps(ret)
-
-@bp_incident.route('/incident/staff/option', methods=['GET'])
-@login_required
-def staff_options():
-    staff = dl.staff.get_m()
-    staff_options = sorted([{"label": f"{s.naam} {s.voornaam}", "data": s.code} for s in staff], key=lambda x: x["label"])
-    ret = {"options": staff_options}
-    return json.dumps(ret)
+def default():
+    _, default_location = dl.settings.get_setting("default-location", current_user.username)
+    states = dl.settings.get_configuration_setting("lis-state")
+    default_state = [k for k, v in states.items() if "default" in v][0]
+    return json.dumps({"location": default_location, "incident_state": default_state})
 
 @bp_incident.route('/incident/location', methods=['POST', "GET"])
 @login_required
@@ -113,7 +82,6 @@ def location():
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
         return fetch_return_error(f'Exception, {e}')
-
 
 @bp_incident.route('/incident/form', methods=['GET'])
 @login_required
@@ -150,7 +118,7 @@ class Config(DatatableConfig):
         states = dl.settings.get_configuration_setting("lis-state")
         state_labels = {k: v["label"] for (k, v) in states.items()}
         for column in template:
-            if column["data"] == "state":
+            if column["data"] == "incident_state":
                 column["label"] = {"labels": state_labels}
             if column["data"] == "location":
                 column["label"] = {"labels": location_labels}

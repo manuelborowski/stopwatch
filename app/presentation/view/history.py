@@ -22,14 +22,15 @@ def show():
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("incident-history-datatable-data", lambda type, data: datatable_get_data(config, data))
 
-@bp_history.route('/incident/option', methods=["GET"])
+@bp_history.route('/history', methods=['GET'])
 @login_required
-def incident_option():
-    incidents = al.incident.get()
-    options = [{"label": i["id"], "value": i["id"]} for i in incidents["data"]]
-    options.insert(0, {"label": "Alles", "value": "all"})
-    ret = {"type": "select", "options": options, "default": "all"}
-    return json.dumps(ret)
+def history():
+    try:
+        ret = al.models.get(dl.history.History, request.args)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
 
 class Config(DatatableConfig):
     def pre_sql_query(self):

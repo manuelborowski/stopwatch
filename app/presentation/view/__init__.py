@@ -30,5 +30,7 @@ def datatable_get_data(table_config, data):
         return "[]"
 
 # use only in context of a fetch call
-def fetch_return_error(msg):
-    return {"status": "error", "msg": msg}
+def fetch_return_error(msg=None):
+    if not msg:
+        msg = "Er ging iets fout, waarschuw ICT!"
+    return json.dumps({"status": "error", "msg": msg})

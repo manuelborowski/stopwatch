@@ -12,6 +12,8 @@
                 </select>
             </label>
         </div>
+        <div class="form-element"><label>Locatie<input name="location" disabled></label></div>
+        <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
     </div>
     <div class="form-row">
         <div class="form-element">
@@ -21,7 +23,7 @@
     </div>
     <div class="form-row" id="owner-row">
         <div class="form-element">
-            <label>Eigenaar (*)<select id="owner-field" name="owner_id" class="form-group-1"></select></label>
+            <label>Eigenaar (*)<select id="owner-field" name="laptop_owner_id" class="form-group-1"></select></label>
         </div>
         <button id="owner-badge-scan" class="btn btn-success form-group-1">Scan badge van eigenaar</button>
     </div>
@@ -34,10 +36,10 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Wachtwoord<input id="password-field" name="owner_password"></label>
+            <label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label>
         </div>
         <div class="form-element">
-            <label><input type="checkbox" id="password-default-chk" name="owner_password_default">Standaard paswoord?</label>
+            <label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label>
         </div>
     </div>
     <div class="form-row">
@@ -52,7 +54,7 @@
     <div class="form-row">
         <div class="form-element">
             <label>Type incident (*)
-                <select id="lis-type-field" name="type">
+                <select id="lis-type-field" name="incident_type">
                     <option value="software">Software</option>
                     <option value="herinstalleren">Herinstalleren</option>
                     <option value="hardware">Hardware</option>

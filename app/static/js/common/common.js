@@ -45,14 +45,15 @@ export const form_default_set = (defaults) => {
     }
 }
 
-export const form_populate = data => {
-    for (const [field_name, value] of Object.entries(data)) {
+export const form_populate = async (data, labels=null) => {
+    for (let [field_name, value] of Object.entries(data)) {
         const field = document.querySelector(`[name=${field_name}]`);
         if (field) {
+            if (labels && field_name in labels) value = labels[field_name][value].label;
             if (field.type === "checkbox") {
                 field.checked = value;
             } else if (field.classList.contains("select2-hidden-accessible")) { // select2 type
-                $(`[name=${field_name}]`).val(value).trigger("change");
+                await $(`[name=${field_name}]`).val(value).trigger("change");
             } else field.value = value;
         }
     }

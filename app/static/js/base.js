@@ -22,7 +22,7 @@ export const base_init = ({button_menu_items=[]}) => {
     const navbar_element = document.querySelector("#navbar");
     let dd_ctr = 0;
     for (const item of menu) {
-        if (current_user_level >= item[2]) {
+        if (current_user.level >= item[2]) {
             const li = document.createElement("li");
             if (Array.isArray(item[0])) {
                 // dropdown menu-item
@@ -47,7 +47,7 @@ export const base_init = ({button_menu_items=[]}) => {
                         divd.classList.add("dropdown-divider");
                         div.appendChild(divd)
                     } else {
-                        if (current_user_level >= sitem[2]) {
+                        if (current_user.level >= sitem[2]) {
                             const a = document.createElement("a");
                             div.appendChild(a)
                             a.classList.add("dropdown-item");

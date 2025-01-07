@@ -7,18 +7,14 @@ from sqlalchemy_serializer import SerializerMixin
 class Student(db.Model, SerializerMixin):
     __tablename__ = 'students'
 
-    date_format = '%d/%m/%Y'
-    datetime_format = '%d/%m/%Y %H:%M'
-
-    serialize_rules = ("klasgroep",)
+    date_format = '%Y/%m/%d'
+    datetime_format = '%Y/%m/%d %H:%M'
 
     id = db.Column(db.Integer(), primary_key=True)
-
     voornaam = db.Column(db.String(256), default='')
     naam = db.Column(db.String(256), default='')
     rfid = db.Column(db.String(256))
-    klascode = db.Column(db.String(256), default='')
-    instellingsnummer = db.Column(db.String(256), default='')
+    klasgroepcode = db.Column(db.String(256), default='')
     leerlingnummer = db.Column(db.String(256), default='')
     username = db.Column(db.String(256), default='')
     timestamp = db.Column(db.DateTime)
@@ -32,26 +28,6 @@ class Student(db.Model, SerializerMixin):
     @property
     def person_id(self):
         return self.leerlingnummer
-
-    @property
-    def school(self):
-        if self.klascode == "OKAN":
-            return "SUL"
-        elif int(self.klascode[0]) < 3:
-            schoolnaam = "SUM"
-        elif self.instellingsnummer == "30569":
-            schoolnaam = "SUI"
-        else:
-            schoolnaam = "SUL"
-        return schoolnaam
-
-    @property
-    def klasgroep(self):
-            if self.klascode == "OKAN" or int(self.klascode[0]) > 1 and self.instellingsnummer == "030569" or len(self.klascode) == 2:
-                return self.klascode
-            else:
-                return self.klascode[:2]
-
 
 def get_columns():
     return [p for p in dir(Student) if not p.startswith('_')]
@@ -94,20 +70,9 @@ def pre_sql_query():
 
 
 def pre_sql_filter(query, filter):
-    for f in filter:
-        if f['name'] == 'photo-not-found':
-            if f['value'] == 'not-found':
-                query = query.filter(Student.foto_id == -1)
-        if f['name'] == 'filter-klas':
-            if f['value'] != 'default':
-                query = query.filter(Student.klascode == f['value'])
     return query
 
 
 def pre_sql_search(search_string):
     search_constraints = []
-    search_constraints.append(Student.leerlingnummer.like(search_string))
-    search_constraints.append(Student.naam.like(search_string))
-    search_constraints.append(Student.voornaam.like(search_string))
-    search_constraints.append(Student.klascode.like(search_string))
     return search_constraints

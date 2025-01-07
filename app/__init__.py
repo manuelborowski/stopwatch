@@ -32,8 +32,10 @@ from functools import wraps
 # Added event buttons/select to table.  Added template-post-processing to e.g. replace a value with a label.
 # 0.18: added history overview page.  Bugfix select2, make sure it is done initializing before changing its value.
 # 0.19: on incident overview page, added a context-menu and popup to display history
+# 0.20: reworked fetch-get to use the api filters/fields.  Put the endpoints in the correct files. Use try/except and logging as much as possible to propagate errors.
+# Data/defaults/configuration/... is fetched from the server when required.
 
-version = "0.19"
+version = "0.20"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -117,7 +119,7 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, incident, spare, lisbadge, history
+from app.presentation.view import auth, api, user, settings, incident, spare, lisbadge, history, student, staff
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
@@ -126,3 +128,5 @@ app.register_blueprint(incident.bp_incident)
 app.register_blueprint(spare.bp_spare)
 app.register_blueprint(lisbadge.bp_lisbadge)
 app.register_blueprint(history.bp_history)
+app.register_blueprint(student.bp_student)
+app.register_blueprint(staff.bp_staff)

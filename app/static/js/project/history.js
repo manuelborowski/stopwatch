@@ -11,11 +11,11 @@ const filter_menu_items = [
 ]
 
 $(document).ready(async () => {
-    let incident_options = await fetch_get("history.incident_option");
+    let incident_ids = await fetch_get("incident.incident", {fields: "id", filters: "id$>$0"});
     filter_menu_items.filter((e, i, a) => {
-        if (e.id === "incident-id") {
-            a[i].options = incident_options.options;
-            a[i].default = incident_options.default;
+        if (e.id === "incident-id" && incident_ids && incident_ids.length > 0) {
+            a[i].options = [{value: "all", label: "Alles"}].concat(incident_ids.map(e =>  ({label: e.id, value: e.id})));
+            a[i].default = "all";
             return true
         }
         return false;

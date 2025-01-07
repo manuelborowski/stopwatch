@@ -92,6 +92,8 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
         entities = [text(f'{tablename}.{f}') for f in fields]
         if entities:
             q = model.query.with_entities(*entities)
+            if not filters: # hack.  If no filter is defined, the query errors with 'unknown table'
+                q = q.filter(getattr(model, "id") > 0)
         else:
             q = model.query
         if type(filters) is not list: filters = [filters]
@@ -133,7 +135,7 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
         return objs
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-    return []
+        raise e
 
 
 def get_first_single(model, filters=[], order_by=None):

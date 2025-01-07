@@ -22,16 +22,24 @@ def show():
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("spare-datatable-data", lambda type, data: datatable_get_data(config, data))
 
-@bp_spare.route('/spare', methods=["POST", "UPDATE"])
+@bp_spare.route('/spare', methods=["POST", "UPDATE", "GET"])
 @login_required
 def spare():
-    if request.method == "UPDATE":
-        data = json.loads(request.data)
-        ret = al.spare.update(data)
-    elif request.method == "POST":
-        data = json.loads(request.data)
-        ret = al.spare.add(data)
-    return json.dumps(ret)
+    try:
+        if request.method == "GET":
+            ret = al.models.get(dl.spare.Spare, request.args)
+            return json.dumps(ret)
+        elif request.method == "UPDATE":
+            data = json.loads(request.data)
+            ret = al.spare.update(data)
+            return json.dumps(ret)
+        else:
+            data = json.loads(request.data)
+            ret = al.spare.add(data)
+            return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
 
 @bp_spare.route('/spare/form', methods=['GET'])
 @login_required

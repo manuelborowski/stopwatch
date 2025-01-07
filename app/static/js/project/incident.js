@@ -9,16 +9,17 @@ const __incident_show_form = async (params = {}) => {
         //populate options of owner field
         if (["leerling", "personeel"].includes(type)) {
             document.getElementById("owner-row").hidden = false;
-            const ret = type === "leerling" ? await fetch_get("incident.student_options") : await fetch_get("incident.staff_options")
-            if (ret) {
-                let data = []
-                for (const owner of ret.options) {
-                    data.push({id: owner.data, text: owner.label})
-                }
-                if (placeholder.hasClass("select2-hidden-accessible")) placeholder.empty().select2('destroy').trigger("change")
-                placeholder.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
-                await placeholder.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
+            let data = [];
+            if (type === "leerling") {
+                const owners = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
+                data = owners ? owners.map(e => ({id: e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
+            } else {
+                const owners = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
+                data = owners ? owners.map(e => ({id: e.code, text: `${e.naam} ${e.voornaam}`})) : []
             }
+            if (placeholder.hasClass("select2-hidden-accessible")) await placeholder.empty().select2('destroy').trigger("change")
+            await placeholder.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
+            if (data.length > 0) await placeholder.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
         } else {
             document.getElementById("owner-row").hidden = true;
         }
@@ -40,11 +41,11 @@ const __incident_show_form = async (params = {}) => {
                         const form_data = new FormData(document.getElementById("incident-form"));
                         const data = Object.fromEntries(form_data)
                         const owner_data = owner_field.select2("data")[0];
-                        data.owner_name = owner_data.text;
+                        data.laptop_owner_name = owner_data.text;
                         data.laptop_name = document.getElementById("laptop-field").selectedOptions[0].textContent;
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-                        if (data.lis_badge_id === "" || data.owner_id === "" || data.laptop_serial === "") {
+                        if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_serial === "") {
                             new AlertPopup("warning", "'Lis-badgenummer', 'Eigenaar' en 'Laptop' moeten ingevuld zijn.")
                         } else {
                             if (incident_update) {
@@ -76,25 +77,25 @@ const __incident_show_form = async (params = {}) => {
                 document.getElementById("laptop-type-field").addEventListener("change", e => __set_owner_options(owner_field, e.target.value));
 
                 // Scan LIS badge
-                document.getElementById("lis-badge-scan").addEventListener("click", () => {
+                document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
                     bootbox.prompt({
                         title: "Scan de LIS badge",
                         callback: async res => {
                             if (res !== null) {
                                 const [valid_code, code] = badge_raw2hex(res);
                                 if (valid_code) {
-                                    const badge = await fetch_get("incident.lis_badge", {"rfid": code})
-                                    if (badge) {
-                                        document.getElementById("lis-badge-field").value = badge.data.id;
-                                    }
+                                    const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
+                                    if (badges && badges.length > 0) document.getElementById("lis-badge-field").value = badges[0].id;
                                 }
                             }
                         }
                     })
                 });
 
-                // Scan owner badge
-                document.getElementById("owner-badge-scan").addEventListener("click", () => {
+                // Scan laptop owner badge
+                document.getElementById("owner-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
                     bootbox.prompt({
                         title: "Scan de badge van de eigenaar",
                         callback: async res => {
@@ -102,11 +103,11 @@ const __incident_show_form = async (params = {}) => {
                                 const [valid_code, code] = badge_raw2hex(res);
                                 if (valid_code) {
                                     if (document.getElementById("laptop-type-field").value === "leerling") {
-                                        const user = await fetch_get("incident.student", {rfid: code});
-                                        if (user) owner_field.val(user.data.leerlingnummer).trigger("change");
+                                        const owners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
+                                        if (owners && owners.length > 0) owner_field.val(owners[0].leerlingnummer).trigger("change");
                                     } else {
-                                        const user = await fetch_get("incident.staff", {rfid: code});
-                                        if (user) owner_field.val(user.data.code).trigger("change");
+                                        const owners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
+                                        if (owners && owners.length > 0) owner_field.val(owners[0].code).trigger("change");
                                     }
                                 }
                             }
@@ -115,15 +116,16 @@ const __incident_show_form = async (params = {}) => {
                 });
 
                 // Scan spare badge
-                document.getElementById("spare-badge-scan").addEventListener("click", () => {
+                document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
                     bootbox.prompt({
                         title: "Scan de badge van de reservelaptop",
                         callback: async res => {
                             if (res !== null) {
                                 const [valid_code, code] = badge_raw2hex(res);
                                 if (valid_code) {
-                                    const spare = await fetch_get("incident.spare", {rfid: code});
-                                    if (spare) document.getElementById("spare-field").value = spare.data.label;
+                                    const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
+                                    if (spares && spares.length > 0) document.getElementById("spare-field").value = spares[0].label;
                                 }
                             }
                         }
@@ -133,9 +135,9 @@ const __incident_show_form = async (params = {}) => {
                 // when the owner field changes, get the associated laptops and populate the laptop field
                 owner_field.on('change', async e => {
                     const laptop_type = document.getElementById("laptop-type-field").value;
-                    const owner_id = e.target.value;
-                    if (owner_id !== "") {
-                        const url_suffix = laptop_type === "leerling" ? `student?filters=leerlingnummer$=$${owner_id}` : `staff?filters=code$=$${owner_id}`
+                    const laptop_owner_id = e.target.value;
+                    if (laptop_owner_id !== "") {
+                        const url_suffix = laptop_type === "leerling" ? `student?filters=leerlingnummer$=$${laptop_owner_id}` : `staff?filters=code$=$${laptop_owner_id}`
                         const url = `${form.data.url}/${url_suffix}`
                         const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
                         let resp = await fetch_resp.json();
@@ -168,18 +170,25 @@ const __incident_show_form = async (params = {}) => {
 
                 // set default values
                 form_default_set(form.defaults);
+                const labels = await fetch_get("incident.label")
                 if (incident_update) {
-                    const incident = await fetch_get("incident.incident", {id: params.id});
-                    const histories = await fetch_get("incident.history", {incident_id: params.id});
-                    let infos = histories.data.map(e => e.info).filter(e => e !== "").join("<br>");
+                    const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
+                    const incident = incidents && incidents.length > 0 ? incidents[0] : null;
+                    const histories = await fetch_get("history.history", {filters: `incident_id$=$${params.id}`});
+                    let infos = histories.map(e => e.info).filter(e => e !== "").join("<br>");
                     if (infos !== "") {
                         const previous_info_field = document.getElementById("info_previous");
                         previous_info_field.innerHTML = infos;
                         previous_info_field.closest(".form-row").hidden = false;
                     }
-                    incident.data["info"] = "";
-                    form_populate(incident.data);
-                    setTimeout(() => document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true), 200);
+                    if (incident) {
+                        incident["info"] = "";
+                        await form_populate(incident, labels);
+                        document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true);
+                    }
+                } else {
+                    const defaults = await fetch_get("incident.default")
+                    await form_populate(defaults, labels);
                 }
 
                 // hide/display water and drop-damage checkboxes
@@ -199,7 +208,7 @@ const __view_history = async (ids) => {
     if (form) {
         let owner_field = null;
         bootbox.dialog({
-            title: "Incidentent historiek",
+            title: "Incident historiek",
             size: "xl",
             message: form.template,
             buttons: {
@@ -210,15 +219,17 @@ const __view_history = async (ids) => {
             },
             onShown: async () => {
                 form_default_set(form.defaults);
-                const incident = await fetch_get("incident.incident", {id: id});
-                const histories = await fetch_get("incident.history", {incident_id: id});
+                const incidents = await fetch_get("incident.incident", {filters: `id$=$${id}`});
+                const labels = await fetch_get("incident.label");
+                const incident = incidents && incidents.length > 0 ? incidents[0] : null;
+                const histories = await fetch_get("history.history", {filters: `incident_id$=$${id}`});
                 const history_table = document.querySelector("#history-table");
-                for (const h of histories.data) {
+                for (const h of histories) {
                     let tr = "<tr>";
-                    for (const e of ["user", "priority", "state", "location", "info", "time", "type", "drop_damage", "water_damage"]) {
+                    for (const e of ["incident_owner", "priority", "incident_state", "location", "info", "time", "incident_type", "drop_damage", "water_damage"]) {
                         let val = h[e];
-                        if (e === "state") val = histories.label.state[val].label;
-                        if (e === "location") val = histories.label.location[val].label;
+                        if (e === "incident_state") val = labels.incident_state[val].label;
+                        if (e === "location") val = labels.location[val].label;
                         if (val === true) val = "&#10003;"
                         if (val === false) val = "";
                         tr += `<td>${val}</td>`
@@ -226,8 +237,8 @@ const __view_history = async (ids) => {
                     tr += "</tr>";
                     history_table.innerHTML += tr;
                 }
-                form_populate(incident.data);
-                setTimeout(() => document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true), 200);
+                await form_populate(incident);
+                document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true);
             },
         });
     }
@@ -278,7 +289,30 @@ const __table_loaded = opaque => {
     }));
 }
 
-$(document).ready(function () {
+const filter_menu_items = [
+    {
+        type: 'select',
+        id: 'user-id',
+        label: 'Hersteller',
+        persistent: true
+    },
+]
+
+$(document).ready(async () => {
     datatable_loaded_subscribe(__table_loaded, null);
-    datatables_init({button_menu_items, context_menu_items});
+    let owners = await fetch_get("incident.incident", {fields: "incident_owner"});
+    owners = owners ? [... new Set(owners.map(e => e.incident_owner))] :  [];
+    owners = owners.map(e => ({label: e, value: e}));
+    const options = [{"label": "Iedereen", "value": "all"}, {"label": current_user.username, "value": current_user.username}].concat(owners);
+    filter_menu_items.filter((e, i, a) => {
+        if (e.id === "user-id") {
+            a[i].options = options;
+            a[i].default = "all";
+            return true
+        }
+        return false;
+    });
+
+    datatables_init({button_menu_items, context_menu_items, filter_menu_items});
+    // datatables_init({button_menu_items, context_menu_items});
 });

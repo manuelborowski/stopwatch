@@ -1,4 +1,4 @@
-from app import data as dl
+from app import data as dl, application as al
 import sys, requests
 
 #logging on file level
@@ -10,15 +10,9 @@ log.addFilter(MyLogFilter())
 
 def get(data):
     try:
-        filters = [(k, "=", v) for k,v in data.items()]
-        if filters:
-            student = dl.student.get(filters)
-            if student:
-                return {"data": student.to_dict()}
-            else:
-                return {"status": "error", "msg": f"Student not found, filter {filters}"}
-        else:
-            return {"status": "error", "msg": f"No valid data {data}"}
+        students = al.models.get(dl.student.Student, data)
+        log.info(students)
+        return {"status": "ok", "data": students}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
@@ -47,11 +41,12 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
                         # check for changed rfid or classgroup
                         db_student = db_leerlingnummer_to_student[sdh_student["leerlingnummer"]]
                         update = {}
+                        klascode = sdh_student["klascode"]
+                        klasgroepcode = klascode if klascode == "OKAN" or int(klascode[0]) > 1 and sdh_student["instellingsnummer"] == "30569" or len(klascode) == 2 else klascode[:2]
                         if db_student.rfid != sdh_student["rfid"]:
                             update["rfid"] = sdh_student["rfid"]
-                        if db_student.klascode != sdh_student["klascode"]:
-                            update["klascode"] = sdh_student["klascode"]
-                            update["instellingsnummer"] = sdh_student["instellingsnummer"]
+                        if db_student.klasgroepcode != klasgroepcode:
+                            update["klasgroepcode"] = klasgroepcode
                         if db_student.username != sdh_student["username"]:
                             update["username"] = sdh_student["username"]
                         if update:
@@ -61,7 +56,9 @@ def student_cron_load_from_sdh(opaque=None, **kwargs):
                             nbr_updated += 1
                         del(db_leerlingnummer_to_student[sdh_student["leerlingnummer"]])
                     else:
-                        new_student = {"leerlingnummer": sdh_student["leerlingnummer"], "klascode": sdh_student["klascode"], "instellingsnummer": sdh_student["instellingsnummer"],
+                        klascode = sdh_student["klascode"]
+                        klasgroepcode = klascode if klascode == "OKAN" or int(klascode[0]) > 1 and sdh_student["instellingsnummer"] == "030569" or len(klascode) == 2 else klascode[:2]
+                        new_student = {"leerlingnummer": sdh_student["leerlingnummer"], "klasgroepcode": klasgroepcode,
                                        "naam": sdh_student["naam"], "voornaam": sdh_student["voornaam"], "rfid": sdh_student["rfid"], "username": sdh_student["username"]}
                         new_students.append(new_student)
                         log.info(f'{sys._getframe().f_code.co_name}, New student {sdh_student["leerlingnummer"]}')

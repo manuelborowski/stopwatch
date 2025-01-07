@@ -22,16 +22,24 @@ def show():
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("lis-badge-datatable-data", lambda type, data: datatable_get_data(config, data))
 
-@bp_lisbadge.route('/lisbadge', methods=["POST", "UPDATE"])
+@bp_lisbadge.route('/lisbadge', methods=["POST", "UPDATE", "GET"])
 @login_required
 def lisbadge():
-    if request.method == "UPDATE":
-        data = json.loads(request.data)
-        ret = al.lisbadge.update(data)
-    elif request.method == "POST":
-        data = json.loads(request.data)
-        ret = al.lisbadge.add(data)
-    return json.dumps(ret)
+    try:
+        if request.method == "UPDATE":
+            data = json.loads(request.data)
+            ret = al.lisbadge.update(data)
+            return json.dumps(ret)
+        elif request.method == "POST":
+            data = json.loads(request.data)
+            ret = al.lisbadge.add(data)
+            return json.dumps(ret)
+        else:
+            ret = al.models.get(dl.lisbadge.LisBadge, request.args)
+            return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
 
 @bp_lisbadge.route('/lisbadge/form', methods=['GET'])
 @login_required

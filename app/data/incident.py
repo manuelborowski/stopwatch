@@ -13,16 +13,16 @@ log.addFilter(MyLogFilter())
 class Incident(db.Model, SerializerMixin):
     __tablename__ = 'incidents'
 
-    date_format = '%d/%m/%Y'
-    datetime_format = '%d/%m/%Y %H:%M'
+    date_format = '%Y-%m-%d'
+    datetime_format = '%Y-%m-%d %H:%M'
 
     id = db.Column(db.Integer, primary_key=True)
     lis_badge_id = db.Column(db.Integer, default=-1)
     priority = db.Column(db.Integer, default=1)
-    owner_name = db.Column(db.String(256), default=None)
-    owner_id = db.Column(db.String(256), default=None)
-    owner_password = db.Column(db.String(256), default=None)
-    owner_password_default = db.Column(db.Boolean, default=False)
+    laptop_owner_name = db.Column(db.String(256), default=None)
+    laptop_owner_id = db.Column(db.String(256), default=None)
+    laptop_owner_password = db.Column(db.String(256), default=None)
+    laptop_owner_password_default = db.Column(db.Boolean, default=False)
     laptop_type = db.Column(db.String(256), default=None)
     laptop_name = db.Column(db.String(256), default=None)
     laptop_serial = db.Column(db.String(256), default=None)
@@ -30,12 +30,12 @@ class Incident(db.Model, SerializerMixin):
     spare_laptop_serial = db.Column(db.String(256), default=None)
     charger = db.Column(db.Boolean, default=False)
     info = db.Column(db.String(256), default=None)
-    type = db.Column(db.String(256), default=None)
+    incident_type = db.Column(db.String(256), default=None)
     drop_damage = db.Column(db.Boolean, default=False)
     water_damage = db.Column(db.Boolean, default=False)
-    state = db.Column(db.String(256), default=None)
+    incident_state = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
-    user = db.Column(db.String(256), default=None)
+    incident_owner = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
 
 def add(data = {}):
@@ -84,8 +84,9 @@ def pre_sql_filter(query, filters):
 def pre_sql_search(search_string):
     search_constraints = []
     search_constraints.append(Incident.id.like(search_string))
+    search_constraints.append(Incident.incident_owner.like(search_string))
     search_constraints.append(Incident.lis_badge_id.like(search_string))
-    search_constraints.append(Incident.owner_name.like(search_string))
+    search_constraints.append(Incident.laptop_owner_name.like(search_string))
     search_constraints.append(Incident.laptop_name.like(search_string))
     return search_constraints
 

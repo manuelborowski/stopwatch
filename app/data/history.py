@@ -11,19 +11,19 @@ log.addFilter(MyLogFilter())
 class History(db.Model, SerializerMixin):
     __tablename__ = 'histories'
 
-    date_format = '%d/%m/%Y'
-    datetime_format = '%d/%m/%Y %H:%M'
+    date_format = '%Y-%m-%d'
+    datetime_format = '%Y-%m-%d %H:%M'
 
     id = db.Column(db.Integer, primary_key=True)
     incident_id = db.Column(db.Integer)
     priority = db.Column(db.Integer, default=1)
     info = db.Column(db.String(256), default=None)
-    type = db.Column(db.String(256), default=None)
+    incident_type = db.Column(db.String(256), default=None)
     drop_damage = db.Column(db.Boolean, default=False)
     water_damage = db.Column(db.Boolean, default=False)
-    state = db.Column(db.String(256), default=None)
+    incident_state = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
-    user = db.Column(db.String(256), default=None)
+    incident_owner = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
 
 
