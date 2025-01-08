@@ -52,40 +52,43 @@ SMARTSCHOOL_ALLOWED_BASE_ROLES = [
 
 @bp_auth.route('/ss', methods=['POST', 'GET'])
 def login_ss():
-    if 'version' in request.args:
-        profile = json.loads(request.args['profile'])
+    try:
+        if 'version' in request.args:
+            profile = json.loads(request.args['profile'])
 
-        if not 'username' in profile:  # not good
-            log.error(f'Smartschool geeft een foutcode terug: {profile["error"]}')
-            return redirect(url_for('auth.login'))
-
-        if profile['basisrol'] in SMARTSCHOOL_ALLOWED_BASE_ROLES:
-            # Students are NOT allowed to log in
-            user = muser.get_first_user({'username': profile['username'], 'user_type': muser.User.USER_TYPE.OAUTH})
-            profile['last_login'] = datetime.datetime.now()
-            if user:
-                profile['first_name'] = profile['name']
-                profile['last_name'] = profile['surname']
-                user.email = profile['email']
-                user = muser.update(user, profile)
-            else:
-                user = muser.add(profile)
-                # if msettings.get_configuration_setting('generic-new-via-smartschool'):
-                #     profile['first_name'] = profile['name']
-                #     profile['last_name'] = profile['surname']
-                #     profile['user_type'] = muser.User.USER_TYPE.OAUTH
-                #     profile['level'] = muser.User.LEVEL.USER
-                #     user = muser.add_user(profile)
-                # else:
-                #     log.info('New users not allowed via smartschool')
-                #     return redirect(url_for('auth.login'))
-            login_user(user)
-            log.info(u'OAUTH user {} logged in'.format(user.username))
-            if not user:
-                log.error('Could not save user')
+            if not 'username' in profile:  # not good
+                log.error(f'Smartschool geeft een foutcode terug: {profile["error"]}')
                 return redirect(url_for('auth.login'))
-            # Ok, continue
-            return redirect(url_for('student.show'))
-    else:
-        redirect_uri = f'{app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
-        return redirect(f'{app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')
+
+            if profile['basisrol'] in SMARTSCHOOL_ALLOWED_BASE_ROLES:
+                # Students are NOT allowed to log in
+                user = dl.user.get([('username', "c=" ,profile['username']), ('user_type', "=", dl.user.User.USER_TYPE.OAUTH)])
+                profile['last_login'] = datetime.datetime.now()
+                if user:
+                    profile['first_name'] = profile['name']
+                    profile['last_name'] = profile['surname']
+                    user.email = profile['email']
+                    user = dl.user.update(user, profile)
+                else:
+                    if dl.settings.get_configuration_setting('generic-new-via-smartschool'):
+                        default_level = dl.settings.get_configuration_setting('generic-new-via-smartschool-default-level')
+                        profile['first_name'] = profile['name']
+                        profile['last_name'] = profile['surname']
+                        profile['user_type'] = dl.user.User.USER_TYPE.OAUTH
+                        profile['level'] = default_level
+                        user = dl.user.add(profile)
+                    else:
+                        log.info('New users not allowed via smartschool')
+                        return redirect(url_for('auth.login'))
+                login_user(user)
+                log.info(f'OAUTH user {user.username} logged in')
+                if not user:
+                    log.error('Could not save user')
+                    return redirect(url_for('auth.login'))
+                # Ok, continue
+                return redirect(url_for('incident.show'))
+        else:
+            redirect_uri = f'{app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
+            return redirect(f'{app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')

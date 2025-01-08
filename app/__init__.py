@@ -34,8 +34,9 @@ from functools import wraps
 # 0.19: on incident overview page, added a context-menu and popup to display history
 # 0.20: reworked fetch-get to use the api filters/fields.  Put the endpoints in the correct files. Use try/except and logging as much as possible to propagate errors.
 # Data/defaults/configuration/... is fetched from the server when required.
+# 0.21: log in via smartschool
 
-version = "0.20"
+version = "0.21"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
