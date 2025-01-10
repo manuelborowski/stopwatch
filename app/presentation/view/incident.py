@@ -16,13 +16,14 @@ bp_incident = Blueprint('incident', __name__)
 @bp_incident.route('/incidentshow', methods=['GET'])
 @login_required
 def show():
+    id_to_show = request.args.get("id")
     locations = dl.settings.get_configuration_setting("lis-locations")
     location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
     found, default_location = dl.settings.get_setting("default-location", current_user.username)
     if not found:
         default_location = location_options[0]["value"]
         dl.settings.add_setting("default-location", default_location, user=current_user.username)
-    data = {"locations": {"options": location_options, "default": default_location}}
+    data = {"locations": {"options": location_options, "default": default_location}, "filters": [{"id": "incident-id", "value": id_to_show}]}
     return render_template("incident.html", table_config=config.create_table_config(), view_data=data)
 
 # invoked when the client requests data from the database

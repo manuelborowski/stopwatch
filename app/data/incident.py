@@ -36,6 +36,7 @@ class Incident(db.Model, SerializerMixin):
     incident_state = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
     incident_owner = db.Column(db.String(256), default=None)
+    m4s_id = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
 
 def add(data = {}):
@@ -78,6 +79,8 @@ def pre_sql_filter(query, filters):
         if f['id'] == 'incident-type':
             if f['value'] != 'all':
                 query = query.filter(Incident.incident_type == f['value'])
+        if f['id'] == 'incident-id' and f["value"]:
+            query = query.filter(Incident.id == f['value'])
     return query
 
 

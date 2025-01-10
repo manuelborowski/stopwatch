@@ -121,7 +121,9 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         stateSave: true,
         stateDuration: 0,
         ajax: function (data, cb, settings) {
-            socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {'filters': filter_menu.filters}));
+            let filters = filter_menu.filters;
+            if ("filters" in view_data) filters = filters.concat(view_data.filters);
+            socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {filters}));
             __datatable_data_cb = cb;
         },
         pagingType: "full_numbers",

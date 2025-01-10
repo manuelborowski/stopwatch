@@ -38,7 +38,8 @@ export class FilterMenu {
             button.innerHTML = "Reset";
             button.addEventListener("click", () => {
                 localStorage.clear(`Filter-${this.id}`);
-                location.reload();
+                let url = location.href.split("?")[0]; // remove trailing arguments
+                location.replace(url);
             });
             this.load_settings();
             this.store_settings();

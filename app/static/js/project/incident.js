@@ -267,7 +267,7 @@ const button_menu_items = [
 ]
 
 const context_menu_items = [
-    {type: "item", label: 'Historiek', iconscout: 'plus-circle', cb: __view_history},
+    {type: "item", label: 'Historiek', iconscout: 'history', cb: __view_history},
 ]
 
 const __table_loaded = opaque => {
@@ -288,6 +288,7 @@ const __table_loaded = opaque => {
         await __incident_show_form({event: "closed", id: row.id});
     }));
 }
+
 
 const filter_menu_items = [
     {
@@ -314,5 +315,4 @@ $(document).ready(async () => {
     });
 
     datatables_init({button_menu_items, context_menu_items, filter_menu_items});
-    // datatables_init({button_menu_items, context_menu_items});
 });

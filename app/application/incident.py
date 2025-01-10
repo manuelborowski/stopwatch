@@ -1,6 +1,7 @@
 import sys, datetime
 from app import data as dl
 from flask_login import current_user
+from flask import request
 
 #logging on file level
 import logging
@@ -8,6 +9,41 @@ from app import MyLogFilter, top_log_handle
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
+def __inform_location(incident):
+    try:
+        body_template = [
+            {"state": "transition", "heading": {"s": "1 incident komt van een andere locatie", "m": "{nbr} incidenten komen van een andere locatie"}},
+            {"state": "started", "heading": {"s": "1 incident in reparatie", "m": "{nbr} incidenten in reparatie"}},
+            {"state": "repaired", "heading": {"s": "1 incident hersteld, laptop nog niet afgehaald", "m": "{nbr} incidenten hersteld, laptop nog niet afgehaald"}},
+        ]
+        logging = f"{incident.id}/{incident.location}"
+        locations = dl.settings.get_configuration_setting("lis-locations")
+        location = locations[incident.location]
+        if "email" in location:
+            url = request.url_root
+            incidents = dl.incident.get_m(("location", "=", incident.location))
+            incident_info = {}
+            for incident in incidents:
+                if incident.incident_state in incident_info:
+                    incident_info[incident.incident_state].append(incident)
+                else:
+                    incident_info[incident.incident_state] = [incident]
+            body = ""
+            for item in body_template:
+                if item["state"] in incident_info:
+                    nbr = len(incident_info[item["state"]])
+                    line = item["heading"]["m"].replace("{nbr}", str(nbr)) if nbr > 1 else item["heading"]["s"]
+                    body += f"<b><u>{line}</u></b><br>"
+                    for incident in incident_info[item["state"]]:
+                        line = f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, (Locatie) {incident.location}, (Type) {incident.incident_type}, (Info) {incident.info}'
+                        body += f"{line}<br>"
+                    body += "<br><br>"
+            if body:
+                body += "<br><br>Laptop Incident Systeem"
+                dl.entra.entra.send_mail(location["email"], "LIS update", body)
+                log.info(f"{sys._getframe().f_code.co_name}, location-changed mail sent to {location['email']}, {logging}")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
 def __event(incident, event):
     try:
@@ -15,6 +51,7 @@ def __event(incident, event):
             incident.incident_state = "started"
         elif event == "location":
             incident.incident_state = "transition"
+            __inform_location(incident)
         elif event == "started":
             incident.incident_state = "started"
         elif event == "repaired":
