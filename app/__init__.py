@@ -36,8 +36,9 @@ from functools import wraps
 # Data/defaults/configuration/... is fetched from the server when required.
 # 0.21: log in via smartschool
 # 0.22: send email when location changed.  Add arguments to incident.show url.
+# 0.23: pywin only on windows
 
-version = "0.22"
+version = "0.23"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
