@@ -268,14 +268,15 @@ settings_formio = \
             ]
           },
           {
-            "label": "History",
+            "label": "Mail",
             "tableView": false,
+            "validateWhenHidden": false,
             "key": "history",
             "type": "container",
             "input": true,
             "components": [
               {
-                "title": "Historiek",
+                "title": "Mail templates",
                 "theme": "primary",
                 "collapsible": true,
                 "key": "historiek",
@@ -296,10 +297,12 @@ settings_formio = \
                     "saveOnEnter": false
                   },
                   {
-                    "label": "Lijst template (YAML)",
+                    "label": "SS bericht aan de studenten (HTML)",
+                    "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
-                    "key": "history-datatables-template",
+                    "validateWhenHidden": false,
+                    "key": "ss-student-message-template",
                     "type": "textarea",
                     "input": true
                   }

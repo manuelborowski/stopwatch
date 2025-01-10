@@ -1,4 +1,4 @@
-import sys, datetime
+import sys, datetime, re
 from app import data as dl
 from flask_login import current_user
 from flask import request
@@ -9,7 +9,7 @@ from app import MyLogFilter, top_log_handle
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
-def __inform_location(incident):
+def __event_location_changed(incident):
     try:
         body_template = [
             {"state": "transition", "heading": {"s": "1 incident komt van een andere locatie", "m": "{nbr} incidenten komen van een andere locatie"}},
@@ -45,17 +45,43 @@ def __inform_location(incident):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
+def __event_repaired(incident):
+    try:
+        template = dl.settings.get_configuration_setting("ss-student-message-template")
+        laptop_owner = None
+        if incident.laptop_type == "leerling":
+            laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+        if laptop_owner:
+            template = template.replace("%%VOORNAAM%%", laptop_owner.voornaam)
+            password_match_template = re.search("%%IF_STANDARD_PASSWORD%%.*?%%ENDIF%%", template, re.DOTALL)[0]
+            if incident.laptop_owner_password_default:
+                password_match = password_match_template.replace("%%IF_STANDARD_PASSWORD%%", "")
+                password_match = password_match.replace("%%ENDIF%%", "")
+                template = template.replace(password_match_template, password_match)
+            else:
+                template = template.replace(password_match_template, "")
+            state = dl.settings.get_configuration_setting("lis-state")["repaired"]
+            tos = state["ss_to"] if "ss_to" in state else laptop_owner.leerlingnummer
+            log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}")
+            for to in tos:
+                ret = dl.smartschool.smartschool.send_message(to, "lis", "Laptop is klaar", template)
+            return
+        log.error(f'{sys._getframe().f_code.co_name}: laptop_owner not found, {incident.laptop_owner_id}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
 def __event(incident, event):
     try:
         if event == "new":
             incident.incident_state = "started"
         elif event == "location":
             incident.incident_state = "transition"
-            __inform_location(incident)
+            __event_location_changed(incident)
         elif event == "started":
             incident.incident_state = "started"
         elif event == "repaired":
             incident.incident_state = "repaired"
+            __event_repaired(incident)
         elif event == "closed":
             incident.incident_state = "closed"
         dl.incident.commit()

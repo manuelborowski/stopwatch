@@ -12,7 +12,7 @@ log.addFilter(MyLogFilter())
 # Find the autopilot device from the serial number
 # https://graph.microsoft.com/v1.0/deviceManagement/windowsAutopilotDeviceIdentities?$filter=contains(serialNumber,'R90QLUGX')
 
-class Graph:
+class EntraGraph:
     client_credential: ClientSecretCredential
     client: GraphClient
 
@@ -46,6 +46,4 @@ class Graph:
                 return False
         return True
 
-entra = Graph()
-
-# entra.send_mail(["manuel.borowski@campussintursula.be"], "test", "<b>Jaja</b>, dit is een test!!!")
+entra = EntraGraph()

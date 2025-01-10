@@ -92,6 +92,8 @@ default_configuration_settings = {
     'spare-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'lis-badge-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
+    'ss-student-message-template': ('', Settings.SETTING_TYPE.E_STRING),
+
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
 

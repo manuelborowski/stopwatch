@@ -37,8 +37,9 @@ from functools import wraps
 # 0.21: log in via smartschool
 # 0.22: send email when location changed.  Add arguments to incident.show url.
 # 0.23: pywin only on windows
+# 0.24: added smartschool-send-message
 
-version = "0.23"
+version = "0.24"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
