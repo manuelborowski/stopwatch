@@ -50,6 +50,8 @@ def staff_cron_load_from_sdh(opaque=None, **kwargs):
                             update["naam"] = sdh_staff["naam"]
                         if db_staff.rfid != sdh_staff["rfid"]:
                             update["rfid"] = sdh_staff["rfid"]
+                        if db_staff.ss_internal_nbr != sdh_staff["ss_internal_nbr"]:
+                            update["ss_internal_nbr"] = sdh_staff["ss_internal_nbr"]
                         if update:
                             update["changed"] = list(update.keys())
                             update.update({"staff": db_staff})
@@ -58,7 +60,7 @@ def staff_cron_load_from_sdh(opaque=None, **kwargs):
                             nbr_updated += 1
                         del(db_code_to_staff[sdh_staff["code"]])
                     else:
-                        new_staffs.append({"code": sdh_staff["code"], "naam": sdh_staff["naam"], "voornaam": sdh_staff["voornaam"], "rfid": sdh_staff["rfid"]})
+                        new_staffs.append({"code": sdh_staff["code"], "naam": sdh_staff["naam"], "voornaam": sdh_staff["voornaam"], "rfid": sdh_staff["rfid"], "ss_internal_nbr": sdh_staff["ss_internal_nbr"]})
                         log.info(f'{sys._getframe().f_code.co_name}, New staff {sdh_staff["code"]}, Rfid {sdh_staff["rfid"]}')
                 deleted_staffs = [v for (k, v) in db_code_to_staff.items()]
                 for staff in deleted_staffs:

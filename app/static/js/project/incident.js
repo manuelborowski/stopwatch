@@ -1,4 +1,4 @@
-import {datatable_loaded_subscribe, datatable_reload_table, datatable_row_data_from_target, datatables_init} from "../datatables/dt.js";
+import {datatable_loaded_subscribe, datatable_reload_table, datatable_row_data_from_target, datatables_init, update_cell} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} from "../common/common.js";
 import {badge_raw2hex} from "../common/rfid.js";
 import {AlertPopup, FormioPopup} from "../common/popup.js";
@@ -26,7 +26,7 @@ const __incident_show_form = async (params = {}) => {
     }
 
     const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
-    const form = await fetch_get("incident.form", {form: "incident"});
+    const form = await fetch_get("incident.form", {form: incident_update ? "incident-update" : "incident-new"});
     if (form) {
         let owner_field = null;
         bootbox.dialog({
@@ -40,27 +40,28 @@ const __incident_show_form = async (params = {}) => {
                     callback: async () => {
                         const form_data = new FormData(document.getElementById("incident-form"));
                         const data = Object.fromEntries(form_data)
-                        const owner_data = owner_field.select2("data")[0];
-                        data.laptop_owner_name = owner_data.text;
-                        data.laptop_name = document.getElementById("laptop-field").selectedOptions[0].textContent;
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-                        if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_serial === "") {
-                            new AlertPopup("warning", "'Lis-badgenummer', 'Eigenaar' en 'Laptop' moeten ingevuld zijn.")
+
+                        if (incident_update) {
+                            data.event = params.event;
+                            data.id = params.id;
+                            if ("location" in params) data.location = params.location;
+                            await fetch_update("incident.incident", data);
                         } else {
-                            if (incident_update) {
-                                data.event = params.event;
-                                data.id = params.id;
-                                if ("location" in params) data.location = params.location;
-                                await fetch_update("incident.incident", data);
-                            } else {
-                                data.lis_badge_id = parseInt(data.lis_badge_id);
-                                data.location = view_data.locations.default;
-                                await fetch_post("incident.incident", data);
+                            const owner_data = owner_field.select2("data")[0];
+                            data.laptop_owner_name = owner_data.text;
+                            data.laptop_name = document.getElementById("laptop-field").selectedOptions[0].textContent;
+                            if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_serial === "") {
+                                new AlertPopup("warning", "'Lis-badgenummer', 'Eigenaar' en 'Laptop' moeten ingevuld zijn.")
+                                return
                             }
-                            datatable_reload_table();
+                            data.lis_badge_id = parseInt(data.lis_badge_id);
+                            data.location = view_data.locations.default;
+                            await fetch_post("incident.incident", data);
                         }
-                    },
+                        datatable_reload_table();
+                    }
                 },
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
@@ -71,105 +72,102 @@ const __incident_show_form = async (params = {}) => {
                 },
             },
             onShown: async () => {
-                owner_field = $("#owner-field");
+                if (!incident_update) {
+                    owner_field = $("#owner-field");
 
-                // if the laptop-type field changes, update the options of the owner field
-                document.getElementById("laptop-type-field").addEventListener("change", e => __set_owner_options(owner_field, e.target.value));
+                    // if the laptop-type field changes, update the options of the owner field
+                    document.getElementById("laptop-type-field").addEventListener("change", e => __set_owner_options(owner_field, e.target.value));
 
-                // Scan LIS badge
-                document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
-                    e.preventDefault();
-                    bootbox.prompt({
-                        title: "Scan de LIS badge",
-                        callback: async res => {
-                            if (res !== null) {
-                                const [valid_code, code] = badge_raw2hex(res);
-                                if (valid_code) {
-                                    const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
-                                    if (badges && badges.length > 0) document.getElementById("lis-badge-field").value = badges[0].id;
-                                }
-                            }
-                        }
-                    })
-                });
-
-                // Scan laptop owner badge
-                document.getElementById("owner-badge-scan").addEventListener("click", (e) => {
-                    e.preventDefault();
-                    bootbox.prompt({
-                        title: "Scan de badge van de eigenaar",
-                        callback: async res => {
-                            if (res !== null) {
-                                const [valid_code, code] = badge_raw2hex(res);
-                                if (valid_code) {
-                                    if (document.getElementById("laptop-type-field").value === "leerling") {
-                                        const owners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
-                                        if (owners && owners.length > 0) owner_field.val(owners[0].leerlingnummer).trigger("change");
-                                    } else {
-                                        const owners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
-                                        if (owners && owners.length > 0) owner_field.val(owners[0].code).trigger("change");
+                    // Scan LIS badge
+                    document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
+                        e.preventDefault();
+                        bootbox.prompt({
+                            title: "Scan de LIS badge",
+                            callback: async res => {
+                                if (res !== null) {
+                                    const [valid_code, code] = badge_raw2hex(res);
+                                    if (valid_code) {
+                                        const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
+                                        if (badges && badges.length > 0) document.getElementById("lis-badge-field").value = badges[0].id;
                                     }
                                 }
                             }
-                        }
-                    })
-                });
+                        })
+                    });
 
-                // Scan spare badge
-                document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
-                    e.preventDefault();
-                    bootbox.prompt({
-                        title: "Scan de badge van de reservelaptop",
-                        callback: async res => {
-                            if (res !== null) {
-                                const [valid_code, code] = badge_raw2hex(res);
-                                if (valid_code) {
-                                    const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
-                                    if (spares && spares.length > 0) document.getElementById("spare-field").value = spares[0].label;
+                    // Scan laptop owner badge
+                    document.getElementById("owner-badge-scan").addEventListener("click", (e) => {
+                        e.preventDefault();
+                        bootbox.prompt({
+                            title: "Scan de badge van de eigenaar",
+                            callback: async res => {
+                                if (res !== null) {
+                                    const [valid_code, code] = badge_raw2hex(res);
+                                    if (valid_code) {
+                                        if (document.getElementById("laptop-type-field").value === "leerling") {
+                                            const owners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
+                                            if (owners && owners.length > 0) owner_field.val(owners[0].leerlingnummer).trigger("change");
+                                        } else {
+                                            const owners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
+                                            if (owners && owners.length > 0) owner_field.val(owners[0].code).trigger("change");
+                                        }
+                                    }
+                                }
+                            }
+                        })
+                    });
+
+                    // Scan spare badge
+                    document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
+                        e.preventDefault();
+                        bootbox.prompt({
+                            title: "Scan de badge van de reservelaptop",
+                            callback: async res => {
+                                if (res !== null) {
+                                    const [valid_code, code] = badge_raw2hex(res);
+                                    if (valid_code) {
+                                        const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
+                                        if (spares && spares.length > 0) document.getElementById("spare-field").value = spares[0].label;
+                                    }
+                                }
+                            }
+                        })
+                    });
+
+                    // when the owner field changes, get the associated laptops and populate the laptop field
+                    owner_field.on('change', async e => {
+                        const laptop_type = document.getElementById("laptop-type-field").value;
+                        const laptop_owner_id = e.target.value;
+                        if (laptop_owner_id !== "") {
+                            const url_suffix = laptop_type === "leerling" ? `student?filters=leerlingnummer$=$${laptop_owner_id}` : `staff?filters=code$=$${laptop_owner_id}`
+                            const url = `${form.data.url}/${url_suffix}`
+                            const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
+                            let resp = await fetch_resp.json();
+                            if ("status" in resp) {
+                                const user_entra_id = resp.data[0].entra_id;
+                                const url = `${form.data.url}/device/get?filters=user_entra_id$=$${user_entra_id},active$=$null`
+                                const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
+                                resp = await fetch_resp.json();
+                                const devices = resp.data;
+                                const laptop_field = document.getElementById("laptop-field");
+                                laptop_field.innerHTML = "";
+                                for (const device of devices) {
+                                    const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
+                                    const label = label_list.join(" / ");
+                                    const option = document.createElement("option");
+                                    option.innerHTML = label;
+                                    option.value = device.serial_number;
+                                    if (device.active === true) option.selected = true;
+                                    laptop_field.appendChild(option);
                                 }
                             }
                         }
-                    })
-                });
-
-                // when the owner field changes, get the associated laptops and populate the laptop field
-                owner_field.on('change', async e => {
-                    const laptop_type = document.getElementById("laptop-type-field").value;
-                    const laptop_owner_id = e.target.value;
-                    if (laptop_owner_id !== "") {
-                        const url_suffix = laptop_type === "leerling" ? `student?filters=leerlingnummer$=$${laptop_owner_id}` : `staff?filters=code$=$${laptop_owner_id}`
-                        const url = `${form.data.url}/${url_suffix}`
-                        const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
-                        let resp = await fetch_resp.json();
-                        if ("status" in resp) {
-                            const user_entra_id = resp.data[0].entra_id;
-                            const url = `${form.data.url}/device/get?filters=user_entra_id$=$${user_entra_id},active$=$null`
-                            const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
-                            resp = await fetch_resp.json();
-                            const devices = resp.data;
-                            const laptop_field = document.getElementById("laptop-field");
-                            laptop_field.innerHTML = "";
-                            for (const device of devices) {
-                                const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
-                                const label = label_list.join(" / ");
-                                const option = document.createElement("option");
-                                option.innerHTML = label;
-                                option.value = device.serial_number;
-                                if (device.active === true) option.selected = true;
-                                laptop_field.appendChild(option);
-                            }
-                        }
-                    }
-                });
-
+                    });
+                }
                 // if default password checked, disable the password field
                 document.getElementById("password-default-chk").addEventListener("click", e => document.getElementById("password-field").disabled = e.target.checked);
 
-                // set default owner list
-                __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
-
                 // set default values
-                form_default_set(form.defaults);
                 const labels = await fetch_get("incident.label")
                 if (incident_update) {
                     const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
@@ -184,9 +182,10 @@ const __incident_show_form = async (params = {}) => {
                     if (incident) {
                         incident["info"] = "";
                         await form_populate(incident, labels);
-                        document.querySelectorAll(".form-group-1").forEach(e => e.disabled = true);
                     }
                 } else {
+                    // set default owner list
+                    await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
                     const defaults = await fetch_get("incident.default")
                     await form_populate(defaults, labels);
                 }
@@ -302,7 +301,7 @@ const filter_menu_items = [
 $(document).ready(async () => {
     datatable_loaded_subscribe(__table_loaded, null);
     let owners = await fetch_get("incident.incident", {fields: "incident_owner"});
-    owners = owners ? [... new Set(owners.map(e => e.incident_owner))] :  [];
+    owners = owners ? [...new Set(owners.map(e => e.incident_owner))] : [];
     owners = owners.map(e => ({label: e, value: e}));
     const options = [{"label": "Iedereen", "value": "all"}, {"label": current_user.username, "value": current_user.username}].concat(owners);
     filter_menu_items.filter((e, i, a) => {

@@ -48,9 +48,14 @@ def __event_location_changed(incident):
 def __event_repaired(incident):
     try:
         template = dl.settings.get_configuration_setting("ss-student-message-template")
-        laptop_owner = None
         if incident.laptop_type == "leerling":
             laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+            ss_to = laptop_owner.leerlingnummer
+        elif incident.laptop_type == "personeel":
+            laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
+            ss_to = laptop_owner.ss_internal_nbr
+        else:
+            return False
         if laptop_owner:
             template = template.replace("%%VOORNAAM%%", laptop_owner.voornaam)
             password_match_template = re.search("%%IF_STANDARD_PASSWORD%%.*?%%ENDIF%%", template, re.DOTALL)[0]
@@ -61,11 +66,13 @@ def __event_repaired(incident):
             else:
                 template = template.replace(password_match_template, "")
             state = dl.settings.get_configuration_setting("lis-state")["repaired"]
-            tos = state["ss_to"] if "ss_to" in state else laptop_owner.leerlingnummer
+            tos = state["ss_to"] if "ss_to" in state else [ss_to]
             log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}")
             for to in tos:
                 ret = dl.smartschool.smartschool.send_message(to, "lis", "Laptop is klaar", template)
-            return
+                if ret != 0:
+                    log.error(f'{sys._getframe().f_code.co_name}: send_message returned {ret}')
+            return True
         log.error(f'{sys._getframe().f_code.co_name}: laptop_owner not found, {incident.laptop_owner_id}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

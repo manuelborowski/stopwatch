@@ -22,6 +22,7 @@ class Staff(db.Model, SerializerMixin):
     naam = db.Column(db.String(256), default='')
     code = db.Column(db.String(256), default='')
     rfid = db.Column(db.String(256))
+    ss_internal_nbr = db.Column(db.String(256), default='')
 
     new = db.Column(db.Boolean, default=True)
     delete = db.Column(db.Boolean, default=False)

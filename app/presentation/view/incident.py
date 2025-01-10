@@ -92,9 +92,11 @@ def form():
             form = request.args.get('form')
             optional = []
             template = ""
-            if form == "incident":
+            if form == "incident-new":
                 optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
-                template = open(pathlib.Path("app/presentation/template/lib/incident_form.html")).read()
+                template = open(pathlib.Path("app/presentation/template/lib/incident_form_new.html")).read()
+            if form == "incident-update":
+                template = open(pathlib.Path("app/presentation/template/lib/incident_form_update.html")).read()
             if form == "history":
                 template = open(pathlib.Path("app/presentation/template/lib/history_form.html")).read()
             return {"template": template, "defaults": [], "data": optional}

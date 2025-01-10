@@ -1,0 +1,64 @@
+<link href="static/css/form.css" rel="stylesheet">
+<form id="incident-form">
+    <div class="form-row">
+        <div class="form-element"><label>Type laptop<input name="laptop_type" disabled></label></div>
+        <div class="form-element"><label>Locatie<input name="location" disabled></label></div>
+        <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
+    </div>
+    <div class="form-row">
+        <div class="form-element"><label>LIS badgenummer<input name="lis_badge_id" disabled></label></div>
+    </div>
+    <div class="form-row">
+        <div class="form-element"><label>Eigenaar <input name="laptop_owner_name" disabled></label></div>
+    </div>
+    <div class="form-row">
+        <div class="form-element"><label>Laptop<input name="laptop_name" disabled></label></div>
+    </div>
+    <div class="form-row">
+        <div class="form-element">
+            <label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label>
+        </div>
+        <div class="form-element">
+            <label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-element">
+            <label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label>
+        </div>
+        <div class="form-element">
+            <label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label>
+        </div>
+        <button id="spare-badge-scan" class="btn btn-success">Scan badge van reservelaptop</button>
+    </div>
+    <div class="form-row">
+        <div class="form-element">
+            <label>Type incident (*)
+                <select id="lis-type-field" name="incident_type">
+                    <option value="software">Software</option>
+                    <option value="herinstalleren">Herinstalleren</option>
+                    <option value="hardware">Hardware</option>
+                </select>
+            </label>
+        </div>
+        <div class="form-element">
+            <label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label>
+        </div>
+        <div class="form-element">
+            <label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label>
+        </div>
+    </div>
+    <div class="form-row" hidden>
+        <div class="form-element">
+            <div style="display: flex; flex-direction: column">
+                <p><b>Vorige info:</b></p>
+                <p id="info_previous"></p>
+            </div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-element">
+            <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1" name="info"></textarea></label>
+        </div>
+    </div>
+</form>
