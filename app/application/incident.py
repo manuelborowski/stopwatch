@@ -169,14 +169,17 @@ def generate(nbr):
         students = dl.student.get_m()
         staff = dl.staff.get_m()
         incident_owners = dl.user.get_m()
+        user_with_default_location = []
+        for owner in incident_owners:
+            found, default_location = dl.settings.get_setting("default-location", user=owner.username)
+            if found:
+                owner.default_location = default_location
+                user_with_default_location.append(owner)
+
         entra_url = app.config["ENTRA_API_URL"]
         entra_key = app.config["ENTRA_API_KEY"]
         for i in range(nbr):
-            incident_owner = random.choice(incident_owners)
-            found = False
-            default_location = ""
-            while found == False:
-                found, default_location = dl.settings.get_setting("default-location", user=incident_owner.username)
+            incident_owner = random.choice(user_with_default_location)
             laptop_type = random.choice(["leerling", "personeel"])
             default_password = random.choice([False, True])
             incident_type = random.choice(["hardware", "software", "herinstalleren"])
@@ -212,7 +215,7 @@ def generate(nbr):
                     "laptop_owner_password": random.choice(["password1", "password2"]) if not default_password else "", "laptop_owner_password_default": default_password,
                     "laptop_type": laptop_type, "laptop_name": device["m4s_csu_label"], "laptop_serial": device["serial_number"], "spare_laptop_name": "", "spare_laptop_serial": "",
                     "charger": "", "info": random_info.sentence(), "incident_type": incident_type, "drop_damage": drop_damage, "water_damage": water_damage,
-                    "location": default_location, "incident_owner": incident_owner.username, "m4s_id": "",
+                    "location": incident_owner.default_location, "incident_owner": incident_owner.username, "m4s_id": "",
                 }
                 add(data)
     except Exception as e:

@@ -41,8 +41,9 @@ from functools import wraps
 # 0.25: updated smartschool.  Added incident-update form
 # 0.26: generate incidents for test purposes
 # 0.27: small bugfix
+# 0.28: incident-generate, avoid endless loop in case no default-location
 
-version = "0.27"
+version = "0.28"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
