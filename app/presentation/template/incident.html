@@ -2,8 +2,5 @@
 
 {% block scripts %}
     {{ super() }}
-    <script>
-        let view_data = {{ (view_data or {})|tojson }};
-    </script>
     <script type="module" src="/static/js/project/incident.js"></script>
 {% endblock %}

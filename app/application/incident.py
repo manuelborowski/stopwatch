@@ -1,5 +1,5 @@
-import sys, datetime, re
-from app import data as dl
+import sys, datetime, re, random, requests, wonderwords
+from app import app, data as dl
 from flask_login import current_user
 from flask import request
 
@@ -11,6 +11,8 @@ log.addFilter(MyLogFilter())
 
 def __event_location_changed(incident):
     try:
+        if incident.lis_badge_id > 999999:
+            return True
         body_template = [
             {"state": "transition", "heading": {"s": "1 incident komt van een andere locatie", "m": "{nbr} incidenten komen van een andere locatie"}},
             {"state": "started", "heading": {"s": "1 incident in reparatie", "m": "{nbr} incidenten in reparatie"}},
@@ -47,6 +49,8 @@ def __event_location_changed(incident):
 
 def __event_repaired(incident):
     try:
+        if incident.lis_badge_id > 999999:
+            return True
         template = dl.settings.get_configuration_setting("ss-student-message-template")
         if incident.laptop_type == "leerling":
             laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
@@ -102,7 +106,7 @@ def add(data):
         states = dl.settings.get_configuration_setting("lis-state")
         default_state = [k for k, v in states.items() if "default" in v][0]
         data["incident_state"] = default_state
-        data["incident_owner"] = current_user.username
+        if "incident_owner" not in data: data["incident_owner"] = current_user.username
         incident = dl.incident.add(data)
         if incident:
             # store some data in history
@@ -125,7 +129,7 @@ def update(data):
                 if history_latest:
                     data["info"] = history_latest.info
             data["time"] = datetime.datetime.now()
-            data["incident_owner"] = current_user.username
+            if "incident_owner" not in data: data["incident_owner"] = current_user.username
             del data["id"]
             incident = dl.incident.update(incident, data)
             if incident:
@@ -157,6 +161,105 @@ def get(data={}):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
+
+# generate a number of random incidents (lis_badge_id > 999999)
+def generate(nbr):
+    try:
+        random_info = wonderwords.RandomSentence()
+        students = dl.student.get_m()
+        staff = dl.staff.get_m()
+        incident_owners = dl.user.get_m()
+        entra_url = app.config["ENTRA_API_URL"]
+        entra_key = app.config["ENTRA_API_KEY"]
+        for i in range(nbr):
+            incident_owner = random.choice(incident_owners)
+            found = False
+            default_location = ""
+            while found == False:
+                found, default_location = dl.settings.get_setting("default-location", user=incident_owner.username)
+            laptop_type = random.choice(["leerling", "personeel"])
+            default_password = random.choice([False, True])
+            incident_type = random.choice(["hardware", "software", "herinstalleren"])
+            drop_damage = random.choice([True, False]) if incident_type == "hardware" else False
+            water_damage = random.choice([True, False]) if incident_type == "hardware" else False
+            entra_id = None
+            device = None
+            if laptop_type == "leerling":
+                laptop_owner = random.choice(students)
+                laptop_owner_id = laptop_owner.leerlingnummer
+                res = requests.get(f"{entra_url}/student?filters=leerlingnummer$=${laptop_owner_id}", headers={'x-api-key': entra_key})
+                if res.status_code == 200:
+                    entra_students = res.json()
+                    if entra_students['status']:
+                        entra_id = entra_students["data"][0]["entra_id"]
+            else:
+                laptop_owner = random.choice(staff)
+                laptop_owner_id = laptop_owner.code
+                res = requests.get(f"{entra_url}/staff?filters=code=${laptop_owner_id}", headers={'x-api-key': entra_key})
+                if res.status_code == 200:
+                    entra_staffs = res.json()
+                    if entra_staffs['status']:
+                        entra_id = entra_staffs["data"][0]["entra_id"]
+            if entra_id:
+                res = requests.get(f"{entra_url}/device/get?filters=user_entra_id$=${entra_id}", headers={'x-api-key': entra_key})
+                if res.status_code == 200:
+                    devices = res.json()
+                    if devices['status'] and len(devices["data"]) > 0:
+                        device = [d for d in devices["data"] if d["active"]][0]
+            if device:
+                data = {
+                    "lis_badge_id": 1000000+i, "laptop_owner_name": f"{laptop_owner.naam} {laptop_owner.voornaam}", "laptop_owner_id": laptop_owner_id,
+                    "laptop_owner_password": random.choice(["password1", "password2"]) if not default_password else "", "laptop_owner_password_default": default_password,
+                    "laptop_type": laptop_type, "laptop_name": device["m4s_csu_label"], "laptop_serial": device["serial_number"], "spare_laptop_name": "", "spare_laptop_serial": "",
+                    "charger": "", "info": random_info.sentence(), "incident_type": incident_type, "drop_damage": drop_damage, "water_damage": water_damage,
+                    "location": default_location, "incident_owner": incident_owner.username, "m4s_id": "",
+                }
+                add(data)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+# send random event to random incident (lis_badge_id > 999999)
+def event(nbr):
+    try:
+        random_info = wonderwords.RandomSentence()
+        incidents = dl.incident.get_m(("lis_badge_id", ">", 999999))
+        locations = [k for k, _ in dl.settings.get_setting("lis-locations")[1].items()]
+        incident_owners = dl.user.get_m()
+        location_owner = {}
+        for owner in incident_owners:
+            found, location = dl.settings.get_setting("default-location", user=owner.username)
+            if found: location_owner[location] = owner.username
+
+        for i in range(nbr):
+            incident = random.choice(incidents)
+            data = {}
+            event = None
+            if incident.incident_state == "started":
+                event = random.choice(["location", "repaired"])
+                if event == "location":
+                    data["location"] = random.choice(locations)
+                    if data["location"] in location_owner:
+                        data["incident_owner"] = location_owner[data["location"]]
+            elif incident.incident_state == "transition":
+                event = "started"
+            elif incident.incident_state == "repaired":
+                event = random.choice(["closed", "started"])
+            if event:
+                data.update({"event": event,
+                             "info": random_info.sentence(),
+                             "id": incident.id,
+                             })
+                update(data)
+
+
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+
+
+
 
 def format_data(db_list, total_count=None, filtered_count=None):
     # build event_template location select

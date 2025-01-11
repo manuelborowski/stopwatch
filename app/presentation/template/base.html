@@ -75,6 +75,7 @@
         const stand_alone = {{ (stand_alone or False)|tojson }};
         const default_view = {{ (default_view or False)|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
+        let view_data = {{ (view_data or {})|tojson }};
     </script>
 
     <script type="module">

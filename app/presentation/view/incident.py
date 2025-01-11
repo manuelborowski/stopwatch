@@ -17,6 +17,12 @@ bp_incident = Blueprint('incident', __name__)
 @login_required
 def show():
     id_to_show = request.args.get("id")
+    generate = request.args.get("generate")
+    if generate:
+        al.incident.generate(int(generate))
+    event = request.args.get("event")
+    if event:
+        al.incident.event(int(event))
     locations = dl.settings.get_configuration_setting("lis-locations")
     location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
     found, default_location = dl.settings.get_setting("default-location", current_user.username)
