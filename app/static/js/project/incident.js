@@ -168,7 +168,7 @@ const __incident_show_form = async (params = {}) => {
                 document.getElementById("password-default-chk").addEventListener("click", e => document.getElementById("password-field").disabled = e.target.checked);
 
                 // set default values
-                const labels = await fetch_get("incident.label")
+                const meta = await fetch_get("incident.meta")
                 if (incident_update) {
                     const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
                     const incident = incidents && incidents.length > 0 ? incidents[0] : null;
@@ -181,13 +181,12 @@ const __incident_show_form = async (params = {}) => {
                     }
                     if (incident) {
                         incident["info"] = "";
-                        await form_populate(incident, labels);
+                        await form_populate(incident, meta);
                     }
                 } else {
                     // set default owner list
                     await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
-                    const defaults = await fetch_get("incident.default")
-                    await form_populate(defaults, labels);
+                    await form_populate(meta.defaults, meta);
                 }
 
                 // hide/display water and drop-damage checkboxes
@@ -219,7 +218,7 @@ const __view_history = async (ids) => {
             onShown: async () => {
                 form_default_set(form.defaults);
                 const incidents = await fetch_get("incident.incident", {filters: `id$=$${id}`});
-                const labels = await fetch_get("incident.label");
+                const meta = await fetch_get("incident.meta");
                 const incident = incidents && incidents.length > 0 ? incidents[0] : null;
                 const histories = await fetch_get("history.history", {filters: `incident_id$=$${id}`});
                 const history_table = document.querySelector("#history-table");
@@ -227,8 +226,8 @@ const __view_history = async (ids) => {
                     let tr = "<tr>";
                     for (const e of ["incident_owner", "priority", "incident_state", "location", "info", "time", "incident_type", "drop_damage", "water_damage"]) {
                         let val = h[e];
-                        if (e === "incident_state") val = labels.incident_state[val].label;
-                        if (e === "location") val = labels.location[val].label;
+                        if (e === "incident_state") val = meta.label.incident_state[val];
+                        if (e === "location") val = meta.label.location[val];
                         if (val === true) val = "&#10003;"
                         if (val === false) val = "";
                         tr += `<td>${val}</td>`
@@ -270,9 +269,9 @@ const context_menu_items = [
 ]
 
 const __table_loaded = opaque => {
-    document.querySelectorAll(".state-event-location-select").forEach(s => s.addEventListener("change", async e => {
+    document.querySelectorAll(".state-event-button-location").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        await __incident_show_form({event: "location", id: row.id, location: e.target.value});
+        await __incident_show_form({event: "location", id: row.id});
     }));
     document.querySelectorAll(".state-event-button-repaired").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
@@ -287,7 +286,6 @@ const __table_loaded = opaque => {
         await __incident_show_form({event: "closed", id: row.id});
     }));
 }
-
 
 const filter_menu_items = [
     {
@@ -312,6 +310,5 @@ $(document).ready(async () => {
         }
         return false;
     });
-
     datatables_init({button_menu_items, context_menu_items, filter_menu_items});
 });

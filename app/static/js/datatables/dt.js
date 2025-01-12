@@ -148,10 +148,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             }
         },
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
-            if (data.row_action !== null) {
-                row.cells[0].innerHTML = `<input type='checkbox' class='chbx_all' name='chbx' value='${data.row_action}'>` +
-                    `<div value='${data.row_action}' class='pencil glyphicon glyphicon-pencil'></div>`;
-            }
+            if (data.row_action !== null) row.cells[0].innerHTML = `<input type='checkbox' class='chbx_all' name='chbx' value='${data.row_action}'>`
             // celledit of type select: overwrite cell content with label from optionlist
             if (cell_edit.select_options) {
                 for (const [column, select] of Object.entries(cell_edit.select_options)) {

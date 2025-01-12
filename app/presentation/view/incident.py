@@ -53,22 +53,22 @@ def incident():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return fetch_return_error()
 
-@bp_incident.route('/incident/label', methods=['GET'])
+@bp_incident.route('/incident/meta', methods=['GET'])
 @login_required
-def label():
+def meta():
     locations = dl.settings.get_configuration_setting("lis-locations")
+    option_location = [{"value": k, "label": v["label"]} for k, v in locations.items()]
+    label_location = {k: v["label"] for k, v in locations.items()}
     states = dl.settings.get_configuration_setting("lis-state")
-    return json.dumps({"location": locations, "incident_state": states})
-
-@bp_incident.route('/incident/default', methods=['GET'])
-@login_required
-def default():
+    option_state= [{"value": k, "label": v["label"]} for k, v in states.items()]
+    label_state= {k: v["label"] for k, v in states.items()}
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
-    states = dl.settings.get_configuration_setting("lis-state")
     default_state = [k for k, v in states.items() if "default" in v][0]
-    return json.dumps({"location": default_location, "incident_state": default_state})
+    return json.dumps({"option": {"location": option_location, "incident_state": option_state},
+                        "label": {"location": label_location, "incident_state": label_state},
+                       "default": {"location": default_location, "incident_state": default_state}})
 
-@bp_incident.route('/incident/location', methods=['POST', "GET"])
+@bp_incident.route('/incident/location', methods=['POST',])
 @login_required
 def location():
     try:
@@ -77,15 +77,6 @@ def location():
             dl.settings.set_setting("default-location", data["default"], user=current_user.username)
             ret = {"data": "ok"}
             return json.dumps(ret)
-        if request.method == "GET":
-            locations = dl.settings.get_configuration_setting("lis-locations")
-            location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
-            found, default_location = dl.settings.get_setting("default-location", current_user.username)
-            if not found:
-                default_location = location_options[0]["value"]
-                dl.settings.add_setting("default-location", default_location, user=current_user.username)
-            data = {"locations": {"options": location_options, "default": default_location}}
-            return json.dumps(data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
         return fetch_return_error(f'Exception, {e}')
@@ -126,13 +117,27 @@ class Config(DatatableConfig):
         location_labels = {k: v["label"] for (k, v) in locations.items()}
         states = dl.settings.get_configuration_setting("lis-state")
         state_labels = {k: v["label"] for (k, v) in states.items()}
+        started_event_template = f'<a type="button" class="state-event-button-location btn btn-success">Locatie</a></div>'
+        started_event_template += f'<a type="button" class="state-event-button-repaired btn btn-success">Hersteld</a></div>'
+        transition_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
+        repaired_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-closed btn btn-success">Sluiten</a>'
+        repaired_event_template += f'<a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
+        closed_event_template = "/"
+        event_labels = {
+            "started": started_event_template,
+            "transition": transition_event_template,
+            "repaired": repaired_event_template,
+            "closed": closed_event_template
+        }
         for column in template:
-            if column["data"] == "incident_state":
+            if column["data"] == "incident_state" and column["name"] == "Status":
                 column["label"] = {"labels": state_labels}
             if column["data"] == "location":
                 column["label"] = {"labels": location_labels}
             if column["data"] == "info":
                 column["ellipsis"] = {"cutoff": 50, "wordbreak": True}
+            if column["data"] == "incident_state" and column["name"] == "Actie":
+                column["label"] = {"labels": event_labels}
         return template
 
     def format_data(self, db_list, total_count=None, filtered_count=None):

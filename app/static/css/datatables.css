@@ -24,3 +24,9 @@ table.dataTable>tbody>tr>th,table.dataTable>tbody>tr>td {
 .dt-incell-row > a {
     padding: 0;
 }
+
+td .btn {
+    padding: 2px;
+    line-height: 1;
+    margin-right: 2px;
+}

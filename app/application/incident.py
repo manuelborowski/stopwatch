@@ -220,7 +220,6 @@ def generate(nbr):
                 add(data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": "error", "msg": str(e)}
 
 # send random event to random incident (lis_badge_id > 999999)
 def event(nbr):
@@ -249,41 +248,15 @@ def event(nbr):
             elif incident.incident_state == "repaired":
                 event = random.choice(["closed", "started"])
             if event:
-                data.update({"event": event,
-                             "info": random_info.sentence(),
-                             "id": incident.id,
-                             })
+                data.update({"event": event, "info": random_info.sentence(), "id": incident.id,})
                 update(data)
-
-
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": "error", "msg": str(e)}
-
-
-
-
 
 def format_data(db_list, total_count=None, filtered_count=None):
-    # build event_template location select
-    locations = dl.settings.get_configuration_setting("lis-locations")
     out = []
     for i in db_list:
         em = i.to_dict()
-        location_select_options = ""
-        if i.incident_state == "started":
-            for k, v in locations.items():
-                selected = " selected" if k == i.location else ""
-                location_select_options += f'<option value="{k}" {selected}>{v["label"]}</option>'
-            event_template = f'<div class="dt-incell-row"><select class="state-event-location-select">{location_select_options}</select>'
-            event_template += f'<a type="button" class="state-event-button-repaired btn btn-success">Hersteld</a></div>'
-        elif i.incident_state == "transition":
-            event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
-        elif i.incident_state == "repaired":
-            event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-closed btn btn-success">Sluiten</a>'
-            event_template += f'<a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
-        else:
-            event_template = "/"
-        em.update({"row_action": i.id, "DT_RowId": i.id, "state_event": event_template})
+        em.update({"row_action": i.id, "DT_RowId": i.id,"state_event": "NA"})
         out.append(em)
     return total_count, filtered_count, out
