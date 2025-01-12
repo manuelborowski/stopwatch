@@ -3,6 +3,8 @@ import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} fr
 import {badge_raw2hex} from "../common/rfid.js";
 import {AlertPopup, FormioPopup} from "../common/popup.js";
 
+const meta = await fetch_get("incident.meta")
+
 const __incident_show_form = async (params = {}) => {
     const incident_update = "id" in params;
     const __set_owner_options = async (placeholder, type) => {
@@ -46,7 +48,6 @@ const __incident_show_form = async (params = {}) => {
                         if (incident_update) {
                             data.event = params.event;
                             data.id = params.id;
-                            if ("location" in params) data.location = params.location;
                             await fetch_update("incident.incident", data);
                         } else {
                             const owner_data = owner_field.select2("data")[0];
@@ -168,7 +169,6 @@ const __incident_show_form = async (params = {}) => {
                 document.getElementById("password-default-chk").addEventListener("click", e => document.getElementById("password-field").disabled = e.target.checked);
 
                 // set default values
-                const meta = await fetch_get("incident.meta")
                 if (incident_update) {
                     const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
                     const incident = incidents && incidents.length > 0 ? incidents[0] : null;
@@ -218,7 +218,6 @@ const __view_history = async (ids) => {
             onShown: async () => {
                 form_default_set(form.defaults);
                 const incidents = await fetch_get("incident.incident", {filters: `id$=$${id}`});
-                const meta = await fetch_get("incident.meta");
                 const incident = incidents && incidents.length > 0 ? incidents[0] : null;
                 const histories = await fetch_get("history.history", {filters: `incident_id$=$${id}`});
                 const history_table = document.querySelector("#history-table");
@@ -290,8 +289,21 @@ const __table_loaded = opaque => {
 const filter_menu_items = [
     {
         type: 'select',
-        id: 'user-id',
+        id: 'incident-owner-id',
         label: 'Hersteller',
+        persistent: true
+    },
+    {
+        type: 'select',
+        id: 'incident-state',
+        label: 'Status',
+        persistent: true
+    },
+    {
+        type: 'checkbox',
+        id: 'incident-state-closed',
+        label: 'Afgeleverd?',
+        default: false,
         persistent: true
     },
 ]
@@ -301,10 +313,17 @@ $(document).ready(async () => {
     let owners = await fetch_get("incident.incident", {fields: "incident_owner"});
     owners = owners ? [...new Set(owners.map(e => e.incident_owner))] : [];
     owners = owners.map(e => ({label: e, value: e}));
-    const options = [{"label": "Iedereen", "value": "all"}, {"label": current_user.username, "value": current_user.username}].concat(owners);
+    const incident_owner_options = [{label: current_user.username, value: current_user.username}, {label: "Iedereen", value: "all"}].concat(owners);
+    const state_options = [{label: "Alles", value: "all"}].concat(meta.option.incident_state);
+
     filter_menu_items.filter((e, i, a) => {
-        if (e.id === "user-id") {
-            a[i].options = options;
+        if (e.id === "incident-owner-id") {
+            a[i].options = incident_owner_options;
+            a[i].default = current_user.username;
+            return true
+        }
+        if (e.id === "incident-state") {
+            a[i].options = state_options;
             a[i].default = "all";
             return true
         }

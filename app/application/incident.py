@@ -237,6 +237,7 @@ def event(nbr):
             incident = random.choice(incidents)
             data = {}
             event = None
+            data["incident_owner"] = incident.incident_owner
             if incident.incident_state == "started":
                 event = random.choice(["location", "repaired"])
                 if event == "location":

@@ -73,16 +73,19 @@ def filter(query_in):
 def pre_sql_query():
     return db.session.query(Incident)
 
-
 def pre_sql_filter(query, filters):
     for f in filters:
-        if f['id'] == 'incident-type':
-            if f['value'] != 'all':
-                query = query.filter(Incident.incident_type == f['value'])
+        if f['id'] == 'incident-state-closed' and not f['value']:
+            query = query.filter(Incident.incident_state != "closed")
+        if f['id'] == 'incident-owner-id' and f['value'] != 'all':
+            query = query.filter(Incident.incident_owner == f['value'])
+        if f['id'] == 'incident-state' and f['value'] != 'all':
+            query = query.filter(Incident.incident_state == f['value'])
+        if f['id'] == 'incident-type' and f['value'] != 'all':
+            query = query.filter(Incident.incident_type == f['value'])
         if f['id'] == 'incident-id' and f["value"]:
             query = query.filter(Incident.id == f['value'])
     return query
-
 
 def pre_sql_search(search_string):
     search_constraints = []

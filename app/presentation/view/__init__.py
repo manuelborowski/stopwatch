@@ -13,7 +13,7 @@ log.addFilter(MyLogFilter())
 
 @app.context_processor
 def inject_defaults():
-    return dict(version=f'@ 2023 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user)
+    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user)
 
 def send_alert_to_client(status, msg):
     al.socketio.send_to_client({"type": "alert-popup", "data": {"data": msg, "status": status}})

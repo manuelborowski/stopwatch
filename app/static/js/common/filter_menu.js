@@ -28,6 +28,16 @@ export class FilterMenu {
                         option.value = o.value;
                         option.innerHTML = o.label;
                     }
+                } else if (item.type === "checkbox") {
+                    const checkbox = document.createElement("input");
+                    form_group.appendChild(checkbox);
+                    checkbox.type = "checkbox";
+                    checkbox.id = item.id;
+                    checkbox.classList.add("filter-form-control", "table-filter");
+                    checkbox.addEventListener("click", () => {
+                        this.store_settings();
+                        changed_cb();
+                    });
                 }
                 placeholder.appendChild(form_group);
             }
@@ -52,7 +62,9 @@ export class FilterMenu {
         let store = [];
         this.filters = [];
         for (const f of this.menu) {
-            const value = document.querySelector(`#${f.id} option:checked`).value;
+            let value = null;
+            if (f.type === "select") value = document.querySelector(`#${f.id} option:checked`).value;
+            if (f.type === "checkbox") value = document.querySelector(`#${f.id}`).checked;
             store.push({id: f.id, type: f.type, value: f.persistent ? value : f.default});
             this.filters.push({id: f.id, type: f.type, value});
         }
