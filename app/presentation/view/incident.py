@@ -117,21 +117,18 @@ class Config(DatatableConfig):
         location_labels = {k: v["label"] for (k, v) in locations.items()}
         states = dl.settings.get_configuration_setting("lis-state")
         state_labels = {k: v["label"] for (k, v) in states.items()}
+        state_colors = {k: v["color"] for (k, v) in states.items()}
         started_event_template = f'<a type="button" class="state-event-button-location btn btn-success">Locatie</a></div>'
         started_event_template += f'<a type="button" class="state-event-button-repaired btn btn-success">Hersteld</a></div>'
         transition_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
         repaired_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-closed btn btn-success">Sluiten</a>'
         repaired_event_template += f'<a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
         closed_event_template = "/"
-        event_labels = {
-            "started": started_event_template,
-            "transition": transition_event_template,
-            "repaired": repaired_event_template,
-            "closed": closed_event_template
-        }
+        event_labels = {"started": started_event_template, "transition": transition_event_template, "repaired": repaired_event_template, "closed": closed_event_template}
         for column in template:
             if column["data"] == "incident_state" and column["name"] == "Status":
                 column["label"] = {"labels": state_labels}
+                column["color"] = {"colors": state_colors}
             if column["data"] == "location":
                 column["label"] = {"labels": location_labels}
             if column["data"] == "info":

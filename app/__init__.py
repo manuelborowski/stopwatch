@@ -44,8 +44,9 @@ from functools import wraps
 # 0.28: incident-generate, avoid endless loop in case no default-location
 # 0.29: replaced, in table, select with button.  Select is now in update-form.  Unified labels/options/defaults.  State-change-buttons, moved from server to client
 # 0.30: added filter to hide closed incidents
+# 0.31: added cell coloring, based on value.
 
-version = "0.30"
+version = "0.31"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

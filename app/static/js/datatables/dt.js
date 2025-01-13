@@ -100,12 +100,14 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     // check special options in the columns
     $.each(ctx.table_config.template, function (i, v) {
         //ellipsis
-        if ("ellipsis" in v) {
-            v.render = return_render_ellipsis(v.ellipsis.cutoff, v.ellipsis.wordbreak, true);
-        } else if ("bool" in v) {
-            v.render = function (data, type, full, meta) {return data === true ? "&#10003;" : "";};
-        } else if ("label" in v) {
-            v.render = function (data, type, full, meta) {return v.label.labels[data];}
+        if ("ellipsis" in v) v.render = return_render_ellipsis(v.ellipsis.cutoff, v.ellipsis.wordbreak, true);
+        if ("bool" in v) v.render = function (data, type, full, meta) {return data === true ? "&#10003;" : "";};
+        if ("label" in v) v.render = function (data, type, full, meta) {return v.label.labels[data];}
+        if ("color" in v) {
+            const render="render" in v ? v.render : null;
+            v.render = function (data, type, full, meta) {
+                if (render) data = render(data);
+                return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`;}
         }
         column_name_to_index[v.data] = i;
     });
@@ -188,6 +190,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     }
 
     DataTable.type('num', 'className', 'dt-left');
+    DataTable.type('date', 'className', 'dt-left');
     DataTable.defaults.column.orderSequence = ['desc', 'asc'];
     ctx.table = new DataTable('#datatable', datatable_config);
     const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template,
