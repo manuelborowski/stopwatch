@@ -46,8 +46,9 @@ from functools import wraps
 # 0.30: added filter to hide closed incidents
 # 0.31: added cell coloring, based on value.
 # 0.32: datatables ellipsis, changed because it took too much processingtime
+# 0.33: added qr-code to scan de laptop label
 
-version = "0.32"
+version = "0.33"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

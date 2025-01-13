@@ -2,6 +2,7 @@ import {datatable_loaded_subscribe, datatable_reload_table, datatable_row_data_f
 import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} from "../common/common.js";
 import {badge_raw2hex} from "../common/rfid.js";
 import {AlertPopup, FormioPopup} from "../common/popup.js";
+import {qr_decode} from "../common/qr.js";
 
 const meta = await fetch_get("incident.meta")
 
@@ -52,7 +53,7 @@ const __incident_show_form = async (params = {}) => {
                         } else {
                             const owner_data = owner_field.select2("data")[0];
                             data.laptop_owner_name = owner_data.text;
-                            data.laptop_name = document.getElementById("laptop-field").selectedOptions[0].textContent;
+                            data.laptop_name = document.getElementById("laptop-field").selectedOptions[0].label;
                             if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_serial === "") {
                                 new AlertPopup("warning", "'Lis-badgenummer', 'Eigenaar' en 'Laptop' moeten ingevuld zijn.")
                                 return
@@ -113,6 +114,26 @@ const __incident_show_form = async (params = {}) => {
                                             if (owners && owners.length > 0) owner_field.val(owners[0].code).trigger("change");
                                         }
                                     }
+                                }
+                            }
+                        })
+                    });
+
+                    // Scan laptop owner laptop -> QR code
+                    document.getElementById("laptop-code-scan").addEventListener("click", (e) => {
+                        e.preventDefault();
+                        bootbox.prompt({
+                            title: "Scan de QR code van de laptop",
+                            callback: async res => {
+                                if (res !== null) {
+                                    const label = qr_decode(res);
+                                    const laptop_field = document.getElementById("laptop-field");
+                                    laptop_field.innerHTML = "";
+                                    const option = document.createElement("option");
+                                    laptop_field.appendChild(option);
+                                    option.label = label;
+                                    option.value = label;
+                                    option.selected = true;
                                 }
                             }
                         })
@@ -186,7 +207,7 @@ const __incident_show_form = async (params = {}) => {
                 } else {
                     // set default owner list
                     await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
-                    await form_populate(meta.defaults, meta);
+                    await form_populate(meta.default, meta);
                 }
 
                 // hide/display water and drop-damage checkboxes
