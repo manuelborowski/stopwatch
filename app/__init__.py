@@ -45,8 +45,9 @@ from functools import wraps
 # 0.29: replaced, in table, select with button.  Select is now in update-form.  Unified labels/options/defaults.  State-change-buttons, moved from server to client
 # 0.30: added filter to hide closed incidents
 # 0.31: added cell coloring, based on value.
+# 0.32: datatables ellipsis, changed because it took too much processingtime
 
-version = "0.31"
+version = "0.32"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

@@ -132,7 +132,7 @@ class Config(DatatableConfig):
             if column["data"] == "location":
                 column["label"] = {"labels": location_labels}
             if column["data"] == "info":
-                column["ellipsis"] = {"cutoff": 50, "wordbreak": True}
+                column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
             if column["data"] == "incident_state" and column["name"] == "Actie":
                 column["label"] = {"labels": event_labels}
         return template
