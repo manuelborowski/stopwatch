@@ -118,23 +118,20 @@ class Config(DatatableConfig):
         states = dl.settings.get_configuration_setting("lis-state")
         state_labels = {k: v["label"] for (k, v) in states.items()}
         state_colors = {k: v["color"] for (k, v) in states.items()}
-        started_event_template = f'<a type="button" class="state-event-button-location btn btn-success">Locatie</a></div>'
-        started_event_template += f'<a type="button" class="state-event-button-repaired btn btn-success">Hersteld</a></div>'
-        transition_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
-        repaired_event_template = f'<div class="dt-incell-row"><a type="button" class="state-event-button-closed btn btn-success">Sluiten</a>'
-        repaired_event_template += f'<a type="button" class="state-event-button-started btn btn-success">Starten</a></div>'
-        closed_event_template = "/"
-        event_labels = {"started": started_event_template, "transition": transition_event_template, "repaired": repaired_event_template, "closed": closed_event_template}
+        button_template = f'<a type="button" class="btn-incident-update btn btn-success"><i class="fa-solid fa-pen-to-square" title="Aanpassen"></i></a></div>'
+        button_template += f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek"></i></a></div>'
         for column in template:
-            if column["data"] == "incident_state" and column["name"] == "Status":
-                column["label"] = {"labels": state_labels}
-                column["color"] = {"colors": state_colors}
-            if column["data"] == "location":
-                column["label"] = {"labels": location_labels}
-            if column["data"] == "info":
-                column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
-            if column["data"] == "incident_state" and column["name"] == "Actie":
-                column["label"] = {"labels": event_labels}
+            if "data" in column:
+                if column["data"] == "incident_state" and column["name"] == "Status":
+                    column["label"] = {"labels": state_labels}
+                    column["color"] = {"colors": state_colors}
+                if column["data"] == "location":
+                    column["label"] = {"labels": location_labels}
+                if column["data"] == "info":
+                    column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
+            if "defaultContent" in column:
+                if column["defaultContent"] == "action":
+                    column["defaultContent"] = button_template
         return template
 
     def format_data(self, db_list, total_count=None, filtered_count=None):

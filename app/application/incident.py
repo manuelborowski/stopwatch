@@ -85,7 +85,7 @@ def __event(incident, event):
     try:
         if event == "new":
             incident.incident_state = "started"
-        elif event == "location":
+        elif event == "transition":
             incident.incident_state = "transition"
             __event_location_changed(incident)
         elif event == "started":

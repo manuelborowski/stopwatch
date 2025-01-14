@@ -47,8 +47,9 @@ from functools import wraps
 # 0.31: added cell coloring, based on value.
 # 0.32: datatables ellipsis, changed because it took too much processingtime
 # 0.33: added qr-code to scan de laptop label
+# 0.34 replace the action buttons (to change state) to generic buttons to update the incident and view the incident
 
-version = "0.33"
+version = "0.34"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

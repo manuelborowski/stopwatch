@@ -2,7 +2,6 @@
 <form id="incident-form">
     <div class="form-row">
         <div class="form-element"><label>Type laptop<input name="laptop_type" disabled></label></div>
-        <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
     </div>
     <div class="form-row">
         <div class="form-element"><label>LIS badgenummer<input name="lis_badge_id" disabled></label></div>
@@ -15,28 +14,17 @@
     </div>
 
     <div class="form-row">
-        <div class="form-element">
-            <label>Locatie
-                <select id="location-field" name="location"></select>
-            </label>
-        </div>
+        <div class="form-element"><label>Locatie<select id="location-field" name="location"></select></label></div>
+        <div class="form-element"><label>Status<select id="incident-state-field" name="incident_state"></select></label></div>
     </div>
 
     <div class="form-row">
-        <div class="form-element">
-            <label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label>
-        </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label>
-        </div>
+        <div class="form-element"><label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label></div>
+        <div class="form-element"><label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label></div>
     </div>
     <div class="form-row">
-        <div class="form-element">
-            <label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label>
-        </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label>
-        </div>
+        <div class="form-element"><label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label></div>
+        <div class="form-element"><label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label></div>
         <button id="spare-badge-scan" class="btn btn-success">Scan badge van reservelaptop</button>
     </div>
     <div class="form-row">
@@ -49,12 +37,8 @@
                 </select>
             </label>
         </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label>
-        </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label>
-        </div>
+        <div class="form-element"><label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label></div>
+        <div class="form-element"><label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label></div>
     </div>
     <div class="form-row" hidden>
         <div class="form-element">
@@ -65,9 +49,6 @@
         </div>
     </div>
     <div class="form-row">
-        <div class="form-element">
-            <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1"
-                                 name="info"></textarea></label>
-        </div>
+        <div class="form-element"><label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1" name="info"></textarea></label></div>
     </div>
 </form>

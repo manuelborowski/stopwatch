@@ -28,6 +28,21 @@ const __incident_show_form = async (params = {}) => {
         }
     }
 
+    const __state_select_set = current_state => {
+        const next_states = {
+            started: ["transition", "repaired"],
+            transition: ["started"],
+            repaired: ["started", "closed"],
+            closed: []
+        }
+        const incident_state_field = document.getElementById("incident-state-field");
+        incident_state_field.innerHTML = "";
+        for (const state of [current_state].concat(next_states[current_state])) {
+            incident_state_field.add(new Option(meta.label.incident_state[state], state, current_state === state));
+        }
+        document.getElementById("location-field").disabled = current_state !== "started";
+    }
+
     const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
     const form = await fetch_get("incident.form", {form: incident_update ? "incident-update" : "incident-new"});
     if (form) {
@@ -45,10 +60,9 @@ const __incident_show_form = async (params = {}) => {
                         const data = Object.fromEntries(form_data)
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-
                         if (incident_update) {
-                            data.event = params.event;
                             data.id = params.id;
+                            data.event = document.getElementById("incident-state-field").value;
                             await fetch_update("incident.incident", data);
                         } else {
                             const owner_data = owner_field.select2("data")[0];
@@ -74,7 +88,12 @@ const __incident_show_form = async (params = {}) => {
                 },
             },
             onShown: async () => {
-                if (!incident_update) {
+                if (incident_update) {
+                    // if the location is updated, change the event to transition
+                    document.getElementById("location-field").addEventListener("change", e => {
+                        document.getElementById("incident-state-field").value = "transition";
+                    });
+                } else {
                     owner_field = $("#owner-field");
 
                     // if the laptop-type field changes, update the options of the owner field
@@ -201,6 +220,9 @@ const __incident_show_form = async (params = {}) => {
                         previous_info_field.closest(".form-row").hidden = false;
                     }
                     if (incident) {
+                        __state_select_set(incident.incident_state);
+                        document.querySelectorAll(".incident-state-group input").forEach(i => i.addEventListener("click", __state_checkbox_clicked));
+                        delete incident.incident_state; // avoid initializing it twice
                         incident["info"] = "";
                         await form_populate(incident, meta);
                     }
@@ -289,21 +311,13 @@ const context_menu_items = [
 ]
 
 const __table_loaded = opaque => {
-    document.querySelectorAll(".state-event-button-location").forEach(s => s.addEventListener("click", async e => {
+    document.querySelectorAll(".btn-incident-update").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        await __incident_show_form({event: "location", id: row.id});
+        await __incident_show_form({id: row.id});
     }));
-    document.querySelectorAll(".state-event-button-repaired").forEach(s => s.addEventListener("click", async e => {
+    document.querySelectorAll(".btn-show-history").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        await __incident_show_form({event: "repaired", id: row.id});
-    }));
-    document.querySelectorAll(".state-event-button-started").forEach(s => s.addEventListener("click", async e => {
-        const row = datatable_row_data_from_target(e);
-        await __incident_show_form({event: "started", id: row.id});
-    }));
-    document.querySelectorAll(".state-event-button-closed").forEach(s => s.addEventListener("click", async e => {
-        const row = datatable_row_data_from_target(e);
-        await __incident_show_form({event: "closed", id: row.id});
+        await __view_history([row.id]);
     }));
 }
 
