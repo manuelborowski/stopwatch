@@ -39,7 +39,7 @@ const __incident_show_form = async (params = {}) => {
         for (const state of [current_state].concat(next_states[current_state])) {
             incident_state_field.add(new Option(meta.label.incident_state[state], state, current_state === state));
         }
-        document.getElementById("location-field").disabled = current_state !== "started";
+        document.getElementById("location-field").disabled = !["started", "repaired"].includes(current_state);
     }
 
     const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
@@ -218,7 +218,6 @@ const __incident_show_form = async (params = {}) => {
                     }
                     if (incident) {
                         __state_select_set(incident.incident_state);
-                        document.querySelectorAll(".incident-state-group input").forEach(i => i.addEventListener("click", __state_checkbox_clicked));
                         delete incident.incident_state; // avoid initializing it twice
                         incident["info"] = "";
                         // if the location is updated, change the event to transition
@@ -227,7 +226,6 @@ const __incident_show_form = async (params = {}) => {
                         });
                         // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
                         document.getElementById("incident-state-field").addEventListener("change", e => {
-                            console.log(e.target);
                             if (e.target.value !== "transition") document.getElementById("location-field").value = incident.location;
                         });
 
