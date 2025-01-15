@@ -330,6 +330,11 @@ const __table_loaded = opaque => {
         await fetch_update("incident.incident", {id: row.id, event: "message", info: "Bericht verstuurd"});
         datatable_reload_table();
     }));
+    document.querySelectorAll(".btn-incident-close").forEach(s => s.addEventListener("click", async e => {
+        const row = datatable_row_data_from_target(e);
+        await fetch_update("incident.incident", {id: row.id, event: "closed", info: "Incident gesloten"});
+        datatable_reload_table();
+    }));
 }
 
 const filter_menu_items = [

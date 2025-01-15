@@ -124,6 +124,15 @@ class Config(DatatableConfig):
         standard_button_template = f'<a type="button" class="btn-incident-update btn btn-success"><i class="fa-solid fa-pen-to-square" title="Incident aanpassen"></i></a></div>'
         standard_button_template += f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek bekijken"></i></a></div>'
         message_button_template = f'<a type="button" class="btn-send-message btn btn-success"><i class="fa-regular fa-envelope" title="Bericht sturen"></i></a></div>'
+        close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>'
+
+        action_labels = {
+            "started": standard_button_template,
+            "transition": standard_button_template,
+            "repaired": standard_button_template + message_button_template,
+            "message": standard_button_template + close_button_template,
+            "closed": "NVT"
+        }
 
         for column in template:
             if "data" in column:
@@ -136,7 +145,8 @@ class Config(DatatableConfig):
                     column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
                 if column["data"] == "incident_state" and column["name"] == "Actie":
                     # if data (cellcontent) equals value "repaired" then show 3 buttons else show 2 buttons
-                    column["condition"] = {"equals": "repaired", "then": standard_button_template + message_button_template, "else": standard_button_template }
+                    # column["condition"] = {"equals": "repaired", "then": standard_button_template + message_button_template, "else": standard_button_template }
+                    column["label"] = {"labels": action_labels}
         return template
 
     def format_data(self, db_list, total_count=None, filtered_count=None):

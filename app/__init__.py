@@ -52,8 +52,9 @@ from functools import wraps
 # 0.36: default password, inform user that password is being reset.  Added functionality to set password vi ADproxy
 # 0.37: added "condition" label to datatables column.  Added state "message" to explicitly send a message.
 # 0.38: from state repaired, it is possible to transit to state transition
+# 0.39: add button to close incident
 
-version = "0.38"
+version = "0.39"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
