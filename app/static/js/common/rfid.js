@@ -13,7 +13,7 @@ export const badge_raw2hex = code => {
 
     const process_int_code = code_int => {
         if (code_int < 100000 || code_int > parseInt('FFFFFFFF', 16)) {
-            return [false, code_int]
+            return {valid_rfid: false, code: code_int}
         }
         //convert the int to a hex number, add leading 0's (if required) to get 8 characters
         //revert the order of the 4 tupples (big to little endian)
@@ -25,7 +25,7 @@ export const badge_raw2hex = code => {
             out = out.concat(hex.slice(i, i + 2))
         }
         out = out.join('');
-        return [true, out]
+        return {valid_rfid: true, code: out}
     }
 
     let valid_rfid = true

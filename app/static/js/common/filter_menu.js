@@ -3,16 +3,21 @@ export class FilterMenu {
         this.id = id;
         this.menu = menu;
         this.filters = [];
+
+        const __add_label = (placeholder, item) => {
+                const label = document.createElement("label");
+                placeholder.appendChild(label);
+                label.classList.add("control-label")
+                label.setAttribute("for", item.id);
+                label.innerHTML = item.label;
+        }
+
         if (menu.length > 0) {
             for (const item of menu) {
                 const form_group = document.createElement("div");
                 form_group.classList.add(".filter-form-group");
-                const label = document.createElement("label");
-                form_group.appendChild(label);
-                label.classList.add("control-label")
-                label.setAttribute("for", item.id);
-                label.innerHTML = item.label;
                 if (item.type === "select") {
+                    __add_label(form_group, item);
                     const select = document.createElement("select");
                     form_group.appendChild(select);
                     select.classList.add("filter-form-control", "table-filter");
@@ -29,6 +34,7 @@ export class FilterMenu {
                         option.innerHTML = o.label;
                     }
                 } else if (item.type === "checkbox") {
+                    __add_label(form_group, item);
                     const checkbox = document.createElement("input");
                     form_group.appendChild(checkbox);
                     checkbox.type = "checkbox";
@@ -38,6 +44,14 @@ export class FilterMenu {
                         this.store_settings();
                         changed_cb();
                     });
+                } else if (item.type === "button") {
+                    const button = document.createElement("a");
+                    form_group.appendChild(button);
+                    button.type = "button";
+                    button.id = item.id;
+                    button.classList.add("filter-form-control", "table-filter", "btn", "btn-success");
+                    button.innerHTML = item.label;
+                    button.addEventListener("click", item.callback);
                 }
                 placeholder.appendChild(form_group);
             }

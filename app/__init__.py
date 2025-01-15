@@ -53,8 +53,9 @@ from functools import wraps
 # 0.37: added "condition" label to datatables column.  Added state "message" to explicitly send a message.
 # 0.38: from state repaired, it is possible to transit to state transition
 # 0.39: add button to close incident
+# 0.40: add button to filters to scan lis badge
 
-version = "0.39"
+version = "0.40"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

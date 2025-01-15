@@ -305,7 +305,7 @@ const button_menu_items = [
     {
         type: 'select',
         id: 'location-default',
-        label: 'Locatie',
+        label: 'Standaardlocatie',
         options: view_data.locations.options,
         default: view_data.locations.default,
         cb: __save_default_location
@@ -337,6 +337,29 @@ const __table_loaded = opaque => {
     }));
 }
 
+const __filter_scan_lis_badge = () => {
+        bootbox.prompt({
+            title: "Scan de LIS badge",
+            callback: async res => {
+                if (res !== null) {
+                    const [valid_code, code] = badge_raw2hex(res);
+                    let lis_id = null;
+                    if (valid_code) {
+                        const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
+                        if (badges && badges.length > 0) lis_id = badges[0].id;
+                    } else {
+                        lis_id = code;  // it is assumed a valid lis code is entered
+                    }
+                    const incidents = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${lis_id},incident_state$!$closed`, fields: "id"})
+                    if (incidents && incidents.length > 0) {
+                        const latest_id = incidents.reduce((max, item) => item.id > max.id ? item : max).id;
+                        location.href = `${location.href}?id=${latest_id}`;
+                    }
+                }
+            }
+        });
+}
+
 const filter_menu_items = [
     {
         type: 'select',
@@ -356,6 +379,12 @@ const filter_menu_items = [
         label: 'Afgeleverd?',
         default: false,
         persistent: true
+    },
+    {
+        type: 'button',
+        id: 'btn-scan-lis-badge',
+        label: 'Scan LIS',
+        callback: __filter_scan_lis_badge
     },
 ]
 
