@@ -48,8 +48,9 @@ from functools import wraps
 # 0.32: datatables ellipsis, changed because it took too much processingtime
 # 0.33: added qr-code to scan de laptop label
 # 0.34 replace the action buttons (to change state) to generic buttons to update the incident and view the incident
+# 0.35: update incident, select location and/or new state, make sure that the selections are coherent.
 
-version = "0.34"
+version = "0.35"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

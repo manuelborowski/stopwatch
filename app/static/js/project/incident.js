@@ -88,12 +88,7 @@ const __incident_show_form = async (params = {}) => {
                 },
             },
             onShown: async () => {
-                if (incident_update) {
-                    // if the location is updated, change the event to transition
-                    document.getElementById("location-field").addEventListener("change", e => {
-                        document.getElementById("incident-state-field").value = "transition";
-                    });
-                } else {
+                if (!incident_update) {
                     owner_field = $("#owner-field");
 
                     // if the laptop-type field changes, update the options of the owner field
@@ -224,6 +219,17 @@ const __incident_show_form = async (params = {}) => {
                         document.querySelectorAll(".incident-state-group input").forEach(i => i.addEventListener("click", __state_checkbox_clicked));
                         delete incident.incident_state; // avoid initializing it twice
                         incident["info"] = "";
+                        // if the location is updated, change the event to transition
+                        document.getElementById("location-field").addEventListener("change", e => {
+                            document.getElementById("incident-state-field").value = "transition";
+                        });
+                        // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
+                        document.getElementById("incident-state-field").addEventListener("change", e => {
+                            console.log(e.target);
+                            if (e.target.value !== "transition") document.getElementById("location-field").value = incident.location;
+                        });
+
+
                         await form_populate(incident, meta);
                     }
                 } else {
