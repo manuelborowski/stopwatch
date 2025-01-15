@@ -47,7 +47,7 @@ def __event_location_changed(incident):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
-def __event_repaired(incident):
+def __event_send_message(incident):
     try:
         if incident.lis_badge_id > 999999:
             return True
@@ -92,7 +92,9 @@ def __event(incident, event):
             incident.incident_state = "started"
         elif event == "repaired":
             incident.incident_state = "repaired"
-            __event_repaired(incident)
+        elif event == "message":
+            incident.incident_state = "message"
+            __event_send_message(incident)
         elif event == "closed":
             incident.incident_state = "closed"
             if incident.laptop_owner_password_default:
@@ -106,19 +108,20 @@ def __event(incident, event):
 def __password_update(incident, password, must_update=False):
     try:
         adp_url = app.config["ADP_URL"]
-        test = app.config["ADP_TEST"]
-        if incident.laptop_type == "leerling":
-            user = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
-            user_id = user.username
-        elif incident.laptop_type == "personeel":
-            user = dl.staff.get(("code", "=", incident.laptop_owner_id))
-            user_id = user.code
-        else:
-            return False
-        ret = requests.post(adp_url, json={"user": user_id, "password": password, "test": test})
-        if ret.status_code == 200:
-            resp = json.loads(ret.text)
-            log.info(f'{sys._getframe().f_code.co_name}: password of {user_id} set to {password}, must_update {must_update}, test {test}, resp {resp["status"]}')
+        if adp_url != "":
+            test = app.config["ADP_TEST"]
+            if incident.laptop_type == "leerling":
+                user = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+                user_id = user.username
+            elif incident.laptop_type == "personeel":
+                user = dl.staff.get(("code", "=", incident.laptop_owner_id))
+                user_id = user.code
+            else:
+                return False
+            ret = requests.post(adp_url, json={"user": user_id, "password": password, "test": test})
+            if ret.status_code == 200:
+                resp = json.loads(ret.text)
+                log.info(f'{sys._getframe().f_code.co_name}: password of {user_id} set to {password}, must_update {must_update}, test {test}, resp {resp["status"]}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return False

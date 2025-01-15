@@ -32,8 +32,7 @@ const __incident_show_form = async (params = {}) => {
         const next_states = {
             started: ["transition", "repaired"],
             transition: ["started"],
-            repaired: ["started", "closed"],
-            closed: []
+            repaired: ["started", "transition"],
         }
         const incident_state_field = document.getElementById("incident-state-field");
         incident_state_field.innerHTML = "";
@@ -327,6 +326,11 @@ const __table_loaded = opaque => {
     document.querySelectorAll(".btn-show-history").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
         await __view_history([row.id]);
+    }));
+    document.querySelectorAll(".btn-send-message").forEach(s => s.addEventListener("click", async e => {
+        const row = datatable_row_data_from_target(e);
+        await fetch_update("incident.incident", {id: row.id, event: "message", info: "Bericht verstuurd"});
+        datatable_reload_table();
     }));
 }
 

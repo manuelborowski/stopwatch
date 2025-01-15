@@ -109,6 +109,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                 if (render) data = render(data);
                 return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`;}
         }
+        if ("condition" in v) v.render = function (data, type, full, meta) {return data === v.condition.equals ? v.condition.then  : v.condition.else;}
         column_name_to_index[v.data] = i;
     });
 
