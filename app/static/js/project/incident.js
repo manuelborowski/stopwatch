@@ -201,7 +201,10 @@ const __incident_show_form = async (params = {}) => {
                     });
                 }
                 // if default password checked, disable the password field
-                document.getElementById("password-default-chk").addEventListener("click", e => document.getElementById("password-field").disabled = e.target.checked);
+                document.getElementById("password-default-chk").addEventListener("click", e => {
+                    document.getElementById("password-field").disabled = e.target.checked;
+                    if (e.target.checked) bootbox.alert(`Opgelet, het paswoord wordt aangepast naar <b>${meta.default_password}</b>`)
+                });
 
                 // set default values
                 if (incident_update) {

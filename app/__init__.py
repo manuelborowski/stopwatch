@@ -49,8 +49,9 @@ from functools import wraps
 # 0.33: added qr-code to scan de laptop label
 # 0.34 replace the action buttons (to change state) to generic buttons to update the incident and view the incident
 # 0.35: update incident, select location and/or new state, make sure that the selections are coherent.
+# 0.36: default password, inform user that password is being reset.  Added functionality to set password vi ADproxy
 
-version = "0.35"
+version = "0.36"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

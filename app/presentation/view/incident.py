@@ -64,9 +64,12 @@ def meta():
     label_state= {k: v["label"] for k, v in states.items()}
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
     default_state = [k for k, v in states.items() if "default" in v][0]
+    default_password = app.config["AD_DEFAULT_PASSWORD"]
     return json.dumps({"option": {"location": option_location, "incident_state": option_state},
                         "label": {"location": label_location, "incident_state": label_state},
-                       "default": {"location": default_location, "incident_state": default_state}})
+                       "default": {"location": default_location, "incident_state": default_state},
+                       "default_password": default_password,
+                       })
 
 @bp_incident.route('/incident/location', methods=['POST',])
 @login_required

@@ -1,4 +1,4 @@
-import sys, datetime, re, random, requests, wonderwords
+import sys, datetime, re, random, requests, wonderwords, json
 from app import app, data as dl
 from flask_login import current_user
 from flask import request
@@ -95,10 +95,35 @@ def __event(incident, event):
             __event_repaired(incident)
         elif event == "closed":
             incident.incident_state = "closed"
+            if incident.laptop_owner_password_default:
+                __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
         dl.incident.commit()
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
+def __password_update(incident, password, must_update=False):
+    try:
+        adp_url = app.config["ADP_URL"]
+        test = app.config["ADP_TEST"]
+        if incident.laptop_type == "leerling":
+            user = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+            user_id = user.username
+        elif incident.laptop_type == "personeel":
+            user = dl.staff.get(("code", "=", incident.laptop_owner_id))
+            user_id = user.code
+        else:
+            return False
+        ret = requests.post(adp_url, json={"user": user_id, "password": password, "test": test})
+        if ret.status_code == 200:
+            resp = json.loads(ret.text)
+            log.info(f'{sys._getframe().f_code.co_name}: password of {user_id} set to {password}, must_update {must_update}, test {test}, resp {resp["status"]}')
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return False
+    return True
+
 
 def add(data):
     try:
@@ -112,6 +137,8 @@ def add(data):
             # store some data in history
             history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
                             "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner, "time": incident.time, }
+            if incident.laptop_owner_password_default:
+                __password_update(incident, app.config["AD_DEFAULT_PASSWORD"])
             history = dl.history.add(history_data)
         log.info(f'{sys._getframe().f_code.co_name}: incident added, {data}')
         return {"status": "ok", "msg": f"Incident, {incident.id} toegevoegd."}
@@ -123,6 +150,7 @@ def update(data):
     try:
         incident = dl.incident.get(("id", "=", data["id"]))
         if incident:
+            current_laptop_owner_password_default = incident.laptop_owner_password_default
             # if the info field is empty, but the previous was not, copy that...
             if data["info"] == "":
                 history_latest = dl.history.get_m(("incident_id", "=", data["id"]), order_by="-id", first=True)
@@ -139,6 +167,8 @@ def update(data):
                 history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
                     "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner, "time": incident.time,}
                 history = dl.history.add(history_data)
+                if not current_laptop_owner_password_default and incident.laptop_owner_password_default:
+                    __password_update(incident, app.config["AD_DEFAULT_PASSWORD"])
                 log.info(f'{sys._getframe().f_code.co_name}: incident updated, {data}')
                 return {"id": incident.id}
         log.error(f'{sys._getframe().f_code.co_name}: incident not found, id {data["id"]}')
