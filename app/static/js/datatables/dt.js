@@ -62,13 +62,7 @@ export function datatable_reload_table() {
     ctx.table.ajax.reload();
 }
 
-let table_loaded_cb = []
-export const datatable_loaded_subscribe = (cb, opaque) => {
-    table_loaded_cb.push({cb, opaque});
-}
-
-
-export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[]}) => {
+export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[], callbacks={}}) => {
     ctx = {table_config, reload_table: datatable_reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
@@ -140,6 +134,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         },
         lengthMenu: [100, 500, 1000],
         pageLength: 500,
+        // Called first. This callback is executed when a TR element is created (and all TD child elements have been inserted)
         createdRow: function (row, data, dataIndex, cells) {
             // in format_data, it is possible to tag a line with a different backgroundcolor
             if (data.overwrite_row_color && data.overwrite_row_color !== "") $(row).attr("style", `background-color:${data.overwrite_row_color};`);
@@ -149,7 +144,9 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                     $(cells[ci]).attr("style", `background-color: ${cc};`);
                 }
             }
+            if (callbacks.created_row) callbacks.created_row(row, data, dataIndex, cells);
         },
+        // Called second. This callback allows you to 'post process' each row after it have been generated for each table draw, but before it is rendered into the document
         rowCallback: function (row, data, displayNum, displayIndex, dataIndex) {
             if (data.row_action !== null) row.cells[0].innerHTML = `<input type='checkbox' class='chbx_all' name='chbx' value='${data.row_action}'>`
             // celledit of type select: overwrite cell content with label from optionlist
@@ -176,9 +173,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                     }
                 });
             }
-            for (const item of table_loaded_cb) {
-                item.cb(item.opaque);
-            }
+            if (callbacks.table_loaded) callbacks.table_loaded();
         },
     }
 

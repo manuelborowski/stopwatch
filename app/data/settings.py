@@ -114,6 +114,11 @@ default_configuration_settings = {
     'lis-spare-laptops': ({}, Settings.SETTING_TYPE.E_JSON),
 
     'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
+
+    'm4s_bearer_token': ('', Settings.SETTING_TYPE.E_STRING),
+    'm4s_bearer_expires_in': ('', Settings.SETTING_TYPE.E_STRING),
+
+
 }
 
 

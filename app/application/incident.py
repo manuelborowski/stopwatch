@@ -1,5 +1,5 @@
 import sys, datetime, re, random, requests, wonderwords, json
-from app import app, data as dl
+from app import app, data as dl, application as al
 from flask_login import current_user
 from flask import request
 
@@ -289,8 +289,40 @@ def event(nbr):
 
 def format_data(db_list, total_count=None, filtered_count=None):
     out = []
+    start = datetime.datetime.now()
     for i in db_list:
         em = i.to_dict()
         em.update({"row_action": i.id, "DT_RowId": i.id,"state_event": "NA"})
         out.append(em)
+    stop = datetime.datetime.now()
+    log.info(f"delta tijd {stop - start}")
     return total_count, filtered_count, out
+
+
+def incident_cron_state_timeout(opaque=None):
+    try:
+        log.info(f'{sys._getframe().f_code.co_name}: START')
+        states = dl.settings.get_configuration_setting("lis-state")
+        locations = dl.settings.get_configuration_setting("lis-locations")
+        now = datetime.datetime.now()
+        timeout_locations = {}
+        for key, state in states.items():
+            if "timeout" in state:
+                timeout = al.common.ini2timedelta(state["timeout"])
+                incidents = dl.incident.get_m(("incident_state", "=", key))
+                for incident in incidents:
+                    if now > incident.time + timeout and not incident.flag_check("state-timeout"):
+                        log.info(f'{sys._getframe().f_code.co_name}: state timeout, incident {incident.id}, state {key}')
+                        incident.flag_set("state-timeout")
+                        if incident.location in timeout_locations:
+                            timeout_locations[incident.location].append(incident)
+                        else:
+                            timeout_locations[incident.location] = [incident]
+        for key, incidents in timeout_locations.items():
+            location = locations[key]
+            if "email" in location:
+                dl.entra.entra.send_mail(location["email"], "LIS toestand timeout", "Er zijn meerdere toestand timeouts!!")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+

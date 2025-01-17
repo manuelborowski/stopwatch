@@ -47,8 +47,7 @@
     border-radius: 4px;
 }
 .form-element th, .form-element td {
-    border-width: 1px;
-    border: black;
+    border: thin;
     border-style: solid;
-    text-align: center;
+    padding-right: 5px;
 }

@@ -38,6 +38,25 @@ class Incident(db.Model, SerializerMixin):
     incident_owner = db.Column(db.String(256), default=None)
     m4s_id = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
+    flags = db.Column(db.String(256), default="")
+
+    def flag_set(self, flag):
+        if self.flags == "":
+            self.flags = flag
+            return True
+        flags = self.flags.split(",")
+        if flag not in flags:
+            flags.append(flag)
+            self.flags = ",".join(flags)
+
+    def flag_reset(self, flag):
+        flags = self.flags.split(",")
+        if flag in flags:
+            flags.remove(flag)
+            self.flags = ",".join(flags)
+
+    def flag_check(self, flag):
+        return flag in self.flags.split(",")
 
 def add(data = {}):
     return dl.models.add_single(Incident, data)
@@ -85,6 +104,8 @@ def pre_sql_filter(query, filters):
             query = query.filter(Incident.incident_type == f['value'])
         if f['id'] == 'incident-id' and f["value"]:
             query = query.filter(Incident.id == f['value'])
+        if f['id'] == 'location' and f["value"] != "all":
+            query = query.filter(Incident.location == f['value'])
     return query
 
 def pre_sql_search(search_string):

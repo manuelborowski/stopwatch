@@ -11,6 +11,20 @@ from functools import wraps
 
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
+# DONE: filter: voeg locatie filter toe
+# DONE: paswoord veld met oogje
+# TODO: maximum tijdsuur per toestand
+# DONE: historiek: nieuwste bovenaan
+# TODO: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
+# TODO: link toevoegen naar m4s
+# TODO: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
+# TODO: laders ook een badge geven?
+# TODO: bericht opnieuw verzenden, eventueel naar co-accounts
+# TODO: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
+# TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
+# TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
+# TODO: locaties -> signpost = hardware incident?
+
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
 # 0.3: clean up.  Datatables to 2.1.8.  Replaced most document.ready in js to fix the order of invocation.  Updated cell_edit
@@ -54,8 +68,9 @@ from functools import wraps
 # 0.38: from state repaired, it is possible to transit to state transition
 # 0.39: add button to close incident
 # 0.40: add button to filters to scan lis badge
+# 0.41: added m4s.  Updated various items
 
-version = "0.40"
+version = "0.41"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

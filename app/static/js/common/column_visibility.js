@@ -13,7 +13,11 @@ export class ColumnVisibility {
         }
         // create the buttons on top of the page
         this.settings.forEach((column, i) => {
-            if (column.visible !== 'never') {
+            if (column.visible === 'always') {
+                    this.visibility_changed_cb(i, true);
+            } else if (column.visible === 'never') {
+                    this.visibility_changed_cb(i, false);
+            } else {
                 let a = document.createElement('p');
                 a.appendChild(document.createTextNode(`${column.name}`));
                 a.setAttribute("title", column.tt);

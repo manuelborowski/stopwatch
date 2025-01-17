@@ -1,4 +1,4 @@
-import {datatable_loaded_subscribe, datatable_reload_table, datatable_row_data_from_target, datatables_init, update_cell} from "../datatables/dt.js";
+import {datatable_reload_table, datatable_row_data_from_target, datatables_init, update_cell} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} from "../common/common.js";
 import {badge_raw2hex} from "../common/rfid.js";
 import {AlertPopup, FormioPopup} from "../common/popup.js";
@@ -200,10 +200,23 @@ const __incident_show_form = async (params = {}) => {
                     });
                 }
                 // if default password checked, disable the password field
+                const password_field = document.getElementById("password-field");
                 document.getElementById("password-default-chk").addEventListener("click", e => {
-                    document.getElementById("password-field").disabled = e.target.checked;
+                    password_field.disabled = e.target.checked;
                     if (e.target.checked) bootbox.alert(`Opgelet, het paswoord wordt aangepast naar <b>${meta.default_password}</b>`)
                 });
+
+                const password_show_field  = document.getElementById("password-show-field");
+                password_show_field.addEventListener("click", e => {
+                    if (password_show_field.classList.contains("fa-eye")) {
+                        password_show_field.classList.replace("fa-eye", "fa-eye-slash");
+                        password_field.type = "password";
+                    } else {
+                        password_show_field.classList.replace("fa-eye-slash", "fa-eye");
+                        password_field.type = "text";
+                    }
+                });
+
 
                 // set default values
                 if (incident_update) {
@@ -268,11 +281,11 @@ const __view_history = async (ids) => {
                 form_default_set(form.defaults);
                 const incidents = await fetch_get("incident.incident", {filters: `id$=$${id}`});
                 const incident = incidents && incidents.length > 0 ? incidents[0] : null;
-                const histories = await fetch_get("history.history", {filters: `incident_id$=$${id}`});
+                const histories = await fetch_get("history.history", {filters: `incident_id$=$${id}`, order_by: "-id"});
                 const history_table = document.querySelector("#history-table");
                 for (const h of histories) {
                     let tr = "<tr>";
-                    for (const e of ["incident_owner", "priority", "incident_state", "location", "info", "time", "incident_type", "drop_damage", "water_damage"]) {
+                    for (const e of ["time", "incident_owner", "priority", "incident_state", "location", "info", "incident_type", "drop_damage", "water_damage"]) {
                         let val = h[e];
                         if (e === "incident_state") val = meta.label.incident_state[val];
                         if (e === "location") val = meta.label.location[val];
@@ -316,7 +329,7 @@ const context_menu_items = [
     {type: "item", label: 'Historiek', iconscout: 'history', cb: __view_history},
 ]
 
-const __table_loaded = opaque => {
+const __table_loaded = () => {
     document.querySelectorAll(".btn-incident-update").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
         await __incident_show_form({id: row.id});
@@ -335,6 +348,12 @@ const __table_loaded = opaque => {
         await fetch_update("incident.incident", {id: row.id, event: "closed", info: "Incident gesloten"});
         datatable_reload_table();
     }));
+}
+
+const __row_created = (row, data, data_index, cells) => {
+    if (data.flags && data.flags.split(",").includes("state-timeout")) {
+        $(row).attr("style", `background-color: #ffa5006b;`);
+    }
 }
 
 const __filter_scan_lis_badge = () => {
@@ -369,6 +388,12 @@ const filter_menu_items = [
     },
     {
         type: 'select',
+        id: 'location',
+        label: 'Locatie',
+        persistent: true
+    },
+    {
+        type: 'select',
         id: 'incident-state',
         label: 'Status',
         persistent: true
@@ -389,12 +414,13 @@ const filter_menu_items = [
 ]
 
 $(document).ready(async () => {
-    datatable_loaded_subscribe(__table_loaded, null);
     let owners = await fetch_get("incident.incident", {fields: "incident_owner"});
     owners = owners ? [...new Set(owners.map(e => e.incident_owner))] : [];
     owners = owners.map(e => ({label: e, value: e}));
     const incident_owner_options = [{label: current_user.username, value: current_user.username}, {label: "Iedereen", value: "all"}].concat(owners);
     const state_options = [{label: "Alles", value: "all"}].concat(meta.option.incident_state);
+    const filtered_location = meta.option.location.filter(i => i.value !== meta.default.location);
+    const location_options = [{label: meta.label.location[meta.default.location], value: meta.default.location}, {label: "Alle", value: "all"}].concat(filtered_location);
 
     filter_menu_items.filter((e, i, a) => {
         if (e.id === "incident-owner-id") {
@@ -407,7 +433,13 @@ $(document).ready(async () => {
             a[i].default = "all";
             return true
         }
+        if (e.id === "location") {
+            a[i].options = location_options;
+            a[i].default = location_options[0].value;
+            return true
+        }
         return false;
     });
-    datatables_init({button_menu_items, context_menu_items, filter_menu_items});
+    const callbacks = {table_loaded: __table_loaded, created_row: __row_created};
+    datatables_init({button_menu_items, context_menu_items, filter_menu_items, callbacks});
 });
