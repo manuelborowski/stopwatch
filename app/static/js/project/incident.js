@@ -206,7 +206,7 @@ const __incident_show_form = async (params = {}) => {
                     if (e.target.checked) bootbox.alert(`Opgelet, het paswoord wordt aangepast naar <b>${meta.default_password}</b>`)
                 });
 
-                const password_show_field  = document.getElementById("password-show-field");
+                const password_show_field = document.getElementById("password-show-field");
                 password_show_field.addEventListener("click", e => {
                     if (password_show_field.classList.contains("fa-eye")) {
                         password_show_field.classList.replace("fa-eye", "fa-eye-slash");
@@ -340,8 +340,15 @@ const __table_loaded = () => {
     }));
     document.querySelectorAll(".btn-send-message").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        await fetch_update("incident.incident", {id: row.id, event: "message", info: "Bericht verstuurd"});
-        datatable_reload_table();
+        bootbox.prompt({
+            title: "Eventueel een extra boodschap",
+            inputType: 'textarea',
+            callback: async result => {
+                const info = (result === undefined) ? "" : result;
+                await fetch_update("incident.incident", {id: row.id, event: "message", info});
+                datatable_reload_table();
+            }
+        });
     }));
     document.querySelectorAll(".btn-incident-close").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
@@ -357,26 +364,26 @@ const __row_created = (row, data, data_index, cells) => {
 }
 
 const __filter_scan_lis_badge = () => {
-        bootbox.prompt({
-            title: "Scan de LIS badge",
-            callback: async res => {
-                if (res !== null) {
-                    const [valid_code, code] = badge_raw2hex(res);
-                    let lis_id = null;
-                    if (valid_code) {
-                        const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
-                        if (badges && badges.length > 0) lis_id = badges[0].id;
-                    } else {
-                        lis_id = code;  // it is assumed a valid lis code is entered
-                    }
-                    const incidents = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${lis_id},incident_state$!$closed`, fields: "id"})
-                    if (incidents && incidents.length > 0) {
-                        const latest_id = incidents.reduce((max, item) => item.id > max.id ? item : max).id;
-                        location.href = `${location.href}?id=${latest_id}`;
-                    }
+    bootbox.prompt({
+        title: "Scan de LIS badge",
+        callback: async res => {
+            if (res !== null) {
+                const [valid_code, code] = badge_raw2hex(res);
+                let lis_id = null;
+                if (valid_code) {
+                    const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
+                    if (badges && badges.length > 0) lis_id = badges[0].id;
+                } else {
+                    lis_id = code;  // it is assumed a valid lis code is entered
+                }
+                const incidents = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${lis_id},incident_state$!$closed`, fields: "id"})
+                if (incidents && incidents.length > 0) {
+                    const latest_id = incidents.reduce((max, item) => item.id > max.id ? item : max).id;
+                    location.href = `${location.href}?id=${latest_id}`;
                 }
             }
-        });
+        }
+    });
 }
 
 const filter_menu_items = [

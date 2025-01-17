@@ -69,8 +69,9 @@ from functools import wraps
 # 0.39: add button to close incident
 # 0.40: add button to filters to scan lis badge
 # 0.41: added m4s.  Updated various items
+# 0.42: multiple times a message can be sent.  It is possible to add an extra comment to the message.
 
-version = "0.41"
+version = "0.42"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

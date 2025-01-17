@@ -69,6 +69,7 @@ def __event_send_message(incident):
                 template = template.replace(password_match_template, password_match)
             else:
                 template = template.replace(password_match_template, "")
+            template = template.replace("%%EXTRA_INFO%%", f"{incident.info.replace("\n", "<br>")}{'<br><br>' if incident.info != "" else ''}")
             state = dl.settings.get_configuration_setting("lis-state")["repaired"]
             tos = state["ss_to"] if "ss_to" in state else [ss_to]
             log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}")
@@ -155,7 +156,8 @@ def update(data):
         if incident:
             current_laptop_owner_password_default = incident.laptop_owner_password_default
             # if the info field is empty, but the previous was not, copy that...
-            if data["info"] == "":
+            # don't copy when sending a message, i.e. the message can be empty
+            if data["info"] == "" and "event" in data and data["event"] != "message":
                 history_latest = dl.history.get_m(("incident_id", "=", data["id"]), order_by="-id", first=True)
                 if history_latest:
                     data["info"] = history_latest.info
@@ -289,13 +291,10 @@ def event(nbr):
 
 def format_data(db_list, total_count=None, filtered_count=None):
     out = []
-    start = datetime.datetime.now()
     for i in db_list:
         em = i.to_dict()
         em.update({"row_action": i.id, "DT_RowId": i.id,"state_event": "NA"})
         out.append(em)
-    stop = datetime.datetime.now()
-    log.info(f"delta tijd {stop - start}")
     return total_count, filtered_count, out
 
 

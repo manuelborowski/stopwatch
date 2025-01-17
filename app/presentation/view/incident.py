@@ -130,7 +130,7 @@ class Config(DatatableConfig):
             "started": standard_button_template,
             "transition": standard_button_template,
             "repaired": standard_button_template + message_button_template,
-            "message": standard_button_template + close_button_template,
+            "message": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
         }
 
