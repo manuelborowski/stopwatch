@@ -217,7 +217,6 @@ const __incident_show_form = async (params = {}) => {
                     }
                 });
 
-
                 // set default values
                 if (incident_update) {
                     const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
@@ -241,14 +240,13 @@ const __incident_show_form = async (params = {}) => {
                         document.getElementById("incident-state-field").addEventListener("change", e => {
                             if (e.target.value !== "transition") document.getElementById("location-field").value = incident.location;
                         });
-
-
                         await form_populate(incident, meta);
                     }
                 } else {
                     // set default owner list
                     await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
-                    await form_populate(meta.default, meta);
+                    const defaults = Object.assign(meta.default, {"lis_badge_id": ""}, {"laptop_owner_password": ""}); // clear password and lis field
+                    await form_populate(defaults, meta);
                 }
 
                 // hide/display water and drop-damage checkboxes

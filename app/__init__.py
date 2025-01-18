@@ -13,7 +13,7 @@ from functools import wraps
 
 # DONE: filter: voeg locatie filter toe
 # DONE: paswoord veld met oogje
-# TODO: maximum tijdsuur per toestand
+# DONE: maximum tijdsuur per toestand
 # DONE: historiek: nieuwste bovenaan
 # TODO: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
 # TODO: link toevoegen naar m4s
@@ -70,8 +70,9 @@ from functools import wraps
 # 0.40: add button to filters to scan lis badge
 # 0.41: added m4s.  Updated various items
 # 0.42: multiple times a message can be sent.  It is possible to add an extra comment to the message.
+# 0.43: implement state-timout, if timeout detected, inform location responsibles.  SS message, sender is incident owner.
 
-version = "0.42"
+version = "0.43"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

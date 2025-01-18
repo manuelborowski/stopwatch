@@ -24,20 +24,21 @@ def __event_location_changed(incident):
         if "email" in location:
             url = request.url_root
             incidents = dl.incident.get_m(("location", "=", incident.location))
-            incident_info = {}
+            state2incident = {}
             for incident in incidents:
-                if incident.incident_state in incident_info:
-                    incident_info[incident.incident_state].append(incident)
+                if incident.incident_state in state2incident:
+                    state2incident[incident.incident_state].append(incident)
                 else:
-                    incident_info[incident.incident_state] = [incident]
+                    state2incident[incident.incident_state] = [incident]
             body = ""
             for item in body_template:
-                if item["state"] in incident_info:
-                    nbr = len(incident_info[item["state"]])
+                if item["state"] in state2incident:
+                    nbr = len(state2incident[item["state"]])
                     line = item["heading"]["m"].replace("{nbr}", str(nbr)) if nbr > 1 else item["heading"]["s"]
                     body += f"<b><u>{line}</u></b><br>"
-                    for incident in incident_info[item["state"]]:
-                        line = f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, (Locatie) {incident.location}, (Type) {incident.incident_type}, (Info) {incident.info}'
+                    for incident in state2incident[item["state"]]:
+                        line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
+                                f'(Locatie) {locations[incident.location]["label"]}, (Type) {incident.incident_type}, (Info) {incident.info}')
                         body += f"{line}<br>"
                     body += "<br><br>"
             if body:
@@ -70,11 +71,19 @@ def __event_send_message(incident):
             else:
                 template = template.replace(password_match_template, "")
             template = template.replace("%%EXTRA_INFO%%", f"{incident.info.replace("\n", "<br>")}{'<br><br>' if incident.info != "" else ''}")
+            staff = dl.staff.get(("code", "=", current_user.username))
+            if staff:
+                sender = staff.ss_internal_nbr
+                signature = f"{staff.naam} {staff.voornaam}"
+            else:
+                sender = "lis"
+                signature = "ICT"
+            template = template.replace("%%SIGNATURE%%", signature)
             state = dl.settings.get_configuration_setting("lis-state")["repaired"]
             tos = state["ss_to"] if "ss_to" in state else [ss_to]
-            log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}")
+            log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}, from {sender}")
             for to in tos:
-                ret = dl.smartschool.smartschool.send_message(to, "lis", "Laptop is klaar", template)
+                ret = dl.smartschool.smartschool.send_message(to, sender, "", template)
                 if ret != 0:
                     log.error(f'{sys._getframe().f_code.co_name}: send_message returned {ret}')
             return True
@@ -84,6 +93,7 @@ def __event_send_message(incident):
 
 def __event(incident, event):
     try:
+        incident.flag_reset("state-timeout")
         if event == "new":
             incident.incident_state = "started"
         elif event == "transition":
@@ -94,7 +104,8 @@ def __event(incident, event):
         elif event == "repaired":
             incident.incident_state = "repaired"
         elif event == "message":
-            incident.incident_state = "message"
+            if incident.incident_state == "repaired":
+                incident.incident_state = "message"
             __event_send_message(incident)
         elif event == "closed":
             incident.incident_state = "closed"
@@ -317,10 +328,26 @@ def incident_cron_state_timeout(opaque=None):
                             timeout_locations[incident.location].append(incident)
                         else:
                             timeout_locations[incident.location] = [incident]
+        dl.incident.commit()
+        body_template = {"s": "1 incident staat te lang in dezelfde toestand", "m": "{nbr} incidenten staan te lang in dezelfde toestand"}
+        url = request.url_root
         for key, incidents in timeout_locations.items():
             location = locations[key]
             if "email" in location:
-                dl.entra.entra.send_mail(location["email"], "LIS toestand timeout", "Er zijn meerdere toestand timeouts!!")
+                body = ""
+                nbr = len(incidents)
+                line = body_template["m"].replace("{nbr}", str(nbr)) if nbr > 1 else body_template["s"]
+                body += f"<b><u>{line}</u></b><br>"
+                for incident in incidents:
+                    line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
+                            f'(Toestand) {states[incident.incident_state]["label"]}, (Locatie) {locations[incident.location]["label"]}, '
+                            f'(Type) {incident.incident_type}, (Info) {incident.info}')
+                    body += f"{line}<br>"
+                body += "<br><br>"
+                if body:
+                    body += "<br><br>Laptop Incident Systeem"
+                    dl.entra.entra.send_mail(location["email"], "LIS: toestand timeout", body)
+                    log.info(f"{sys._getframe().f_code.co_name}, state-timeout mail sent to {location['email']}")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 

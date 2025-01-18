@@ -127,8 +127,8 @@ class Config(DatatableConfig):
         close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>'
 
         action_labels = {
-            "started": standard_button_template,
-            "transition": standard_button_template,
+            "started": standard_button_template + message_button_template,
+            "transition": standard_button_template + message_button_template,
             "repaired": standard_button_template + message_button_template,
             "message": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
