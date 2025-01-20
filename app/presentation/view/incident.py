@@ -53,6 +53,22 @@ def incident():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return fetch_return_error()
 
+@bp_incident.route('/incident/message', methods=['POST', "GET"])
+@login_required
+def message():
+    try:
+        ret = {}
+        if request.method == "POST":
+            data = json.loads(request.data)
+            ret = al.incident.message_send(data)
+        if request.method == "GET":
+            id = request.args.get("id")
+            ret = al.incident.message_default(id)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
+
 @bp_incident.route('/incident/meta', methods=['GET'])
 @login_required
 def meta():
@@ -99,6 +115,8 @@ def form():
                 template = open(pathlib.Path("app/presentation/template/lib/incident_form_update.html")).read()
             if form == "history":
                 template = open(pathlib.Path("app/presentation/template/lib/history_form.html")).read()
+            if form == "message":
+                template = open(pathlib.Path("app/presentation/template/lib/ss_message.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
@@ -129,8 +147,7 @@ class Config(DatatableConfig):
         action_labels = {
             "started": standard_button_template + message_button_template,
             "transition": standard_button_template + message_button_template,
-            "repaired": standard_button_template + message_button_template,
-            "message": standard_button_template + message_button_template + close_button_template,
+            "repaired": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
         }
 

@@ -48,49 +48,6 @@ def __event_location_changed(incident):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
-def __event_send_message(incident):
-    try:
-        if incident.lis_badge_id > 999999:
-            return True
-        template = dl.settings.get_configuration_setting("ss-student-message-template")
-        if incident.laptop_type == "leerling":
-            laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
-            ss_to = laptop_owner.leerlingnummer
-        elif incident.laptop_type == "personeel":
-            laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
-            ss_to = laptop_owner.ss_internal_nbr
-        else:
-            return False
-        if laptop_owner:
-            template = template.replace("%%VOORNAAM%%", laptop_owner.voornaam)
-            password_match_template = re.search("%%IF_STANDARD_PASSWORD%%.*?%%ENDIF%%", template, re.DOTALL)[0]
-            if incident.laptop_owner_password_default:
-                password_match = password_match_template.replace("%%IF_STANDARD_PASSWORD%%", "")
-                password_match = password_match.replace("%%ENDIF%%", "")
-                template = template.replace(password_match_template, password_match)
-            else:
-                template = template.replace(password_match_template, "")
-            template = template.replace("%%EXTRA_INFO%%", f"{incident.info.replace("\n", "<br>")}{'<br><br>' if incident.info != "" else ''}")
-            staff = dl.staff.get(("code", "=", current_user.username))
-            if staff:
-                sender = staff.ss_internal_nbr
-                signature = f"{staff.naam} {staff.voornaam}"
-            else:
-                sender = "lis"
-                signature = "ICT"
-            template = template.replace("%%SIGNATURE%%", signature)
-            state = dl.settings.get_configuration_setting("lis-state")["repaired"]
-            tos = state["ss_to"] if "ss_to" in state else [ss_to]
-            log.info(f"{sys._getframe().f_code.co_name}, laptop repaired ss-message to {tos}, from {sender}")
-            for to in tos:
-                ret = dl.smartschool.smartschool.send_message(to, sender, "", template)
-                if ret != 0:
-                    log.error(f'{sys._getframe().f_code.co_name}: send_message returned {ret}')
-            return True
-        log.error(f'{sys._getframe().f_code.co_name}: laptop_owner not found, {incident.laptop_owner_id}')
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
 def __event(incident, event):
     try:
         incident.flag_reset("state-timeout")
@@ -103,10 +60,6 @@ def __event(incident, event):
             incident.incident_state = "started"
         elif event == "repaired":
             incident.incident_state = "repaired"
-        elif event == "message":
-            if incident.incident_state == "repaired":
-                incident.incident_state = "message"
-            __event_send_message(incident)
         elif event == "closed":
             incident.incident_state = "closed"
             if incident.laptop_owner_password_default:
@@ -115,7 +68,6 @@ def __event(incident, event):
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
 
 def __password_update(incident, password, must_update=False):
     try:
@@ -138,7 +90,6 @@ def __password_update(incident, password, must_update=False):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return False
     return True
-
 
 def add(data):
     try:
@@ -207,6 +158,81 @@ def get(data={}):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
+
+def message_default(incident_id):
+    try:
+        incident = dl.incident.get(("id", "=", incident_id))
+        if incident:
+            template = dl.settings.get_configuration_setting("ss-student-message-template")
+            laptop_owner = None
+            if incident.laptop_type == "leerling":
+                laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+            elif incident.laptop_type == "personeel":
+                laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
+            if laptop_owner:
+                template = template.replace("%%VOORNAAM%%", laptop_owner.voornaam)
+                password_match_template = re.search("%%IF_STANDARD_PASSWORD%%.*?%%ENDIF%%", template, re.DOTALL)[0]
+                if incident.laptop_owner_password_default:
+                    password_match = password_match_template.replace("%%IF_STANDARD_PASSWORD%%", "")
+                    password_match = password_match.replace("%%ENDIF%%", "")
+                    template = template.replace(password_match_template, password_match)
+                else:
+                    template = template.replace(password_match_template, "")
+                staff = dl.staff.get(("code", "=", current_user.username))
+                if staff:
+                    signature = f"{staff.naam} {staff.voornaam}"
+                else:
+                    signature = "ICT"
+                template = template.replace("%%SIGNATURE%%", signature)
+                return {"message_subject": "Uw laptop is klaar",  "message_content": template}
+            log.error(f'{sys._getframe().f_code.co_name}: laptop-owner is unknown, incident id {incident.id}')
+            return {"status": "error", "msg": "Kan standaardbericht niet ophalen, eigenaar van de laptop is niet gekend"}
+        log.error(f'{sys._getframe().f_code.co_name}: unknown incident id {incident_id}')
+        return {"status": "error", "msg": f"Kan standaardbericht niet ophalen, incident id is niet gekend {incident_id}"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+def message_send(data):
+    try:
+        data["time"] = datetime.datetime.now()
+        incident = dl.incident.get(("id", "=", data["id"]))
+        if incident:
+            # store some data in history
+            data['message_content'] = data['message_content'].replace("\n", "<br>")
+            info = f"Bericht gestuurd:<br>(O) {data['message_subject']}<br>(I) {data['message_content']}"
+            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
+                            "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner,
+                            "time": incident.time, }
+            history = dl.history.add(history_data)
+            state = dl.settings.get_configuration_setting("lis-state")[incident.incident_state]
+            if incident.laptop_type == "leerling":
+                laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+                ss_to = laptop_owner.leerlingnummer
+            elif incident.laptop_type == "personeel":
+                laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
+                ss_to = laptop_owner.ss_internal_nbr
+            else:
+                return {"status": "error", "msg": "Geen geldig laptop-type"}
+            staff = dl.staff.get(("code", "=", current_user.username))
+            if staff:
+                sender = staff.ss_internal_nbr
+            else:
+                sender = "lis"
+            tos = state["ss_to"] if "ss_to" in state else [ss_to]
+            co_accounts = [0, 1, 2] if data["co_accounts"] else [0]
+            log.info(f"{sys._getframe().f_code.co_name}, ss-message to {tos}, from {sender}")
+            for to in tos:
+                for co_account in co_accounts:
+                    ret = dl.smartschool.smartschool.send_message(to, sender, data['message_subject'], data['message_content'], co_account)
+                    if ret != 0:
+                        log.error(f'{sys._getframe().f_code.co_name}: send_message returned {ret}')
+            return {"status": "ok", "msg": f"Bericht is verstuurd"}
+        log.error(f'{sys._getframe().f_code.co_name}: incident not found, {data["id"]}')
+        return {"status": "error", "msg": f'Incident met id {data["id"]} niet gevonden'}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
 
 # generate a number of random incidents (lis_badge_id > 999999)
 def generate(nbr):

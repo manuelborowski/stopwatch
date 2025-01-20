@@ -71,6 +71,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
             integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
             crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script>
         const current_user = {level: {{(current_user.level or null)|tojson}}, username: {{(current_user.username or null)|tojson }}};
         const stand_alone = {{ (stand_alone or False)|tojson }};

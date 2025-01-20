@@ -53,8 +53,10 @@ export const form_populate = async (data, meta=null) => {
                 field.checked = value;
             } else if (field.classList.contains("select2-hidden-accessible")) { // select2 type
                 await $(`[name=${field_name}]`).val(value).trigger("change");
+            } else if (field.classList.contains("ql-container") && "quill" in meta && field_name in meta.quill) { // quill html editor
+                await  meta.quill[field_name].clipboard.dangerouslyPasteHTML(value);
             } else if (field.type === "select-one") {
-                if (meta && field_name in meta.option) {
+                if (meta && "option" in meta && field_name in meta.option) {
                     for (const item of meta.option[field_name]) {
                         const option = document.createElement("option");
                         field.appendChild(option);
@@ -64,7 +66,7 @@ export const form_populate = async (data, meta=null) => {
                     }
                 }
             } else {
-                if (meta && field_name in meta.label) value = meta.label[field_name][value];
+                if (meta && "label" in meta && field_name in meta.label) value = meta.label[field_name][value];
                 field.value = value;
             }
         }

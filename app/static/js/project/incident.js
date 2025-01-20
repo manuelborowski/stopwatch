@@ -222,7 +222,7 @@ const __incident_show_form = async (params = {}) => {
                     const incidents = await fetch_get("incident.incident", {filters: `id$=$${params.id}`});
                     const incident = incidents && incidents.length > 0 ? incidents[0] : null;
                     const histories = await fetch_get("history.history", {filters: `incident_id$=$${params.id}`});
-                    let infos = histories.map(e => e.info).filter(e => e !== "").join("<br>");
+                    let infos = histories.map(e => e.info.replaceAll(/<[^>]*>?/gm, " ")).filter(e => e !== "").join("<br>");
                     if (infos !== "") {
                         const previous_info_field = document.getElementById("info_previous");
                         previous_info_field.innerHTML = infos;
@@ -287,6 +287,7 @@ const __view_history = async (ids) => {
                         let val = h[e];
                         if (e === "incident_state") val = meta.label.incident_state[val];
                         if (e === "location") val = meta.label.location[val];
+                        if (e === "info") val = val.replaceAll(/<[^>]*>?/gm, " ");
                         if (val === true) val = "&#10003;"
                         if (val === false) val = "";
                         tr += `<td>${val}</td>`
@@ -304,6 +305,54 @@ const __view_history = async (ids) => {
 const __save_default_location = () => {
     view_data.locations.default = document.querySelector("#location-default").value;
     const status = fetch_post("incident.location", {default: view_data.locations.default})
+}
+
+const __send_message = async (ids) => {
+    const id = ids[0];
+    let message_content_quill = null;
+    const form = await fetch_get("incident.form", {form: "message"});
+    if (form) {
+        bootbox.dialog({
+            title: "Bericht sturen",
+            message: form.template,
+            buttons: {
+                confirm: {
+                    label: "Verzenden",
+                    className: "btn-primary",
+                    callback: async () => {
+                        const ss_message_form = document.getElementById("ss-message-form")
+                        const form_data = new FormData(ss_message_form);
+                        const data = Object.fromEntries(form_data)
+                        // checkboxes are present only when selected and have the value "on" => convert
+                        ss_message_form.querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
+                        data.id = ids[0];
+                        data.message_content = message_content_quill.root.innerHTML;
+                        await fetch_post("incident.message", data);
+                    }
+                },
+                cancel: {
+                    label: "Annuleer", className: "btn-secondary", callback: async () => {
+                    }
+                },
+            },
+            onShown: async () => {
+                const default_message_field = document.getElementById("default-message-chk");
+                const message_content_field = document.getElementById("message-content");
+                message_content_quill = new Quill(message_content_field, {theme: 'snow'});
+                const defaults = await fetch_get("incident.message", {"id": ids[0]})
+                await form_populate(defaults, {quill: {message_content: message_content_quill}});
+                document.getElementById("default-message-chk").checked = true;
+                default_message_field.addEventListener("click", async e => {
+                    if (e.target.checked) {
+                        await form_populate(defaults, {quill: {message_content: message_content_quill}});
+                    } else {
+                        await form_populate({message_subject: "",  message_content: ""}, {quill: {message_content: message_content_quill}});
+                    }
+                });
+
+            },
+        });
+    }
 }
 
 const button_menu_items = [
@@ -338,15 +387,7 @@ const __table_loaded = () => {
     }));
     document.querySelectorAll(".btn-send-message").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        bootbox.prompt({
-            title: "Eventueel een extra boodschap",
-            inputType: 'textarea',
-            callback: async result => {
-                const info = (result === undefined) ? "" : result;
-                await fetch_update("incident.incident", {id: row.id, event: "message", info});
-                datatable_reload_table();
-            }
-        });
+        await __send_message([row.id])
     }));
     document.querySelectorAll(".btn-incident-close").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);

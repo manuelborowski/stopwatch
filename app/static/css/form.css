@@ -29,6 +29,7 @@
 .form-element > label > input {
     vertical-align: middle;
     margin-top: 0;
+    padding-left: 3px;
 }
 
 .form-element > label > textarea {

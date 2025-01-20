@@ -71,8 +71,9 @@ from functools import wraps
 # 0.41: added m4s.  Updated various items
 # 0.42: multiple times a message can be sent.  It is possible to add an extra comment to the message.
 # 0.43: implement state-timout, if timeout detected, inform location responsibles.  SS message, sender is incident owner.
+# 0.44: reworked sending of ss-messages.  Use the quill RT editor.  Removed message state
 
-version = "0.43"
+version = "0.44"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
