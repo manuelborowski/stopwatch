@@ -85,6 +85,7 @@ def set_setting(name, value, user=None):
 default_configuration_settings = {
     'generic-new-via-smartschool-default-level': (1, Settings.SETTING_TYPE.E_INT),
     'generic-new-via-smartschool': (True, Settings.SETTING_TYPE.E_BOOL),
+    'generic-ss-send-to': ('', Settings.SETTING_TYPE.E_STRING),
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'incident-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
@@ -111,7 +112,8 @@ default_configuration_settings = {
     'lis-badge-rfid': ({}, Settings.SETTING_TYPE.E_JSON),
     'lis-locations': ({}, Settings.SETTING_TYPE.E_YAML),
     'lis-state': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-spare-laptops': ({}, Settings.SETTING_TYPE.E_JSON),
+    'lis-incident-types': ({}, Settings.SETTING_TYPE.E_YAML),
+    'lis-categories': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
 

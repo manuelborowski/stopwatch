@@ -102,7 +102,7 @@ footer {
 }
 
 .column-visible-placeholder p {
-    margin-right: 3px;
+    margin-right: 15px;
     margin-bottom: 0;
 }
 
@@ -129,22 +129,3 @@ footer {
     margin-right: 3px;
 }
 
-.button-menu-placeholder > button {
-    color: #fff;
-    background-color: #f8c604;
-    border-color: #f8c604;
-    margin: 0;
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-right: 5px;
-}
-.button-menu-placeholder > * {
-    line-height: normal;
-}
-
-.button-menu-placeholder label {
-    margin-bottom: 0;
-    margin-right: 3px;
-}

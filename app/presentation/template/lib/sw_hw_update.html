@@ -30,16 +30,12 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Type incident (*)
-                <select id="lis-type-field" name="incident_type">
-                    <option value="software">Software</option>
-                    <option value="herinstalleren">Herinstalleren</option>
-                    <option value="hardware">Hardware</option>
-                </select>
-            </label>
+            <label>Type incident<select id="lis-type-field" name="incident_type"></select></label>
         </div>
-        <div class="form-element"><label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label></div>
-        <div class="form-element"><label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label></div>
+        <div id="hardware-damage-group">
+            <div class="form-element"><label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label></div>
+            <div class="form-element"><label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label></div>
+        </div>
     </div>
     <div class="form-row" hidden>
         <div class="form-element">

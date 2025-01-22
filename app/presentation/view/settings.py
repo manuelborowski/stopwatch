@@ -455,6 +455,17 @@ settings_formio = \
                     "type": "select",
                     "input": true,
                     "labelWidth": 60
+                  },
+                  {
+                    "label": "Zend smartschoolberichten altijd naar:",
+                    "labelPosition": "left-left",
+                    "tooltip": "smartschoolcodes, gescheiden door een comma",
+                    "applyMaskOn": "change",
+                    "tableView": true,
+                    "validateWhenHidden": false,
+                    "key": "generic-ss-send-to",
+                    "type": "textfield",
+                    "input": true
                   }
                 ]
               }
@@ -563,15 +574,15 @@ settings_formio = \
             ]
           },
           {
-            "label": "LIS badges",
+            "label": "Categorieen",
             "tableView": false,
             "validateWhenHidden": false,
-            "key": "lisbadges",
+            "key": "categories",
             "type": "container",
             "input": true,
             "components": [
               {
-                "title": "LIS badges",
+                "title": "Categorieën",
                 "theme": "primary",
                 "collapsible": true,
                 "key": "lis-badges",
@@ -591,12 +602,12 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Laptop Incident Systeem - badge numbers naar RFID code (JSON)",
+                    "label": "Incident categorieën (YAML)",
                     "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
                     "validateWhenHidden": false,
-                    "key": "lis-badge-rfid",
+                    "key": "lis-categories",
                     "type": "textarea",
                     "input": true
                   }
@@ -689,7 +700,7 @@ settings_formio = \
             ]
           },
           {
-            "label": "spare laptops",
+            "label": "incident types",
             "tableView": false,
             "validateWhenHidden": false,
             "key": "lis-spare-laptops",
@@ -697,10 +708,10 @@ settings_formio = \
             "input": true,
             "components": [
               {
-                "title": "Reserve laptops",
+                "title": "Incident Typen",
                 "theme": "primary",
                 "collapsible": true,
-                "key": "lis-badges",
+                "key": "incident-types-container",
                 "type": "panel",
                 "label": "Cardpresso",
                 "collapsed": true,
@@ -717,12 +728,12 @@ settings_formio = \
                     "input": true
                   },
                   {
-                    "label": "Reserve laptops (YAML)",
+                    "label": "Incident typen (YAML)",
                     "applyMaskOn": "change",
                     "autoExpand": false,
                     "tableView": true,
                     "validateWhenHidden": false,
-                    "key": "spare-laptops",
+                    "key": "lis-incident-types",
                     "type": "textarea",
                     "input": true
                   }

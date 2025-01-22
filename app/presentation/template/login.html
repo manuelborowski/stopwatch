@@ -14,9 +14,9 @@
 <body>
 <div class="container">
     <main class="content">
-        <div style="display: flex;">
+        <div style="display: flex;flex-wrap: wrap;">
             <div class="login-group">
-                <h1>Aanmelden met gebruikersnaam</h1>
+                <h2>Aanmelden met gebruikersnaam</h2>
                 <div class="login-container">
                     <form class="login-form" method="post">
                         <div class="form-group">
@@ -30,11 +30,11 @@
                         <button class="btn-ok" type="submit">OK</button>
                     </form>
                 </div>
-                <h1>Of aanmelden via Smartschool</h1>
+                <h2>Of aanmelden via Smartschool</h2>
                 <a href="{{ url_for('auth.login_ss') }}"><img src="static/img/btn_smartschool.png"
                                                               alt="aanmelden via smartschool"></a>
             </div>
-            <img src="static/img/computer-repair.png" style="height: 500px;">
+            <img src="static/img/computer-repair.png" class="login-image">
         </div>
     </main>
 

@@ -5,9 +5,10 @@ from app import data as dl, application as al
 from app.presentation.view import datatable_get_data, fetch_return_error
 import json, sys, pathlib
 
-#logging on file level
+# logging on file level
 import logging
 from app import MyLogFilter, top_log_handle, app
+
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
@@ -29,7 +30,7 @@ def show():
     if not found:
         default_location = location_options[0]["value"]
         dl.settings.add_setting("default-location", default_location, user=current_user.username)
-    data = {"locations": {"options": location_options, "default": default_location}, "filters": [{"id": "incident-id", "value": id_to_show}]}
+    data = {"filters": [{"id": "incident-id", "value": id_to_show}]}
     return render_template("incident.html", table_config=config.create_table_config(), view_data=data)
 
 # invoked when the client requests data from the database
@@ -72,19 +73,24 @@ def message():
 @bp_incident.route('/incident/meta', methods=['GET'])
 @login_required
 def meta():
+    categories = dl.settings.get_configuration_setting("lis-categories")
+    category_labels = {k: v["label"] for k, v in categories.items()}
     locations = dl.settings.get_configuration_setting("lis-locations")
-    option_location = [{"value": k, "label": v["label"]} for k, v in locations.items()]
-    label_location = {k: v["label"] for k, v in locations.items()}
+    location_options = [{"value": k, "label": v["label"]} for k, v in locations.items()]
+    location_labels = {k: v["label"] for k, v in locations.items()}
+    types = dl.settings.get_configuration_setting("lis-incident-types")
+    type_options = [{"value": k, "label": v["label"]} for k, v in types.items()]
+    type_labels = {k: v["label"] for k, v in types.items()}
     states = dl.settings.get_configuration_setting("lis-state")
-    option_state= [{"value": k, "label": v["label"]} for k, v in states.items()]
-    label_state= {k: v["label"] for k, v in states.items()}
+    state_options = [{"value": k, "label": v["label"]} for k, v in states.items()]
+    state_labels = {k: v["label"] for k, v in states.items()}
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
-    default_state = [k for k, v in states.items() if "default" in v][0]
     default_password = app.config["AD_DEFAULT_PASSWORD"]
-    return json.dumps({"option": {"location": option_location, "incident_state": option_state},
-                        "label": {"location": label_location, "incident_state": label_state},
-                       "default": {"location": default_location, "incident_state": default_state},
+    return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options},
+                       "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels},
+                       "default": {"location": default_location},
                        "default_password": default_password,
+                       "category": categories,
                        })
 
 @bp_incident.route('/incident/location', methods=['POST',])
@@ -108,15 +114,19 @@ def form():
             form = request.args.get('form')
             optional = []
             template = ""
-            if form == "incident-new":
+            if form == "sw-hw-new":
                 optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
-                template = open(pathlib.Path("app/presentation/template/lib/incident_form_new.html")).read()
-            if form == "incident-update":
-                template = open(pathlib.Path("app/presentation/template/lib/incident_form_update.html")).read()
+                template = open(pathlib.Path("app/presentation/template/lib/sw_hw_new_form.html")).read()
+            if form == "sw-hw-update":
+                template = open(pathlib.Path("app/presentation/template/lib/sw_hw_update.html")).read()
             if form == "history":
                 template = open(pathlib.Path("app/presentation/template/lib/history_form.html")).read()
             if form == "message":
                 template = open(pathlib.Path("app/presentation/template/lib/ss_message.html")).read()
+            if form == "loan":
+                template = open(pathlib.Path("app/presentation/template/lib/loan_form_new.html")).read()
+            if form == "setting":
+                template = open(pathlib.Path("app/presentation/template/lib/setting_form.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
@@ -143,11 +153,15 @@ class Config(DatatableConfig):
         standard_button_template += f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek bekijken"></i></a></div>'
         message_button_template = f'<a type="button" class="btn-send-message btn btn-success"><i class="fa-regular fa-envelope" title="Bericht sturen"></i></a></div>'
         close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>'
+        categories = dl.settings.get_configuration_setting("lis-categories")
+        category_labels = {k: v["label"] for k, v in categories.items()}
 
         action_labels = {
             "started": standard_button_template + message_button_template,
             "transition": standard_button_template + message_button_template,
             "repaired": standard_button_template + message_button_template + close_button_template,
+            "shortloan": standard_button_template + message_button_template + close_button_template,
+            "longloan": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
         }
 
@@ -158,11 +172,11 @@ class Config(DatatableConfig):
                     column["color"] = {"colors": state_colors}
                 if column["data"] == "location":
                     column["label"] = {"labels": location_labels}
+                if column["data"] == "category":
+                    column["label"] = {"labels": category_labels}
                 if column["data"] == "info":
                     column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
                 if column["data"] == "incident_state" and column["name"] == "Actie":
-                    # if data (cellcontent) equals value "repaired" then show 3 buttons else show 2 buttons
-                    # column["condition"] = {"equals": "repaired", "then": standard_button_template + message_button_template, "else": standard_button_template }
                     column["label"] = {"labels": action_labels}
         return template
 
@@ -170,4 +184,3 @@ class Config(DatatableConfig):
         return al.incident.format_data(db_list, total_count, filtered_count)
 
 config = Config("incident", "Incidenten")
-

@@ -19,11 +19,13 @@ from functools import wraps
 # TODO: link toevoegen naar m4s
 # TODO: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
 # TODO: laders ook een badge geven?
-# TODO: bericht opnieuw verzenden, eventueel naar co-accounts
-# TODO: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
+# DONE: bericht opnieuw verzenden, eventueel naar co-accounts
+# DONE: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
 # TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
 # TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
 # TODO: locaties -> signpost = hardware incident?
+# TODO: lader lenen
+# TODO: tijdelijk laptop lenen of nieuw in school en laptop lenen
 
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
@@ -72,8 +74,9 @@ from functools import wraps
 # 0.42: multiple times a message can be sent.  It is possible to add an extra comment to the message.
 # 0.43: implement state-timout, if timeout detected, inform location responsibles.  SS message, sender is incident owner.
 # 0.44: reworked sending of ss-messages.  Use the quill RT editor.  Removed message state
+# 0.45: general bugfixes.  Extended buttonmenu.  Add button to set defaults. Added category and reworked states/locations/types
 
-version = "0.44"
+version = "0.45"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

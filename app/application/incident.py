@@ -51,15 +51,17 @@ def __event_location_changed(incident):
 def __event(incident, event):
     try:
         incident.flag_reset("state-timeout")
-        if event == "new":
-            incident.incident_state = "started"
-        elif event == "transition":
+        if event == "transition":
             incident.incident_state = "transition"
             __event_location_changed(incident)
         elif event == "started":
             incident.incident_state = "started"
         elif event == "repaired":
             incident.incident_state = "repaired"
+        elif event == "shortloan":
+            incident.incident_state = "shortloan"
+        elif event == "longloan":
+            incident.incident_state = "longloan"
         elif event == "closed":
             incident.incident_state = "closed"
             if incident.laptop_owner_password_default:
@@ -95,11 +97,11 @@ def add(data):
     try:
         data["time"] = datetime.datetime.now()
         states = dl.settings.get_configuration_setting("lis-state")
-        default_state = [k for k, v in states.items() if "default" in v][0]
-        data["incident_state"] = default_state
         if "incident_owner" not in data: data["incident_owner"] = current_user.username
         incident = dl.incident.add(data)
         if incident:
+            if "event" in data:
+                __event(incident, data["event"])
             # store some data in history
             history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
                             "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner, "time": incident.time, }
@@ -205,24 +207,29 @@ def message_send(data):
                             "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner,
                             "time": incident.time, }
             history = dl.history.add(history_data)
-            state = dl.settings.get_configuration_setting("lis-state")[incident.incident_state]
-            if incident.laptop_type == "leerling":
-                laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
-                ss_to = laptop_owner.leerlingnummer
-            elif incident.laptop_type == "personeel":
-                laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
-                ss_to = laptop_owner.ss_internal_nbr
+            send_to_overwrite = dl.settings.get_configuration_setting("generic-ss-send-to")
+            if send_to_overwrite != "":
+                ss_to = []
+                for code in send_to_overwrite.split(","):
+                    staff = dl.staff.get(("code", "=", code))
+                    ss_to.append(staff.ss_internal_nbr)
             else:
-                return {"status": "error", "msg": "Geen geldig laptop-type"}
-            staff = dl.staff.get(("code", "=", current_user.username))
+                if incident.laptop_type == "leerling":
+                    laptop_owner = dl.student.get(("leerlingnummer", "=", incident.laptop_owner_id))
+                    ss_to = [laptop_owner.leerlingnummer]
+                elif incident.laptop_type == "personeel":
+                    laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
+                    ss_to = [laptop_owner.ss_internal_nbr]
+                else:
+                    return {"status": "error", "msg": "Geen geldig laptop-type"}
+                staff = dl.staff.get(("code", "=", current_user.username))
             if staff:
                 sender = staff.ss_internal_nbr
             else:
                 sender = "lis"
-            tos = state["ss_to"] if "ss_to" in state else [ss_to]
             co_accounts = [0, 1, 2] if data["co_accounts"] else [0]
-            log.info(f"{sys._getframe().f_code.co_name}, ss-message to {tos}, from {sender}")
-            for to in tos:
+            log.info(f"{sys._getframe().f_code.co_name}, ss-message to {ss_to}, from {sender}")
+            for to in ss_to:
                 for co_account in co_accounts:
                     ret = dl.smartschool.smartschool.send_message(to, sender, data['message_subject'], data['message_content'], co_account)
                     if ret != 0:

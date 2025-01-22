@@ -45,7 +45,7 @@ export const form_default_set = (defaults) => {
     }
 }
 
-export const form_populate = async (data, meta=null) => {
+export const form_populate = async (category, data, meta=null) => {
     for (let [field_name, value] of Object.entries(data)) {
         const field = document.querySelector(`[name=${field_name}]`);
         if (field) {
@@ -57,12 +57,11 @@ export const form_populate = async (data, meta=null) => {
                 await  meta.quill[field_name].clipboard.dangerouslyPasteHTML(value);
             } else if (field.type === "select-one") {
                 if (meta && "option" in meta && field_name in meta.option) {
+                    field.innerHTML = "";
                     for (const item of meta.option[field_name]) {
-                        const option = document.createElement("option");
-                        field.appendChild(option);
-                        option.innerHTML = item.label;
-                        option.value = item.value;
-                        option.selected = value === item.value;
+                        // depending on the category, narrow down the number of options
+                        if (category in meta.category && field_name in meta.category[category] && meta.category[category][field_name].includes(item.value))
+                            field.add(new Option(item.label, item.value, value === item.value, value === item.value));
                     }
                 }
             } else {
@@ -72,7 +71,6 @@ export const form_populate = async (data, meta=null) => {
         }
     }
 }
-
 
 let busy_indicator = null;
 

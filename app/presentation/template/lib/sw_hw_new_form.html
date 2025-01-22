@@ -5,34 +5,33 @@
     <div class="form-row">
         <div class="form-element">
             <label>Type laptop
-                <select id="laptop-type-field" name="laptop_type" class="form-group-1">
+                <select id="laptop-type-field" name="laptop_type">
                     <option value="leerling" selected>Leerling</option>
                     <option value="personeel">Personeel</option>
                     <option value="reserve">Reserve</option>
                 </select>
             </label>
         </div>
-        <div class="form-element"><label>Locatie<input name="location" disabled></label></div>
+        <div class="form-element"><label>Locatie<select id="location-field" name="location"></select></label></div>
         <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>LIS badgenummer (*)<input id="lis-badge-field" name="lis_badge_id" class="form-group-1"></label>
+            <label>LIS badgenummer (*)<input id="lis-badge-field" name="lis_badge_id" ></label>
         </div>
-        <button id="lis-badge-scan" class="btn btn-success form-group-1">Scan LIS badge</button>
+        <button id="lis-badge-scan" class="btn btn-success">Scan LIS badge</button>
     </div>
     <div class="form-row" id="owner-row">
         <div class="form-element">
-            <label>Eigenaar (*)<select id="owner-field" name="laptop_owner_id" class="form-group-1"></select></label>
+            <label>Eigenaar (*)<select id="owner-field" name="laptop_owner_id"></select></label>
         </div>
-        <button id="owner-badge-scan" class="btn btn-success form-group-1">Scan badge van eigenaar</button>
+        <button id="owner-badge-scan" class="btn btn-success">Scan badge van eigenaar</button>
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Laptop (*)<select id="laptop-field" style="min-width: 400px" name="laptop_serial"
-                                     class="form-group-1"></select></label>
+            <label>Laptop (*)<select id="laptop-field" style="min-width: 400px" name="laptop_serial"></select></label>
         </div>
-        <button id="laptop-code-scan" class="btn btn-success form-group-1">Scan laptop label</button>
+        <button id="laptop-code-scan" class="btn btn-success">Scan laptop label</button>
     </div>
     <div class="form-row">
         <div class="form-element"><label>Wachtwoord<input type="password" id="password-field" name="laptop_owner_password"></label></div>
@@ -41,7 +40,7 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label>
+            <label>Reserve laptop<input id="spare-field" name="spare_laptop_name"></label>
         </div>
         <div class="form-element">
             <label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label>
@@ -50,19 +49,12 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Type incident (*)
-                <select id="lis-type-field" name="incident_type">
-                    <option value="software">Software</option>
-                    <option value="herinstalleren">Herinstalleren</option>
-                    <option value="hardware">Hardware</option>
-                </select>
+            <label>Type incident (*)<select id="lis-type-field" name="incident_type"></select>
             </label>
         </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label>
-        </div>
-        <div class="form-element">
-            <label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label>
+        <div id="hardware-damage-group">
+            <div class="form-element"><label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label></div>
+            <div class="form-element"><label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label></div>
         </div>
     </div>
     <div class="form-row" hidden>
