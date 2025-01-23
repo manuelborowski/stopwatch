@@ -200,13 +200,15 @@ def message_send(data):
         data["time"] = datetime.datetime.now()
         incident = dl.incident.get(("id", "=", data["id"]))
         if incident:
+            CLEANR = re.compile('<.*?>')
             # store some data in history
             data['message_content'] = data['message_content'].replace("\n", "<br>")
-            info = f"Bericht gestuurd:<br>(O) {data['message_subject']}<br>(I) {data['message_content']}"
+            info = f"Bericht gestuurd:(O) {data['message_subject']}(I) {data['message_content']}"
+            info = re.sub(CLEANR, '', info)
             history_data = {"incident_id": incident.id, "priority": incident.priority, "info": info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
                             "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner,
-                            "time": incident.time, }
-            history = dl.history.add(history_data)
+                            "time": incident.time, "id": incident.id}
+            incident = update(history_data)
             send_to_overwrite = dl.settings.get_configuration_setting("generic-ss-send-to")
             if send_to_overwrite != "":
                 ss_to = []

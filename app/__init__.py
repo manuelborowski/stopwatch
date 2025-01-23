@@ -75,8 +75,9 @@ from functools import wraps
 # 0.43: implement state-timout, if timeout detected, inform location responsibles.  SS message, sender is incident owner.
 # 0.44: reworked sending of ss-messages.  Use the quill RT editor.  Removed message state
 # 0.45: general bugfixes.  Extended buttonmenu.  Add button to set defaults. Added category and reworked states/locations/types
+# 0.46: message: before updating incident, remove HTML formatting.  Clear password field
 
-version = "0.45"
+version = "0.46"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

@@ -248,6 +248,10 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
                     const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
                     await form_populate(category, defaults, meta);
+                    setTimeout(() => {
+                        document.getElementById("password-field").value = "";
+                        document.getElementById("lis-badge-field").value = "";
+                    }, 500);
                 }
 
                 // hide/display water and drop-damage checkboxes
@@ -255,6 +259,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     document.getElementById("hardware-damage-group").hidden = e.target.value !== "hardware"
                 })
                 document.getElementById("lis-type-field").dispatchEvent(new Event("change"));
+
             },
         });
     }
@@ -425,7 +430,6 @@ const __history_form = async (ids) => {
                         let val = h[e];
                         if (e === "incident_state") val = meta.label.incident_state[val];
                         if (e === "location") val = meta.label.location[val];
-                        if (e === "info") val = val.replaceAll(/<[^>]*>?/gm, " ");
                         if (val === true) val = "&#10003;"
                         if (val === false) val = "";
                         tr += `<td>${val}</td>`
@@ -460,6 +464,7 @@ const __send_message = async (ids) => {
                         data.id = ids[0];
                         data.message_content = message_content_quill.root.innerHTML;
                         await fetch_post("incident.message", data);
+                        datatable_reload_table();
                     }
                 },
                 cancel: {
@@ -597,7 +602,7 @@ const __table_loaded = () => {
         const incidents = await fetch_get("incident.incident", {filters: `id$=$${row.id}`});
         const incident = incidents && incidents.length > 0 ? incidents[0] : null;
         const histories = await fetch_get("history.history", {filters: `incident_id$=$${row.id}`});
-        const history = histories.map(e => e.info.replaceAll(/<[^>]*>?/gm, " ")).filter(e => e !== "").join("<br>");
+        const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
         if (["software", "hardware"].includes(incident.category)) {
             await __sw_hw_form(incident.category, incident, history);
         } else {
