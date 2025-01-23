@@ -47,6 +47,34 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
         }
     }
 
+    let stored_password = incident ? incident.laptop_owner_password : "";
+    const __password_field_visibility = (hidden=true) => {
+        const password_field = document.getElementById("password-field");
+        const password_show_field = document.getElementById("password-show-field");
+        if (hidden) {
+            password_show_field.classList.replace("fa-eye", "fa-eye-slash");
+            password_field.value = "**";
+            password_field.disabled = true;
+        } else {
+            password_show_field.classList.replace("fa-eye-slash", "fa-eye");
+            password_field.disabled = false;
+            password_field.value = stored_password;
+        }
+    }
+    const __password_field_toggle = () => {
+        const password_field = document.getElementById("password-field");
+        const password_show_field = document.getElementById("password-show-field");
+        if (password_show_field.classList.contains("fa-eye-slash")) {
+            // hidden to visible
+            __password_field_visibility(false);
+
+        } else {
+            // visible to hidden
+            stored_password = password_field.value;
+            __password_field_visibility(true)
+        }
+    }
+
     const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
     const form = await fetch_get("incident.form", {form: incident_update ? "sw-hw-update" : "sw-hw-new"});
     if (form) {
@@ -64,6 +92,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         const data = Object.fromEntries(form_data)
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
+                        data.laptop_owner_password = data.laptop_owner_password || stored_password;
                         if (incident_update) {
                             data.id = incident.id;
                             data.event = document.getElementById("incident-state-field").value;
@@ -212,18 +241,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     password_field.disabled = e.target.checked;
                     if (e.target.checked) bootbox.alert(`Opgelet, het paswoord wordt aangepast naar <b>${meta.default_password}</b>`)
                 });
-
                 const password_show_field = document.getElementById("password-show-field");
-                password_show_field.addEventListener("click", e => {
-                    if (password_show_field.classList.contains("fa-eye")) {
-                        password_show_field.classList.replace("fa-eye", "fa-eye-slash");
-                        password_field.type = "password";
-                    } else {
-                        password_show_field.classList.replace("fa-eye-slash", "fa-eye");
-                        password_field.type = "text";
-                    }
-                });
-
+                password_show_field.addEventListener("click", e => __password_field_toggle());
                 // set default values
                 if (incident_update) {
                     if (history !== "") {
@@ -248,11 +267,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     await __set_owner_options(owner_field, document.getElementById("laptop-type-field").value);
                     const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
                     await form_populate(category, defaults, meta);
-                    setTimeout(() => {
-                        document.getElementById("password-field").value = "";
-                        document.getElementById("lis-badge-field").value = "";
-                    }, 500);
                 }
+                __password_field_visibility(incident_update);
 
                 // hide/display water and drop-damage checkboxes
                 document.getElementById("lis-type-field").addEventListener("change", e => {

@@ -76,8 +76,9 @@ from functools import wraps
 # 0.44: reworked sending of ss-messages.  Use the quill RT editor.  Removed message state
 # 0.45: general bugfixes.  Extended buttonmenu.  Add button to set defaults. Added category and reworked states/locations/types
 # 0.46: message: before updating incident, remove HTML formatting.  Clear password field
+# 0.47: clean up of password-field-mess
 
-version = "0.46"
+version = "0.47"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
