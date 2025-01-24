@@ -51,21 +51,28 @@ def __event_location_changed(incident):
 def __event(incident, event):
     try:
         incident.flag_reset("state-timeout")
-        if event == "transition":
-            incident.incident_state = "transition"
-            __event_location_changed(incident)
-        elif event == "started":
-            incident.incident_state = "started"
-        elif event == "repaired":
-            incident.incident_state = "repaired"
-        elif event == "shortloan":
-            incident.incident_state = "shortloan"
-        elif event == "longloan":
-            incident.incident_state = "longloan"
-        elif event == "closed":
-            incident.incident_state = "closed"
-            if incident.laptop_owner_password_default:
-                __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
+        if incident.category in ["hardware", "software"]:
+            if event == "transition":
+                incident.incident_state = "transition"
+                __event_location_changed(incident)
+            elif event == "started":
+                incident.incident_state = "started"
+            elif event == "repaired":
+                incident.incident_state = "repaired"
+            elif event == "shortloan":
+                incident.incident_state = "shortloan"
+            elif event == "longloan":
+                incident.incident_state = "longloan"
+            elif event == "closed":
+                incident.incident_state = "closed"
+                if incident.laptop_owner_password_default:
+                    __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
+        elif incident.category == "loan":
+            if event == "started":
+                incident.incident_state = "loaned"
+            elif event == "closed":
+                incident.incident_state = "closed"
+
         dl.incident.commit()
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
     except Exception as e:
@@ -187,8 +194,7 @@ def message_default(incident_id):
                     signature = "ICT"
                 template = template.replace("%%SIGNATURE%%", signature)
                 return {"message_subject": "Uw laptop is klaar",  "message_content": template}
-            log.error(f'{sys._getframe().f_code.co_name}: laptop-owner is unknown, incident id {incident.id}')
-            return {"status": "error", "msg": "Kan standaardbericht niet ophalen, eigenaar van de laptop is niet gekend"}
+            return {"message_subject": "", "message_content": ""}
         log.error(f'{sys._getframe().f_code.co_name}: unknown incident id {incident_id}')
         return {"status": "error", "msg": f"Kan standaardbericht niet ophalen, incident id is niet gekend {incident_id}"}
     except Exception as e:
@@ -208,10 +214,10 @@ def message_send(data):
             history_data = {"incident_id": incident.id, "priority": incident.priority, "info": info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
                             "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner,
                             "time": incident.time, "id": incident.id}
-            incident = update(history_data)
+            update(history_data)
             send_to_overwrite = dl.settings.get_configuration_setting("generic-ss-send-to")
+            ss_to = []
             if send_to_overwrite != "":
-                ss_to = []
                 for code in send_to_overwrite.split(","):
                     staff = dl.staff.get(("code", "=", code))
                     ss_to.append(staff.ss_internal_nbr)
@@ -222,9 +228,15 @@ def message_send(data):
                 elif incident.laptop_type == "personeel":
                     laptop_owner = dl.staff.get(("code", "=", incident.laptop_owner_id))
                     ss_to = [laptop_owner.ss_internal_nbr]
-                else:
-                    return {"status": "error", "msg": "Geen geldig laptop-type"}
-                staff = dl.staff.get(("code", "=", current_user.username))
+                else: # spare laptop
+                    location = dl.settings.get_configuration_setting("lis-locations")[incident.laptop_owner_id]
+                    if "message" in location:
+                        for code in location["message"]:
+                            staff = dl.staff.get(("code", "=", code))
+                            if staff:
+                                ss_to.append(staff.ss_internal_nbr)
+
+            staff = dl.staff.get(("code", "=", current_user.username))
             if staff:
                 sender = staff.ss_internal_nbr
             else:

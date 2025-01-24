@@ -46,7 +46,7 @@ def spare():
 def form():
     try:
         if request.method == "GET":
-            template = open(pathlib.Path("app/presentation/template/lib/spare_form.html")).read()
+            template = open(pathlib.Path("app/presentation/template/forms/spare.html")).read()
             return {"template": template}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')

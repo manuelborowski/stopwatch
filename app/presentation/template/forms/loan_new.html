@@ -2,18 +2,18 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <link href="static/css/form.css" rel="stylesheet">
 <form id="loan-form">
-        <div class="form-row">
+    <div class="form-row">
         <div class="form-element"><label>Locatie<select id="location-field" name="location"></select></label></div>
     </div>
 
     <div class="form-row" id="owner-row">
         <div class="form-element">
-            <label>Lener<select id="owner-field" name="laptop_owner_id"></select></label>
+            <label>Ontlener<select id="owner-field" name="laptop_owner_id"></select></label>
         </div>
-        <button id="owner-badge-scan" class="btn btn-success">Scan badge van eigenaar</button>
+        <button id="owner-badge-scan" class="btn btn-success">Scan badge van ontlener</button>
     </div>
     <div class="form-row">
-        <div class="form-element"><label><input type="checkbox" id="long-loan-chk" name="long_loan">Wordt de laptop lange tijd uitgeleend? (bestelling eigen laptop is gestart)</label></div>
+        <div class="form-element"><label><input type="checkbox" id="long-loan-chk" name="long_loan">Wordt de laptop lange tijd uitgeleend? (bestelling eigen laptop, ...)</label></div>
     </div>
     <div class="form-row">
         <div class="form-element"><label>Reserve laptop<input id="spare-field" name="spare_laptop_name"></label></div>

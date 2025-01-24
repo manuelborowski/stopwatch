@@ -29,38 +29,39 @@ export const badge_raw2hex = code => {
     }
 
     let valid_rfid = true
-    code = code.toUpperCase();
+    const orig_code = code;
+    let code_processed = code.toUpperCase();
 
-    if (code.length === 8) {
+    if (code_processed.length === 8) {
         // Asume a hex code of 8 chars
-        if (code.includes('Q')) {
+        if (code_processed.includes('Q')) {
             // the badgereader is a qwerty HID device
-            code = code.replace(/Q/g, 'A');
+            code_processed = code_processed.replace(/Q/g, 'A');
         }
-        if (!/^[0-9a-fA-F]+$/.test(code)) {
+        if (!/^[0-9a-fA-F]+$/.test(code_processed)) {
             // it is not a valid hex code :-(  Check if capslock was on
-            code = decode_caps_lock(code);
-            if (!/^[0-9a-fA-F]+$/.test(code)) {
+            code_processed = decode_caps_lock(code_processed);
+            if (!/^[0-9a-fA-F]+$/.test(code_processed)) {
                 // it is not a valid code :-(
                 valid_rfid = false;
             }
         }
     } else {
         // Assume it is an integer code, so test it
-        if (/^[0-9]+$/.test(code)) {
-            const res = process_int_code(parseInt(code));
+        if (/^[0-9]+$/.test(code_processed)) {
+            const res = process_int_code(parseInt(code_processed));
             valid_rfid = res.valid_rfid;
-            code = res.code;
+            code_processed = res.code;
         } else {
-            code = decode_caps_lock(code);
-            if (/^[0-9]+$/.test(code)) {
-                const res = process_int_code(parseInt(code));
+            code_processed = decode_caps_lock(code_processed);
+            if (/^[0-9]+$/.test(code_processed)) {
+                const res = process_int_code(parseInt(code_processed));
                 valid_rfid = res.valid_rfid;
-                code = res.code;
+                code_processed = res.code;
             } else {
                 valid_rfid = false;
             }
         }
     }
-    return [valid_rfid, code]
+    return [valid_rfid, valid_rfid ? code_processed : code]
 }

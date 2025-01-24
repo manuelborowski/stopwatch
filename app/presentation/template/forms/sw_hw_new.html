@@ -3,17 +3,9 @@
 <link href="static/css/form.css" rel="stylesheet">
 <form id="incident-form">
     <div class="form-row">
-        <div class="form-element">
-            <label>Type laptop
-                <select id="laptop-type-field" name="laptop_type">
-                    <option value="leerling" selected>Leerling</option>
-                    <option value="personeel">Personeel</option>
-                    <option value="reserve">Reserve</option>
-                </select>
-            </label>
-        </div>
         <div class="form-element"><label>Locatie<select id="location-field" name="location"></select></label></div>
         <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
+        <div class="form-element"><label><input type="checkbox" id="type-spare-laptop-chk" name="spare_laptop_check">Is het een reserve laptop?</label></div>
     </div>
     <div class="form-row">
         <div class="form-element">
@@ -21,6 +13,8 @@
         </div>
         <button id="lis-badge-scan" class="btn btn-success">Scan LIS badge</button>
     </div>
+
+    <div id="group-1">
     <div class="form-row" id="owner-row">
         <div class="form-element">
             <label>Eigenaar (*)<select id="owner-field" name="laptop_owner_id"></select></label>
@@ -38,6 +32,9 @@
         <div class="form-element"><i id="password-show-field" class="fa-regular fa-eye-slash"></i></div>
         <div class="form-element"><label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label></div>
     </div>
+</div>
+
+
     <div class="form-row">
         <div class="form-element">
             <label>Reserve laptop<input id="spare-field" name="spare_laptop_name"></label>

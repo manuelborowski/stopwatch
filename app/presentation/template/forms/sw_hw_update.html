@@ -1,9 +1,6 @@
 <link href="static/css/form.css" rel="stylesheet">
 <form id="incident-form">
     <div class="form-row">
-        <div class="form-element"><label>Type laptop<input name="laptop_type" disabled></label></div>
-    </div>
-    <div class="form-row">
         <div class="form-element"><label>LIS badgenummer<input name="lis_badge_id" disabled></label></div>
     </div>
     <div class="form-row">
@@ -18,15 +15,17 @@
         <div class="form-element"><label>Status<select id="incident-state-field" name="incident_state"></select></label></div>
     </div>
 
-    <div class="form-row">
-        <div class="form-element"><label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label></div>
-        <div class="form-element"><i id="password-show-field" class="fa-regular fa-eye-slash"></i></div>
-        <div class="form-element"><label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label></div>
-    </div>
-    <div class="form-row">
-        <div class="form-element"><label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label></div>
-        <div class="form-element"><label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label></div>
-        <button id="spare-badge-scan" class="btn btn-success">Scan badge van reservelaptop</button>
+    <div id="group-1">
+        <div class="form-row">
+            <div class="form-element"><label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label></div>
+            <div class="form-element"><i id="password-show-field" class="fa-regular fa-eye-slash"></i></div>
+            <div class="form-element"><label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard paswoord?</label></div>
+        </div>
+        <div class="form-row">
+            <div class="form-element"><label>Reserve laptop<input id="spare-field" name="spare_laptop_serial"></label></div>
+            <div class="form-element"><label><input type="checkbox" id="spare-charger-chk" name="charger">Lader?</label></div>
+            <button id="spare-badge-scan" class="btn btn-success">Scan badge van reservelaptop</button>
+        </div>
     </div>
     <div class="form-row">
         <div class="form-element">

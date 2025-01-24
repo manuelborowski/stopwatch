@@ -77,8 +77,9 @@ from functools import wraps
 # 0.45: general bugfixes.  Extended buttonmenu.  Add button to set defaults. Added category and reworked states/locations/types
 # 0.46: message: before updating incident, remove HTML formatting.  Clear password field
 # 0.47: clean up of password-field-mess
+# 0.48: reworked laptop_type, i.e. students and staff are in 1 select, spare laptop is checkbox.
 
-version = "0.47"
+version = "0.48"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

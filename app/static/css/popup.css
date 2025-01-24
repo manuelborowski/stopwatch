@@ -24,22 +24,30 @@
     text-align: center;
 }
 
+.alert-popup .modal-content {
+    border-width: 10px;
+    border-radius: 30px;
+}
+
 .timed-popup-error .modal-content {
-    border-width: 5px;
     border-color: red;
 }
 
 .timed-popup-warning .modal-content {
-    border-width: 5px;
     border-color: orange;
 }
 
 .timed-popup-ok .modal-content {
-    border-width: 5px;
     border-color: green;
+}
+
+.alert-popup .bootbox-body {
+    text-align: center;
+    font-size: x-large;
 }
 
 .formio-component-table td, th {
     padding: 0;
     padding-right: 20px;
 }
+

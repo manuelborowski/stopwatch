@@ -5,12 +5,12 @@ export class AlertPopup {
 
     constructor(status = "ok", msg, delay = 5000) {
         if (this.timer_id !== null) clearTimeout(timer.timer_id);
-        this.timer_id = setTimeout(() => bootbox.hideAll(), delay);
-        bootbox.dialog({
+        this.timer_id = setTimeout(() => this.dialog.modal("hide"), delay);
+        this.dialog = bootbox.dialog({
             backdrop: true,
             message: msg,
             closeButton: false,
-            className: status === "ok" ? "timed-popup-ok" : status === "warning" ? "timed-popup-warning" : "timed-popup-error"
+            className: status === "ok" ? "alert-popup timed-popup-ok" : status === "warning" ? "alert-popup timed-popup-warning" : "alert-popup timed-popup-error"
         })
     }
 }

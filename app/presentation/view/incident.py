@@ -116,17 +116,17 @@ def form():
             template = ""
             if form == "sw-hw-new":
                 optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
-                template = open(pathlib.Path("app/presentation/template/lib/sw_hw_new_form.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/sw_hw_new.html")).read()
             if form == "sw-hw-update":
-                template = open(pathlib.Path("app/presentation/template/lib/sw_hw_update.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/sw_hw_update.html")).read()
             if form == "history":
-                template = open(pathlib.Path("app/presentation/template/lib/history_form.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/history.html")).read()
             if form == "message":
-                template = open(pathlib.Path("app/presentation/template/lib/ss_message.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/ss_message.html")).read()
             if form == "loan":
-                template = open(pathlib.Path("app/presentation/template/lib/loan_form_new.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/loan_new.html")).read()
             if form == "setting":
-                template = open(pathlib.Path("app/presentation/template/lib/setting_form.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/setting.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
@@ -155,13 +155,14 @@ class Config(DatatableConfig):
         close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>'
         categories = dl.settings.get_configuration_setting("lis-categories")
         category_labels = {k: v["label"] for k, v in categories.items()}
+        types = dl.settings.get_configuration_setting("lis-incident-types")
+        type_labels = {k: v["label"] for k, v in types.items()}
 
         action_labels = {
             "started": standard_button_template + message_button_template,
             "transition": standard_button_template + message_button_template,
             "repaired": standard_button_template + message_button_template + close_button_template,
-            "shortloan": standard_button_template + message_button_template + close_button_template,
-            "longloan": standard_button_template + message_button_template + close_button_template,
+            "loaned": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
         }
 
@@ -174,6 +175,8 @@ class Config(DatatableConfig):
                     column["label"] = {"labels": location_labels}
                 if column["data"] == "category":
                     column["label"] = {"labels": category_labels}
+                if column["data"] == "incident_type":
+                    column["label"] = {"labels": type_labels}
                 if column["data"] == "info":
                     column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
                 if column["data"] == "incident_state" and column["name"] == "Actie":
