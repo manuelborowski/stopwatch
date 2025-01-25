@@ -84,23 +84,6 @@ export class FormioPopup {
                 c.component.data.json = options
                 c.redraw();
             }, 500);
-            // c.setItems(options)
-            // c.component.data.values = options;
-            // c.component.data.json = options;
-            // c.selectOptions = options.map(({value, label}) => ({value, label: `<span>${label}</span>`}));
-            // c.selectItems = options;
-            // c.templateData = {}
-            // c.defaultDownloadedResources = []
-            // if (default_value) c.setValue(default_value);
-            // c.component.data.selectOptions = c.component.data.selectItems;
-            // setTimeout(() => {
-            //     if (default_value) c.component.defaultValue = default_value;
-            //     if (default_value) c.component.value = default_value;
-            //     c.redraw();
-            // }, 500);
-            // c.redraw();
-            // if (default_value) c.setValue(default_value);
-            // this.formio_handle.redraw();
         }
     }
 

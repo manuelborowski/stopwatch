@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
 from app.presentation.view import datatable_get_data, fetch_return_error
+from app.application.m4s import m4s
 import json, sys, pathlib
 
 # logging on file level
@@ -84,13 +85,18 @@ def meta():
     states = dl.settings.get_configuration_setting("lis-state")
     state_options = [{"value": k, "label": v["label"]} for k, v in states.items()]
     state_labels = {k: v["label"] for k, v in states.items()}
+    m4s_problem_types = m4s.problem_type_get()
+    m4s_category_options = [{"value": k, "label": k} for k, _ in m4s_problem_types.items()]
+    m4s_problem_options = m4s_problem_types["Algemeen"]
+
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
     default_password = app.config["AD_DEFAULT_PASSWORD"]
-    return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options},
+    return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options, "m4s_category": m4s_category_options, "m4s_problem_type_guid": m4s_problem_options},
                        "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels},
-                       "default": {"location": default_location},
+                       "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
+                       "m4s": m4s_problem_types
                        })
 
 @bp_incident.route('/incident/location', methods=['POST',])

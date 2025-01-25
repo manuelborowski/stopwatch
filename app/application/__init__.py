@@ -18,12 +18,14 @@ import app.application.m4s
 from app.application.student import student_cron_load_from_sdh, student_cron_post_processing
 from app.application.staff import staff_cron_load_from_sdh, staff_cron_post_processing
 from app.application.incident import incident_cron_state_timeout
+from app.application.m4s import m4s_cron_get_problem_types
 
 # tag, cront-task, label, help
 cron_table = [
     ('SDH-STUDENT-UPDATE', student_cron_load_from_sdh, 'VAN SDH, upload student', ''),
     ('SDH-STAFF-UPDATE', staff_cron_load_from_sdh, 'VAN SDH, upload staff', ''),
     ('STATE_TIMEOUT', incident_cron_state_timeout, 'Controleer of incidenten te lang in dezelfde toestand blijven', ''),
+    ('M4S_PROBLEM_TYPES', m4s_cron_get_problem_types, 'VAN M4S, upload the probleem types', ''),
     ('SDH-STUDENT-POST-PROCESSING', student_cron_post_processing, 'Studenten: reset vlaggen', ''),
     ('SDH-STAFF-POST-PROCESSING', staff_cron_post_processing, 'Personeel: reset vlaggen', ''),
 ]

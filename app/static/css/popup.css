@@ -46,6 +46,11 @@
     font-size: x-large;
 }
 
+.popup-hw-alert .modal-content {
+    border: orange 15px solid;
+    border-radius: 30px;
+}
+
 .formio-component-table td, th {
     padding: 0;
     padding-right: 20px;

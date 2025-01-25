@@ -15,7 +15,7 @@ from functools import wraps
 # DONE: paswoord veld met oogje
 # DONE: maximum tijdsuur per toestand
 # DONE: historiek: nieuwste bovenaan
-# TODO: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
+# DONE: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
 # TODO: link toevoegen naar m4s
 # TODO: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
 # TODO: laders ook een badge geven?
@@ -24,8 +24,8 @@ from functools import wraps
 # TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
 # TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
 # TODO: locaties -> signpost = hardware incident?
-# TODO: lader lenen
-# TODO: tijdelijk laptop lenen of nieuw in school en laptop lenen
+# DONE: lader lenen
+# DONE: tijdelijk laptop lenen of nieuw in school en laptop lenen
 
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
@@ -78,8 +78,9 @@ from functools import wraps
 # 0.46: message: before updating incident, remove HTML formatting.  Clear password field
 # 0.47: clean up of password-field-mess
 # 0.48: reworked laptop_type, i.e. students and staff are in 1 select, spare laptop is checkbox.
+# 0.49: added m4s api.  Use problemtypes defined by m4s.  General bugfixes
 
-version = "0.48"
+version = "0.49"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

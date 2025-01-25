@@ -45,7 +45,7 @@ export const form_default_set = (defaults) => {
     }
 }
 
-export const form_populate = async (category, data, meta=null) => {
+export const form_populate = async (category, data, meta = null) => {
     for (let [field_name, value] of Object.entries(data)) {
         const field = document.querySelector(`[name=${field_name}]`);
         if (field) {
@@ -54,14 +54,16 @@ export const form_populate = async (category, data, meta=null) => {
             } else if (field.classList.contains("select2-hidden-accessible")) { // select2 type
                 await $(`[name=${field_name}]`).val(value).trigger("change");
             } else if (field.classList.contains("ql-container") && "quill" in meta && field_name in meta.quill) { // quill html editor
-                await  meta.quill[field_name].clipboard.dangerouslyPasteHTML(value);
+                await meta.quill[field_name].clipboard.dangerouslyPasteHTML(value);
             } else if (field.type === "select-one") {
                 if (meta && "option" in meta && field_name in meta.option) {
                     field.innerHTML = "";
-                    for (const item of meta.option[field_name]) {
+                    if (category in meta.category && field_name in meta.category[category])
                         // depending on the category, narrow down the number of options
-                        if (category in meta.category && field_name in meta.category[category] && meta.category[category][field_name].includes(item.value))
-                            field.add(new Option(item.label, item.value, value === item.value, value === item.value));
+                        for (const item of meta.option[field_name]) {
+                            if (meta.category[category][field_name].includes(item.value)) field.add(new Option(item.label, item.value, value === item.value, value === item.value));
+                        } else {
+                        for (const item of meta.option[field_name]) field.add(new Option(item.label, item.value, value === item.value, value === item.value));
                     }
                 }
             } else {

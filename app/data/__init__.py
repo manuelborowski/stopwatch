@@ -1,4 +1,4 @@
-__all__ = ["user", "models", "settings", "datatables", "incident", "student", "staff", "spare", "lisbadge", "history", "entra", "smartschool"]
+__all__ = ["user", "models", "settings", "datatables", "incident", "student", "staff", "spare", "lisbadge", "history", "entra", "smartschool", "m4s"]
 
 import app.data.user
 import app.data.models
@@ -12,6 +12,7 @@ import app.data.lisbadge
 import app.data.history
 import app.data.entra
 import app.data.smartschool
+import app.data.m4s
 
 from app import login_manager
 @login_manager.user_loader

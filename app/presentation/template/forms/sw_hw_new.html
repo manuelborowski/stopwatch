@@ -49,9 +49,9 @@
             <label>Type incident (*)<select id="lis-type-field" name="incident_type"></select>
             </label>
         </div>
-        <div id="hardware-damage-group">
-            <div class="form-element"><label><input type="checkbox" id="drop-damage-chk" name="drop_damage">Valschade?</label></div>
-            <div class="form-element"><label><input type="checkbox" id="water-damage-chk" name="water_damage">Waterschade?</label></div>
+        <div id="hardware-damage-group" class="form-element">
+            <label>M4S Categorie<select id="m4s-category-field" name="m4s_category"></select></label>
+            <label>M4S Probleem<select id="m4s-problem-type-guid-field" name="m4s_problem_type_guid"></select></label>
         </div>
     </div>
     <div class="form-row" hidden>
@@ -64,8 +64,7 @@
     </div>
     <div class="form-row">
         <div class="form-element">
-            <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1"
-                                 name="info"></textarea></label>
+            <label>Info<span id="info-label-required-field" hidden>&nbsp;(*)</span> <textarea id="info-field" rows="6" cols="80" style="line-height: 1" name="info"></textarea></label>
         </div>
     </div>
 </form>

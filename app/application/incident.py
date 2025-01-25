@@ -1,4 +1,5 @@
 import sys, datetime, re, random, requests, wonderwords, json
+from app.application.m4s import m4s
 from app import app, data as dl, application as al
 from flask_login import current_user
 from flask import request
@@ -57,6 +58,8 @@ def __event(incident, event):
                 __event_location_changed(incident)
             elif event == "started":
                 incident.incident_state = "started"
+                if incident.category == "hardware":
+                    m4s.case_add(incident)
             elif event == "repaired":
                 incident.incident_state = "repaired"
             elif event == "shortloan":
@@ -308,7 +311,7 @@ def generate(nbr):
                     "laptop_owner_password": random.choice(["password1", "password2"]) if not default_password else "", "laptop_owner_password_default": default_password,
                     "laptop_type": laptop_type, "laptop_name": device["m4s_csu_label"], "laptop_serial": device["serial_number"], "spare_laptop_name": "", "spare_laptop_serial": "",
                     "charger": "", "info": random_info.sentence(), "incident_type": incident_type, "drop_damage": drop_damage, "water_damage": water_damage,
-                    "location": incident_owner.default_location, "incident_owner": incident_owner.username, "m4s_id": "",
+                    "location": incident_owner.default_location, "incident_owner": incident_owner.username, "m4s_problem_type_guid": "",
                 }
                 add(data)
     except Exception as e:

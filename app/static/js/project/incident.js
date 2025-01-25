@@ -28,7 +28,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
     }
 
     let stored_password = incident ? incident.laptop_owner_password : "";
-    const __password_field_visibility = (hidden=true) => {
+    const __password_field_visibility = (hidden = true) => {
         const password_field = document.getElementById("password-field");
         const password_show_field = document.getElementById("password-show-field");
         if (hidden) {
@@ -55,7 +55,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
         }
     }
 
-    const title = incident_update ? "Incident aanpassen" : "Nieuw incident (* is verplicht)";
+    const title = incident_update ? "Incident aanpassen" : `Nieuw incident (* is verplicht)${category === "hardware" ? ".  OPGELET, dit incident wordt ook ingevoerd in M4S" : ""}`;
     const form = await fetch_get("incident.form", {form: incident_update ? "sw-hw-update" : "sw-hw-new"});
     if (form) {
         let owner_field = null;
@@ -78,7 +78,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                             data.event = document.getElementById("incident-state-field").value;
                             await fetch_update("incident.incident", data);
                         } else {
-                            if (document.getElementById("type-spare-laptop-chk")) {
+                            if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
                                 data.laptop_owner_name = meta.label.location[data.location];
                                 data.laptop_owner_id = data.location;
                                 data.laptop_name = data.spare_laptop_name;
@@ -93,8 +93,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                                 data.laptop_owner_name = owner_data.text;
                                 const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
                                 data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
-                                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "") {
-                                    new AlertPopup("warning", "'Lis-badgenummer', 'Eigenaar' en 'Laptop' moeten ingevuld zijn.")
+                                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || category === "hardware" && data.info === "") {
+                                    new AlertPopup("warning", `'Lis-badgenummer', 'Eigenaar'${category === 'hardware' ? ', Info ': ''} en 'Laptop' moeten ingevuld zijn.`);
                                     return
                                 }
                                 [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
@@ -109,9 +109,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 },
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
-                        if (incident_update) {
-                            datatable_reload_table();
-                        }
+                        if (incident_update) datatable_reload_table();
                     }
                 },
             },
@@ -203,6 +201,15 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         })
                     });
 
+                    // hardware incident specific, update m4s-id options when m4s-category has changed
+                    document.getElementById("m4s-category-field").addEventListener("change", (e) => {
+                        e.preventDefault();
+                        const options = meta.m4s[e.target.value];
+                        const m4s_id_field = document.getElementById("m4s-problem-type-guid-field");
+                        m4s_id_field.innerHTML = "";
+                        for (const item of options) m4s_id_field.add(new Option(item.label, item.value));
+                    });
+
                     // when the owner field changes, get the associated laptops and populate the laptop field
                     owner_field.on('change', async e => {
                         const [laptop_type, laptop_owner_id] = e.target.value.split("-");
@@ -264,10 +271,19 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         if (e.target.value !== "transition") document.getElementById("location-field").value = incident.location;
                     });
                     await form_populate(category, incident, meta);
-
                     document.getElementById("group-1").hidden = incident.laptop_type === "reserve";
+                    // in case of hardware incident, get the m4s category and id
+                    for (const [category, problems] of Object.entries(meta.m4s)) {
+                        for (const problem of problems) {
+                            if (problem.value === incident.m4s_problem_type_guid) {
+                                document.getElementById("m4s-problem-type-guid-field").value = problem.label;
+                                document.getElementById("m4s-category-field").value = category;
+                                break;
+                            }
+                        }
+                    }
 
-                } else {
+                } else { // new incident
                     // populate owner list
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
@@ -279,6 +295,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
                     const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
                     await form_populate(category, defaults, meta);
+                    if (category === "hardware") document.getElementById("info-label-required-field").hidden = false;
                 }
                 __password_field_visibility(incident_update);
 
@@ -287,7 +304,6 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     document.getElementById("hardware-damage-group").hidden = e.target.value !== "hardware"
                 })
                 document.getElementById("lis-type-field").dispatchEvent(new Event("change"));
-
             },
         });
     }

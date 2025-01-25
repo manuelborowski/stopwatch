@@ -37,7 +37,9 @@ class Incident(db.Model, SerializerMixin):
     incident_state = db.Column(db.String(256), default=None)
     location = db.Column(db.String(256), default=None)
     incident_owner = db.Column(db.String(256), default=None)
-    m4s_id = db.Column(db.String(256), default=None)
+    m4s_guid = db.Column(db.String(256), default=None)
+    m4s_problem_type_guid = db.Column(db.String(256), default=None)
+    m4s_reference = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
     flags = db.Column(db.String(256), default="")
 
