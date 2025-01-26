@@ -80,6 +80,7 @@ def __event(incident, event):
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        raise e
 
 def __password_update(incident, password, must_update=False):
     try:
@@ -122,7 +123,7 @@ def add(data):
         return {"status": "ok", "msg": f"Incident, {incident.id} toegevoegd."}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return {"status": "error", "msg": str(e)}
+        raise e
 
 def update(data):
     try:

@@ -85,6 +85,7 @@ class M4S:
 
     def case_add(self, incident):
         try:
+            a = 3 / 0
             self.init_bearer()
             url = app.config["M4S_API_URL"]
             headers = {"Authorization": f"Bearer {self.bearer_token}", "Content-Type": "application/json"}
@@ -126,9 +127,10 @@ class M4S:
                 dl.incident.commit()
                 return True
             log.error(f'{sys._getframe().f_code.co_name}: post cases returned {resp.status_code}')
+            raise Exception(f"post cases returned {resp.status_code}")
         except Exception as e:
             log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return False
+            raise e
 
 
 

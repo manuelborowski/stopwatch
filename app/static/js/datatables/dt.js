@@ -8,7 +8,7 @@ import {FilterMenu} from "../common/filter_menu.js";
 import {CellEdit} from "./cell_edit.js";
 import {ColumnVisibility} from "../common/column_visibility.js";
 
-let column_name_to_index = {};
+export let datatable_column2index = {};
 export let ctx = null;
 
 //If not exactly one checkbox is selected, display warning and return false, else return true
@@ -54,7 +54,7 @@ export const datatable_row_data_from_target = target => {
 
 export function update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
-    let column_idx = column_name_to_index[column_name];
+    let column_idx = datatable_column2index[column_name];
     ctx.table.cell(row_idx, column_idx).data(value);
 }
 
@@ -104,7 +104,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                 return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`;}
         }
         if ("condition" in v) v.render = function (data, type, full, meta) {return data === v.condition.equals ? v.condition.then  : v.condition.else;}
-        column_name_to_index[v.data] = i;
+        datatable_column2index[v.data] = i;
     });
 
     // get data from server and send to datatables to render it
@@ -140,7 +140,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             if (data.overwrite_row_color && data.overwrite_row_color !== "") $(row).attr("style", `background-color:${data.overwrite_row_color};`);
             if (data.overwrite_cell_color) {
                 for (const [cn, cc] of Object.entries(data.overwrite_cell_color)) {
-                    const ci = column_name_to_index[cn];
+                    const ci = datatable_column2index[cn];
                     $(cells[ci]).attr("style", `background-color: ${cc};`);
                 }
             }

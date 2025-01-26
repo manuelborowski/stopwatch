@@ -79,8 +79,9 @@ from functools import wraps
 # 0.47: clean up of password-field-mess
 # 0.48: reworked laptop_type, i.e. students and staff are in 1 select, spare laptop is checkbox.
 # 0.49: added m4s api.  Use problemtypes defined by m4s.  General bugfixes
+# 0.50: category hw, added link to defect in m4s
 
-version = "0.49"
+version = "0.50"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
