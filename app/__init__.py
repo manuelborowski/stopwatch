@@ -16,14 +16,14 @@ from functools import wraps
 # DONE: maximum tijdsuur per toestand
 # DONE: historiek: nieuwste bovenaan
 # DONE: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
-# TODO: link toevoegen naar m4s
+# DONE: link toevoegen naar m4s
 # TODO: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
 # TODO: laders ook een badge geven?
 # DONE: bericht opnieuw verzenden, eventueel naar co-accounts
 # DONE: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
 # TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
 # TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
-# TODO: locaties -> signpost = hardware incident?
+# DONE: locaties -> signpost = hardware incident?
 # DONE: lader lenen
 # DONE: tijdelijk laptop lenen of nieuw in school en laptop lenen
 
@@ -82,8 +82,9 @@ from functools import wraps
 # 0.50: category hw, added link to defect in m4s
 # 0.51: datatable, solved conflict between initialization and columns-visibility.  Bootbox, made confirm synchronous to avoid premature closing.
 #  Started with combining hardware and software category into repair
+# 0.52: added funcionality to switch from hardware to software incident type
 
-version = "0.51"
+version = "0.52"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

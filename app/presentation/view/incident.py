@@ -88,11 +88,13 @@ def meta():
     m4s_problem_types = m4s.problem_type_get()
     m4s_category_options = [{"value": k, "label": k} for k, _ in m4s_problem_types.items()]
     m4s_problem_options = m4s_problem_types["Algemeen"]
+    m4s_problem_labels = {t["value"]: t["label"] for _, types in m4s_problem_types.items() for t in types}
+    m4s_problem_labels.update({None: "NVT"})
 
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
     default_password = app.config["AD_DEFAULT_PASSWORD"]
     return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options, "m4s_category": m4s_category_options, "m4s_problem_type_guid": m4s_problem_options},
-                       "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels},
+                       "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels, "m4s_problem_type_guid": m4s_problem_labels},
                        "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
@@ -163,6 +165,9 @@ class Config(DatatableConfig):
         category_labels = {k: v["label"] for k, v in categories.items()}
         types = dl.settings.get_configuration_setting("lis-incident-types")
         type_labels = {k: v["label"] for k, v in types.items()}
+        m4s_problem_types = m4s.problem_type_get()
+        m4s_problem_labels = {t["value"]: t["label"] for _, types in m4s_problem_types.items() for t in types}
+        m4s_problem_labels.update({"": "NVT"})
 
         action_labels = {
             "started": standard_button_template + message_button_template,
@@ -183,6 +188,8 @@ class Config(DatatableConfig):
                     column["label"] = {"labels": category_labels}
                 if column["data"] == "incident_type":
                     column["label"] = {"labels": type_labels}
+                if column["data"] == "m4s_problem_type_guid":
+                    column["label"] = {"labels": m4s_problem_labels}
                 if column["data"] == "info":
                     column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
                 if column["data"] == "incident_state" and column["name"] == "Actie":

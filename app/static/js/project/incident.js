@@ -8,16 +8,17 @@ const meta = await fetch_get("incident.meta")
 
 const __sw_hw_form = async (category = null, incident = null, history = null) => {
     const incident_update = incident !== null;
-    const __state_select_set = current_state => {
+
+    const __state_select_set = incident => {
         const next_state = {
-            started: ["transition", "repaired"],
-            transition: ["started"],
-            repaired: ["started", "transition"],
+            "software": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition"],},
+            "reinstall": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition"],},
+            "hardware": {started: ["repaired"], repaired: ["started"]}
         }
         const incident_state_field = document.getElementById("incident-state-field");
         incident_state_field.innerHTML = "";
-        for (const state of [current_state].concat(next_state[current_state])) {
-            incident_state_field.add(new Option(meta.label.incident_state[state], state, current_state === state));
+        for (const state of [incident.incident_state].concat(next_state[incident.incident_type][incident.incident_state])) {
+            incident_state_field.add(new Option(meta.label.incident_state[state], state, incident.incident_state === state));
         }
     }
 
@@ -50,7 +51,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
         }
     }
 
-    const title = incident_update ? "Incident aanpassen" : "Nieuw incident (<span style='color:orangered;'>verplicht</span>)";
+    const title = incident_update ? "Incident aanpassen" : "Nieuw incident (<span style='color:orangered;'>verplichte velden</span>)";
     const form = await fetch_get("incident.form", {form: incident_update ? "sw-hw-update" : "sw-hw-new"});
     let bootbox_dialog = null;
     if (form) {
@@ -61,7 +62,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
             message: form.template,
             buttons: {
                 confirm: {label: "Bewaar", className: "btn-primary", callback: () => false},
-                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => {if (incident_update) datatable_reload_table()}},
+                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => if (incident_update) datatable_reload_table()},
             },
             onShown: async () => {
                 if (!incident_update) {
@@ -151,15 +152,6 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         })
                     });
 
-                    // hardware incident specific, update m4s-id options when m4s-category has changed
-                    document.getElementById("m4s-category-field").addEventListener("change", (e) => {
-                        e.preventDefault();
-                        const options = meta.m4s[e.target.value];
-                        const m4s_id_field = document.getElementById("m4s-problem-type-guid-field");
-                        m4s_id_field.innerHTML = "";
-                        for (const item of options) m4s_id_field.add(new Option(item.label, item.value));
-                    });
-
                     // when the owner field changes, get the associated laptops and populate the laptop field
                     owner_field.on('change', async e => {
                         const [laptop_type, laptop_owner_id] = e.target.value.split("-");
@@ -194,6 +186,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         document.getElementById("group-1").hidden = e.target.checked;
                     });
                 }
+
                 // if default password checked, disable the password field
                 const password_field = document.getElementById("password-field");
                 document.getElementById("password-default-chk").addEventListener("click", e => {
@@ -210,29 +203,31 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                         previous_info_field.innerHTML = history;
                         previous_info_field.closest(".form-row").hidden = false;
                     }
-                    __state_select_set(incident.incident_state);
-                    delete incident.incident_state; // avoid initializing it twice
                     incident.info = "";
                     // if the location is updated, change the event to transition
-                    document.getElementById("location-field").addEventListener("change", e => {
-                        document.getElementById("incident-state-field").value = "transition";
+                    location_field.addEventListener("change", e => {
+                        incident_state_field.value = "transition";
                     });
                     // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
-                    document.getElementById("incident-state-field").addEventListener("change", e => {
-                        if (e.target.value !== "transition") document.getElementById("location-field").value = incident.location;
+                    incident_state_field.addEventListener("change", e => {
+                        if (e.target.value !== "transition") location_field.value = incident.location;
                     });
-                    await form_populate(category, incident, meta);
-                    document.getElementById("group-1").hidden = incident.laptop_type === "reserve";
-                    // in case of hardware incident, get the m4s category and id
+
+                    // Just in case, populate the m4s category
+                    incident.m4s_category = meta.default.m4s_category;
+                    // in case of hardware incident, get the configured m4s category and guid and populate the respective fields
                     for (const [category, problems] of Object.entries(meta.m4s)) {
                         for (const problem of problems) {
                             if (problem.value === incident.m4s_problem_type_guid) {
-                                document.getElementById("m4s-problem-type-guid-field").value = problem.label;
-                                document.getElementById("m4s-category-field").value = category;
+                                incident.m4s_category = category;
+                                meta.option.m4s_problem_type_guid = meta.m4s[category];
                                 break;
                             }
                         }
                     }
+                    document.querySelectorAll("#hardware-repair-group select").forEach(item => item.disabled = incident.m4s_guid !== null);
+                    await form_populate(category, incident, meta);
+                    document.getElementById("group-1").hidden = incident.laptop_type === "reserve";
 
                 } else { // new incident
                     // populate owner list
@@ -249,16 +244,33 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 }
                 __password_field_visibility(incident_update);
 
+                // hardware incident specific, update m4s-id options when m4s-category has changed
+                document.getElementById("m4s-category-field").addEventListener("change", (e) => {
+                    e.preventDefault();
+                    const options = meta.m4s[e.target.value];
+                    const m4s_id_field = document.getElementById("m4s-problem-type-guid-field");
+                    m4s_id_field.innerHTML = "";
+                    for (const item of options) m4s_id_field.add(new Option(item.label, item.value));
+                });
+
                 // hide/display hardware problem types
-                document.getElementById("lis-type-field").addEventListener("change", e => {
+                lis_type_field.addEventListener("change", e => {
+                    const sw2hw_location = {ictbb: "baliebb", ictsum: "baliesum"}
                     document.getElementById("hardware-repair-group").hidden = e.target.value !== "hardware"
-                    if (e.target.value === "hardware") {
-                        document.getElementById("info-field").parentElement.classList.add("required");
+                    if (e.target.value === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make sure the info field is filled in.
+                        if (!(incident && incident.m4s_guid !== null)) info_field.parentElement.classList.add("required"); // option field not required when incident already in M4S
+                        if (location_field.value in sw2hw_location) {
+                            location_field.value = sw2hw_location[location_field.value];
+                            location_field.style.background = "yellow";
+                        }
                     } else {
-                        document.getElementById("info-field").parentElement.classList.remove("required");
+                        info_field.parentElement.classList.remove("required");
+                        location_field.value = meta.default.location;
+                        location_field.style.background = "white";
                     }
+                    if (incident) __state_select_set(incident); // when changing the incident_type, update the possible states
                 })
-                document.getElementById("lis-type-field").dispatchEvent(new Event("change"));
+                lis_type_field.dispatchEvent(new Event("change"));
             },
         });
 
@@ -270,10 +282,14 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
             document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
             data.laptop_owner_password = data.laptop_owner_password || stored_password;
             if (incident_update) {
+                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && data.info === "" && incident.m4s_guid === null) {
+                    new AlertPopup("warning", "Roodgekleurde velden invullen aub.");
+                    return false
+                }
                 data.id = incident.id;
                 data.event = document.getElementById("incident-state-field").value;
                 await fetch_update("incident.incident", data);
-            } else {
+            } else {  // new incident
                 if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
                     data.laptop_owner_name = meta.label.location[data.location];
                     data.laptop_owner_id = data.location;
@@ -297,6 +313,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 }
                 data.category = category
                 data.lis_badge_id = parseInt(data.lis_badge_id);
+                if (data["incident_type"] !== "hardware") data["m4s_problem_type_guid"] = ""
                 data.event = "started";
                 await fetch_post("incident.incident", data);
             }
@@ -407,7 +424,7 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                     incident.info = "";
                     meta.option.laptop_owner_id = [{value: incident.laptop_owner_id, label: incident.laptop_owner_name}];
                     incident.long_loan = incident.incident_type === "longloan";
-                    await form_populatNe(category, incident, meta);
+                    await form_populate(category, incident, meta);
                 } else {
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
@@ -650,7 +667,7 @@ const __table_loaded = () => {
         const incident = incidents && incidents.length > 0 ? incidents[0] : null;
         const histories = await fetch_get("history.history", {filters: `incident_id$=$${row.id}`});
         const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
-        if (["software", "hardware"].includes(incident.category)) {
+        if (incident.category === "repair") {
             await __sw_hw_form(incident.category, incident, history);
         } else {
             await __loan_form(incident.category, incident, history)

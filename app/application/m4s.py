@@ -85,7 +85,12 @@ class M4S:
 
     def case_add(self, incident):
         try:
-            return True # test purposes
+            m4s_test = app.config["M4S_TEST"] if "M4S_TEST" in app.config else False
+            if m4s_test == True:
+                log.info("M4S test, no incident is added into M4S")
+                incident.m4s_guid = "test-guid"
+                dl.incident.commit()
+                return True # test purposes
             self.init_bearer()
             url = app.config["M4S_API_URL"]
             headers = {"Authorization": f"Bearer {self.bearer_token}", "Content-Type": "application/json"}
@@ -98,7 +103,6 @@ class M4S:
                 "truthStatement": True,
                 "waterDamage": incident.water_damage,
                 "fallDamage": incident.drop_damage,
-                "status": "draft",              # is ignored by m4s, TEST purposes
                 "serialNumber": incident.laptop_serial,
                 "institutionGuid": app.config["M4S_INSTITUTION_GUID"],
                 "problemTypeGuid": incident.m4s_problem_type_guid,
@@ -118,6 +122,8 @@ class M4S:
                 "billingContact": app.config["M4S_BILLING_INFO"]
             }
             data["address"].update(app.config["M4S_ADDRESS_INFO"])
+            if m4s_test == "draft":
+                data["status"] = "draft"
             resp = requests.post(f"{url}/field-service/cases", headers=headers, data=json.dumps(data))
             if resp.status_code == 201:
                 resp = json.loads(resp.text)

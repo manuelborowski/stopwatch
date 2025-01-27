@@ -58,14 +58,8 @@ def __event(incident, event):
                 __event_location_changed(incident)
             elif event == "started":
                 incident.incident_state = "started"
-                if incident.incident_type == "hardware":
-                    m4s.case_add(incident)
             elif event == "repaired":
                 incident.incident_state = "repaired"
-            elif event == "shortloan":
-                incident.incident_state = "shortloan"
-            elif event == "longloan":
-                incident.incident_state = "longloan"
             elif event == "closed":
                 incident.incident_state = "closed"
                 if incident.laptop_owner_password_default:
@@ -111,6 +105,8 @@ def add(data):
         if "incident_owner" not in data: data["incident_owner"] = current_user.username
         incident = dl.incident.add(data)
         if incident:
+            if incident.incident_type == "hardware":
+                m4s.case_add(incident)
             if "event" in data:
                 __event(incident, data["event"])
             # store some data in history
@@ -138,6 +134,8 @@ def update(data):
                     data["info"] = history_latest.info
             data["time"] = datetime.datetime.now()
             if "incident_owner" not in data: data["incident_owner"] = current_user.username
+            if data["incident_type"] == "hardware" and incident.m4s_guid == None: # changed type from software to hardware, put incident in M4S
+                m4s.case_add(incident)
             del data["id"]
             incident = dl.incident.update(incident, data)
             if incident:
