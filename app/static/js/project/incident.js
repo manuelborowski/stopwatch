@@ -62,9 +62,14 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
             message: form.template,
             buttons: {
                 confirm: {label: "Bewaar", className: "btn-primary", callback: () => false},
-                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => if (incident_update) datatable_reload_table()},
+                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => {if (incident_update) datatable_reload_table()}},
             },
             onShown: async () => {
+                const location_field = document.getElementById("location-field");
+                const incident_state_field = document.getElementById("incident-state-field");
+                const lis_type_field = document.getElementById("lis-type-field");
+                const info_field = document.getElementById("info-field");
+
                 if (!incident_update) {
                     owner_field = $("#owner-field");
 
@@ -496,7 +501,7 @@ const __history_form = async (ids) => {
                 const history_table = document.querySelector("#history-table");
                 for (const h of histories) {
                     let tr = "<tr>";
-                    for (const e of ["time", "incident_owner", "priority", "incident_state", "location", "info", "incident_type", "drop_damage", "water_damage"]) {
+                    for (const e of ["time", "incident_owner", "priority", "incident_state", "location", "info", "incident_type"]) {
                         let val = h[e];
                         if (e === "incident_state") val = meta.label.incident_state[val];
                         if (e === "location") val = meta.label.location[val];

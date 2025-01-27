@@ -83,8 +83,9 @@ from functools import wraps
 # 0.51: datatable, solved conflict between initialization and columns-visibility.  Bootbox, made confirm synchronous to avoid premature closing.
 #  Started with combining hardware and software category into repair
 # 0.52: added funcionality to switch from hardware to software incident type
+# 0.53: small updates and bugfixes
 
-version = "0.52"
+version = "0.53"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
