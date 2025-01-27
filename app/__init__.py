@@ -80,8 +80,10 @@ from functools import wraps
 # 0.48: reworked laptop_type, i.e. students and staff are in 1 select, spare laptop is checkbox.
 # 0.49: added m4s api.  Use problemtypes defined by m4s.  General bugfixes
 # 0.50: category hw, added link to defect in m4s
+# 0.51: datatable, solved conflict between initialization and columns-visibility.  Bootbox, made confirm synchronous to avoid premature closing.
+#  Started with combining hardware and software category into repair
 
-version = "0.50"
+version = "0.51"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

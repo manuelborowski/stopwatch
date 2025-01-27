@@ -85,7 +85,7 @@ class M4S:
 
     def case_add(self, incident):
         try:
-            a = 3 / 0
+            return True # test purposes
             self.init_bearer()
             url = app.config["M4S_API_URL"]
             headers = {"Authorization": f"Bearer {self.bearer_token}", "Content-Type": "application/json"}

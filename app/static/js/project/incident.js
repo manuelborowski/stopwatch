@@ -10,19 +10,13 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
     const incident_update = incident !== null;
     const __state_select_set = current_state => {
         const next_state = {
-            software: {
-                started: ["transition", "repaired"],
-                transition: ["started"],
-                repaired: ["started", "transition"],
-            },
-            hardware: {
-                started: ["repaired"],
-                repaired: ["started"],
-            }
+            started: ["transition", "repaired"],
+            transition: ["started"],
+            repaired: ["started", "transition"],
         }
         const incident_state_field = document.getElementById("incident-state-field");
         incident_state_field.innerHTML = "";
-        for (const state of [current_state].concat(next_state[category][current_state])) {
+        for (const state of [current_state].concat(next_state[current_state])) {
             incident_state_field.add(new Option(meta.label.incident_state[state], state, current_state === state));
         }
     }
@@ -41,6 +35,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
             password_field.value = stored_password;
         }
     }
+
     const __password_field_toggle = () => {
         const password_field = document.getElementById("password-field");
         const password_show_field = document.getElementById("password-show-field");
@@ -55,63 +50,18 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
         }
     }
 
-    const title = incident_update ? "Incident aanpassen" : `Nieuw incident (* is verplicht)${category === "hardware" ? ".  OPGELET, dit incident wordt ook ingevoerd in M4S" : ""}`;
+    const title = incident_update ? "Incident aanpassen" : "Nieuw incident (<span style='color:orangered;'>verplicht</span>)";
     const form = await fetch_get("incident.form", {form: incident_update ? "sw-hw-update" : "sw-hw-new"});
+    let bootbox_dialog = null;
     if (form) {
         let owner_field = null;
-        bootbox.dialog({
+        bootbox_dialog = bootbox.dialog({
             title,
             size: "xl",
             message: form.template,
             buttons: {
-                confirm: {
-                    label: "Bewaar",
-                    className: "btn-primary",
-                    callback: async () => {
-                        const form_data = new FormData(document.getElementById("incident-form"));
-                        const data = Object.fromEntries(form_data)
-                        // checkboxes are present only when selected and have the value "on" => convert
-                        document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-                        data.laptop_owner_password = data.laptop_owner_password || stored_password;
-                        if (incident_update) {
-                            data.id = incident.id;
-                            data.event = document.getElementById("incident-state-field").value;
-                            await fetch_update("incident.incident", data);
-                        } else {
-                            if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
-                                data.laptop_owner_name = meta.label.location[data.location];
-                                data.laptop_owner_id = data.location;
-                                data.laptop_name = data.spare_laptop_name;
-                                data.spare_laptop_name = "NVT";
-                                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "") {
-                                    new AlertPopup("warning", "'Lis-badgenummer' moet ingevuld zijn.")
-                                    return
-                                }
-                                data.laptop_type = "reserve";
-                            } else {
-                                const owner_data = owner_field.select2("data")[0];
-                                data.laptop_owner_name = owner_data.text;
-                                const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
-                                data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
-                                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || category === "hardware" && data.info === "") {
-                                    new AlertPopup("warning", `'Lis-badgenummer', 'Eigenaar'${category === 'hardware' ? ', Info ': ''} en 'Laptop' moeten ingevuld zijn.`);
-                                    return
-                                }
-                                [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
-                            }
-                            data.category = category
-                            data.lis_badge_id = parseInt(data.lis_badge_id);
-                            data.event = "started";
-                            await fetch_post("incident.incident", data);
-                        }
-                        datatable_reload_table();
-                    }
-                },
-                cancel: {
-                    label: "Annuleer", className: "btn-secondary", callback: async () => {
-                        if (incident_update) datatable_reload_table();
-                    }
-                },
+                confirm: {label: "Bewaar", className: "btn-primary", callback: () => false},
+                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => {if (incident_update) datatable_reload_table()}},
             },
             onShown: async () => {
                 if (!incident_update) {
@@ -252,6 +202,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 });
                 const password_show_field = document.getElementById("password-show-field");
                 password_show_field.addEventListener("click", e => __password_field_toggle());
+
                 // set default values
                 if (incident_update) {
                     if (history !== "") {
@@ -295,16 +246,62 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
                     const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
                     await form_populate(category, defaults, meta);
-                    if (category === "hardware") document.getElementById("info-label-required-field").hidden = false;
                 }
                 __password_field_visibility(incident_update);
 
-                // hide/display water and drop-damage checkboxes
+                // hide/display hardware problem types
                 document.getElementById("lis-type-field").addEventListener("change", e => {
-                    document.getElementById("hardware-damage-group").hidden = e.target.value !== "hardware"
+                    document.getElementById("hardware-repair-group").hidden = e.target.value !== "hardware"
+                    if (e.target.value === "hardware") {
+                        document.getElementById("info-field").parentElement.classList.add("required");
+                    } else {
+                        document.getElementById("info-field").parentElement.classList.remove("required");
+                    }
                 })
                 document.getElementById("lis-type-field").dispatchEvent(new Event("change"));
             },
+        });
+
+        // Confirm button pushed
+        document.querySelector(".bootbox .btn-primary").addEventListener("click", async e => {
+            const form_data = new FormData(document.getElementById("incident-form"));
+            const data = Object.fromEntries(form_data)
+            // checkboxes are present only when selected and have the value "on" => convert
+            document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
+            data.laptop_owner_password = data.laptop_owner_password || stored_password;
+            if (incident_update) {
+                data.id = incident.id;
+                data.event = document.getElementById("incident-state-field").value;
+                await fetch_update("incident.incident", data);
+            } else {
+                if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
+                    data.laptop_owner_name = meta.label.location[data.location];
+                    data.laptop_owner_id = data.location;
+                    data.laptop_name = data.spare_laptop_name;
+                    data.spare_laptop_name = "NVT";
+                    if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "") {
+                        new AlertPopup("warning", "Roodgekleurde velden invullen aub.")
+                        return false
+                    }
+                    data.laptop_type = "reserve";
+                } else { // regular laptop
+                    const owner_data = owner_field.select2("data")[0];
+                    data.laptop_owner_name = owner_data.text;
+                    const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
+                    data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
+                    if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && data.info === "") {
+                        new AlertPopup("warning", "Roodgekleurde velden invullen aub.");
+                        return false
+                    }
+                    [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
+                }
+                data.category = category
+                data.lis_badge_id = parseInt(data.lis_badge_id);
+                data.event = "started";
+                await fetch_post("incident.incident", data);
+            }
+            datatable_reload_table();
+            if (bootbox_dialog) bootbox_dialog.modal("hide");
         });
     }
 }
@@ -560,15 +557,9 @@ const __update_toolbar_fields = () => {
 const button_menu_items = [
     {
         type: 'button',
-        id: 'software-new',
-        label: 'SW probleem',
-        cb: () => __sw_hw_form("software")
-    },
-    {
-        type: 'button',
-        id: 'hardware-new',
-        label: 'HW probleem',
-        cb: () => __sw_hw_form("hardware")
+        id: 'repair-new',
+        label: 'Nieuwe reparatie',
+        cb: () => __sw_hw_form("repair")
     },
     {
         type: 'button',

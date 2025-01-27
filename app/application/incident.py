@@ -52,13 +52,13 @@ def __event_location_changed(incident):
 def __event(incident, event):
     try:
         incident.flag_reset("state-timeout")
-        if incident.category in ["hardware", "software"]:
+        if incident.category == "repair":
             if event == "transition":
                 incident.incident_state = "transition"
                 __event_location_changed(incident)
             elif event == "started":
                 incident.incident_state = "started"
-                if incident.category == "hardware":
+                if incident.incident_type == "hardware":
                     m4s.case_add(incident)
             elif event == "repaired":
                 incident.incident_state = "repaired"

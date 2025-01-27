@@ -52,3 +52,7 @@
     border-style: solid;
     padding-right: 5px;
 }
+
+.form-element .required {
+    color: orangered;
+}

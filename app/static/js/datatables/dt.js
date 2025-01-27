@@ -175,6 +175,9 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             }
             if (callbacks.table_loaded) callbacks.table_loaded();
         },
+        initComplete: function () {
+            new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template, (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
+        },
     }
 
     if ("default_order" in table_config) {
@@ -189,8 +192,6 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     DataTable.type('date', 'className', 'dt-left');
     DataTable.defaults.column.orderSequence = ['desc', 'asc'];
     ctx.table = new DataTable('#datatable', datatable_config);
-    const column_visibility = new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template,
-        (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
     const cell_edit = new CellEdit(ctx.table, table_config.template, __cell_edit_changed_cb);
 
     // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
