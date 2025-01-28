@@ -69,8 +69,9 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 const incident_state_field = document.getElementById("incident-state-field");
                 const lis_type_field = document.getElementById("lis-type-field");
                 const info_field = document.getElementById("info-field");
+                    const spare_field = document.getElementById("spare-field")
 
-                if (!incident_update) {
+                if (!incident_update) { //new incident
                     owner_field = $("#owner-field");
 
                     // Scan LIS badge
@@ -127,11 +128,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                                     const label = qr_decode(res);
                                     const laptop_field = document.getElementById("laptop-field");
                                     laptop_field.innerHTML = "";
-                                    const option = document.createElement("option");
-                                    laptop_field.appendChild(option);
-                                    option.label = label;
-                                    option.value = label;
-                                    option.selected = true;
+                                    laptop_field.add(new Option(label, label, true, true));
                                 }
                             }
                         })
@@ -144,7 +141,6 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                             title: "Scan de badge van de reservelaptop",
                             callback: async res => {
                                 if (res !== null) {
-                                    const spare_field = document.getElementById("spare-field")
                                     const [valid_code, code] = badge_raw2hex(res);
                                     if (valid_code) {
                                         const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
@@ -188,7 +184,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
 
                     // Incident is for spare laptop
                     document.getElementById("type-spare-laptop-chk").addEventListener("click", e => {
-                        document.getElementById("group-1").hidden = e.target.checked;
+                        document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = e.target.checked);
+                        spare_field.parentElement.classList.toggle("required", e.target.checked);
                     });
                 }
 
@@ -232,7 +229,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     }
                     document.querySelectorAll("#hardware-repair-group select").forEach(item => item.disabled = incident.m4s_guid !== null);
                     await form_populate(category, incident, meta);
-                    document.getElementById("group-1").hidden = incident.laptop_type === "reserve";
+                    document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = incident.laptop_type === "reserve");
 
                 } else { // new incident
                     // populate owner list
@@ -349,7 +346,8 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                         data.event = data.long_loan ? "longloan" : "shortloan"
                         data.incident_type = data.event;
                         if (incident_update) {
-                            data.id = params.incident.id;
+                            data.id = incident.id;
+                            data.event = "loaned"
                             await fetch_update("incident.incident", data);
                         } else {
                             data.event = "started";

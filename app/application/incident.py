@@ -134,7 +134,7 @@ def update(data):
                     data["info"] = history_latest.info
             data["time"] = datetime.datetime.now()
             if "incident_owner" not in data: data["incident_owner"] = current_user.username
-            if data["incident_type"] == "hardware" and incident.m4s_guid == None: # changed type from software to hardware, put incident in M4S
+            if "incident_type" in data and data["incident_type"] == "hardware" and incident.m4s_guid == None: # changed type from software to hardware, put incident in M4S if not already in M4S
                 m4s.case_add(incident)
             del data["id"]
             incident = dl.incident.update(incident, data)
@@ -357,26 +357,37 @@ def format_data(db_list, total_count=None, filtered_count=None):
         out.append(em)
     return total_count, filtered_count, out
 
-
 def incident_cron_state_timeout(opaque=None):
     try:
+        timeout_locations = {}
+        now = datetime.datetime.now()
+        def __check_timeout(incidents, key, timeout):
+            for incident in incidents:
+                if now > incident.time + timeout and not incident.flag_check("state-timeout"):
+                    log.info(f'{sys._getframe().f_code.co_name}: state/incident-type timeout, incident {incident.id}, state/incident-type {key}')
+                    incident.flag_set("state-timeout")
+                    if incident.location in timeout_locations:
+                        timeout_locations[incident.location].append(incident)
+                    else:
+                        timeout_locations[incident.location] = [incident]
+
         log.info(f'{sys._getframe().f_code.co_name}: START')
         states = dl.settings.get_configuration_setting("lis-state")
         locations = dl.settings.get_configuration_setting("lis-locations")
-        now = datetime.datetime.now()
-        timeout_locations = {}
         for key, state in states.items():
             if "timeout" in state:
                 timeout = al.common.ini2timedelta(state["timeout"])
-                incidents = dl.incident.get_m(("incident_state", "=", key))
-                for incident in incidents:
-                    if now > incident.time + timeout and not incident.flag_check("state-timeout"):
-                        log.info(f'{sys._getframe().f_code.co_name}: state timeout, incident {incident.id}, state {key}')
-                        incident.flag_set("state-timeout")
-                        if incident.location in timeout_locations:
-                            timeout_locations[incident.location].append(incident)
-                        else:
-                            timeout_locations[incident.location] = [incident]
+                incidents = dl.incident.get_m([("incident_state", "=", key), ("incident_state", "!", "closed")])
+                __check_timeout(incidents, key, timeout)
+
+        incident_types = dl.settings.get_configuration_setting("lis-incident-types")
+        for key, type in incident_types.items():
+            if "timeout" in type:
+                timeout = al.common.ini2timedelta(type["timeout"])
+                incidents = dl.incident.get_m([("incident_type", "=", key), ("incident_state", "!", "closed")])
+                __check_timeout(incidents, key, timeout)
+
+
         dl.incident.commit()
         body_template = {"s": "1 incident staat te lang in dezelfde toestand", "m": "{nbr} incidenten staan te lang in dezelfde toestand"}
         url = request.url_root
@@ -399,5 +410,7 @@ def incident_cron_state_timeout(opaque=None):
                     log.info(f"{sys._getframe().f_code.co_name}, state-timeout mail sent to {location['email']}")
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
+
 
 

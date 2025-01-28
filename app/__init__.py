@@ -84,8 +84,9 @@ from functools import wraps
 #  Started with combining hardware and software category into repair
 # 0.52: added funcionality to switch from hardware to software incident type
 # 0.53: small updates and bugfixes
+# 0.54: improved new-incident-form ico spare laptop.  Reshuffled the layout of the forms a bit.  Added timeout for incident-types.
 
-version = "0.53"
+version = "0.54"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
