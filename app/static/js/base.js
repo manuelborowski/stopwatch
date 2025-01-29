@@ -1,7 +1,7 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
-    ["incident.show", "Incidenten", 1],
+    ["incident.show", "Overzicht", 1],
     ["history.show", "Historiek", 1],
     ["spare.show", "Reserves", 3],
     ["lisbadge.show", "LIS badges", 3],

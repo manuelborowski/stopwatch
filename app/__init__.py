@@ -89,8 +89,9 @@ from functools import wraps
 # 0.54: improved new-incident-form ico spare laptop.  Reshuffled the layout of the forms a bit.  Added timeout for incident-types.
 # 0.55: bugfixed adding spare laptop badges and incident badges
 # 0.56: spare loan, added state "in preparation"
+# 0.57: esthetic updates.  Added installation of new laptop
 
-version = "0.56"
+version = "0.57"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

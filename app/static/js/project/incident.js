@@ -13,7 +13,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
         const next_state = {
             "software": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition"],},
             "reinstall": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition"],},
-            "hardware": {started: ["repaired"], repaired: ["started"]}
+            "hardware": {started: ["repaired"], repaired: ["started"]},
+            "newlaptop": {started: ["repaired"], repaired: ["started"]}
         }
         const incident_state_field = document.getElementById("incident-state-field");
         incident_state_field.innerHTML = "";
@@ -576,7 +577,7 @@ const button_menu_items = [
     {
         type: 'button',
         id: 'repair-new',
-        label: 'Nieuwe reparatie',
+        label: 'Nieuw Incident',
         cb: () => __sw_hw_form("repair")
     },
     {
