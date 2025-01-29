@@ -23,9 +23,11 @@ from functools import wraps
 # DONE: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
 # TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
 # TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
+# TODO: hoes -> ook inbrengen in m4s
 # DONE: locaties -> signpost = hardware incident?
 # DONE: lader lenen
 # DONE: tijdelijk laptop lenen of nieuw in school en laptop lenen
+# TODO: tijdelijke laptop: in voorbereiding, uitgeleend, gesloten
 
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
@@ -85,8 +87,9 @@ from functools import wraps
 # 0.52: added funcionality to switch from hardware to software incident type
 # 0.53: small updates and bugfixes
 # 0.54: improved new-incident-form ico spare laptop.  Reshuffled the layout of the forms a bit.  Added timeout for incident-types.
+# 0.55: bugfixed adding spare laptop badges and incident badges
 
-version = "0.54"
+version = "0.55"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

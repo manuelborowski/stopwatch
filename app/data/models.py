@@ -73,7 +73,8 @@ def update_multiple(model, data = [], timestamp=False):
 def delete_multiple(model, ids=[], objs=[]):
     try:
         if objs:
-            ids = [o.id for o in objs]
+            for obj in objs:
+                db.session.delete(obj)
         if ids:
             objs = model.query.filter(model.id.in_(ids)).all()
             for obj in objs:

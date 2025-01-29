@@ -11,8 +11,12 @@ def add(f_data):
     try:
         find_badge = dl.lisbadge.get(("rfid", "=", f_data["rfid"]))
         if find_badge:
-            log.error(f'{sys._getframe().f_code.co_name}: rfid already present, {f_data["rfid"]}')
-            return {"status": "error", "msg": f'Rfid code, {f_data["rfid"]}, bestaat al'}
+            log.info(f'{sys._getframe().f_code.co_name}: rfid already present, remove, {f_data["rfid"]}')
+            dl.lisbadge.delete_m(objs=[find_badge])
+        find_badge = dl.lisbadge.get(("id", "=", f_data["id"]))
+        if find_badge:
+            log.info(f'{sys._getframe().f_code.co_name}: id already present, remove, {f_data["id"]}')
+            dl.lisbadge.delete_m(objs=[find_badge])
         badge = dl.lisbadge.add(f_data)
         log.info(f'{sys._getframe().f_code.co_name}: badge added, {f_data}')
         return {"id": badge.id}

@@ -26,10 +26,7 @@ const __dialog_new_single_lis_badge = async (default_id = null, default_auto_inc
                                 new AlertPopup("warning", "Het veld 'Id' moet een getal zijn.")
                             } else {
                                 let resp = null;
-                                if (new_badge)
-                                    resp = await fetch_post("lisbadge.lisbadge", data);
-                                else
-                                    resp = await fetch_update("lisbadge.lisbadge", data);
+                                resp = await fetch_post("lisbadge.lisbadge", data);
                                 datatable_reload_table();
                                 if (resp !== null && auto_increment) {
                                     data.id += 1;
@@ -46,6 +43,7 @@ const __dialog_new_single_lis_badge = async (default_id = null, default_auto_inc
             },
             onShown: function () {
                 const rfid_field = document.getElementById('rfid-field');
+                const id_field = document.getElementById('id-field');
                 rfid_field.focus();
                 rfid_field.addEventListener('keypress', function (event) {
                     if (event.key === 'Enter') {
@@ -57,27 +55,14 @@ const __dialog_new_single_lis_badge = async (default_id = null, default_auto_inc
                         }
                     }
                 });
-
-                document.getElementById("id-field").addEventListener("input", () => {
-                    const id = document.getElementById("id-field").value;
-                    if (id !== "") {
-                        const data = datatable_row_data_from_id(id);
-                        new_badge = data === undefined;
-                        if (!new_badge) {
-                            document.getElementById('rfid-field').value = data.rfid;
-                            return
-                        }
-                    }
-                    document.getElementById('rfid-field').value = "";
-                });
                 setTimeout(() => {
                     document.getElementById('auto-increment-id').checked = default_auto_increment;
                     if (default_id) {
-                        const id_field = document.getElementById('id-field');
                         id_field.value = default_id;
                         id_field.dispatchEvent(new Event("input"));
                     }
                 }, 100);
+                rfid_field.value = "";
             }
         });
     }

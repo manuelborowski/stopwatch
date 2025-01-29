@@ -35,8 +35,8 @@ def get(filters=[]):
     return dl.models.get_first_single(Spare, filters)
 
 
-def delete(ids=None):
-    return dl.models.delete_multiple(Spare, ids=ids)
+def delete_m(ids=None, objs=None):
+    return dl.models.delete_multiple(Spare, ids=ids, objs=objs)
 
 
 def commit():

@@ -33,8 +33,8 @@ def get(filters=[]):
     return dl.models.get_first_single(LisBadge, filters)
 
 
-def delete(ids=None):
-    return dl.models.delete_multiple(LisBadge, ids=ids)
+def delete_m(ids=None, objs=None):
+    return dl.models.delete_multiple(LisBadge, ids=ids, objs=objs)
 
 
 def commit():

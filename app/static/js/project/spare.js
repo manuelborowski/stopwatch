@@ -27,10 +27,7 @@ const __dialog_new_single_spare = async (default_id = null, default_auto_increme
                                 new AlertPopup("warning", "Het veld 'Badgenummer' moet een getal zijn.")
                             } else {
                                 let resp = null;
-                                if (new_spare)
-                                    resp = await fetch_post("spare.spare", data);
-                                else
-                                    resp = await fetch_update("spare.spare", data);
+                                resp = await fetch_post("spare.spare", data);
                                 datatable_reload_table();
                                 if (resp !== null && auto_increment) {
                                     data.id += 1;
@@ -58,23 +55,6 @@ const __dialog_new_single_spare = async (default_id = null, default_auto_increme
                         }
                     }
                 });
-
-                document.getElementById("id-field").addEventListener("input", () => {
-                    const id = document.getElementById("id-field").value;
-                    if (id !== "") {
-                        const data = datatable_row_data_from_id(id);
-                        new_spare = data === undefined;
-                        if (!new_spare) {
-                            document.getElementById('rfid-field').value = data.rfid;
-                            document.getElementById('serial-field').value = data.serial;
-                            document.getElementById('label-field').value = data.label;
-                            return
-                        }
-                    }
-                    document.getElementById('rfid-field').value = "";
-                    document.getElementById('serial-field').value = "";
-                    document.getElementById('label-field').value = "";
-                });
                 setTimeout(() => {
                     document.getElementById('auto-increment-id').checked = default_auto_increment;
                     if (default_id) {
@@ -83,6 +63,7 @@ const __dialog_new_single_spare = async (default_id = null, default_auto_increme
                         id_field.dispatchEvent(new Event("input"));
                     }
                 }, 100);
+                document.getElementById('rfid-field').value = "";
             }
         });
     }

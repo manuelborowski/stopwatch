@@ -11,8 +11,12 @@ def add(f_data):
     try:
         find_spare = dl.spare.get(("rfid", "=", f_data["rfid"]))
         if find_spare:
-            log.error(f'{sys._getframe().f_code.co_name}: rfid already present, {f_data["rfid"]}')
-            return {"status": "error", "msg": f'Rfid code, {f_data["rfid"]}, bestaat al'}
+            log.info(f'{sys._getframe().f_code.co_name}: rfid already present, remove {f_data["rfid"]}')
+            dl.spare.delete_m(objs=[find_spare])
+        find_spare = dl.spare.get(("id", "=", f_data["id"]))
+        if find_spare:
+            log.info(f'{sys._getframe().f_code.co_name}: id already present, remove {f_data["id"]}')
+            dl.spare.delete_m(objs=[find_spare])
         spare = dl.spare.add(f_data)
         log.info(f'{sys._getframe().f_code.co_name}: spare added, {f_data}')
         return {"id": spare.id}
@@ -22,10 +26,6 @@ def add(f_data):
 
 def update(f_data):
     try:
-        find_spare = dl.spare.get(("rfid", "=", f_data["rfid"]))
-        if find_spare:
-            log.error(f'{sys._getframe().f_code.co_name}: rfid already present, {f_data["rfid"]}')
-            return {"status": "error", "msg": f'Rfid code, {f_data["rfid"]}, bestaat al'}
         spare = dl.spare.get(("id", "=", f_data["id"]))
         if spare:
             del f_data["id"]
