@@ -45,6 +45,8 @@ export const form_default_set = (defaults) => {
     }
 }
 
+// Iterate over data.  If a corresponding field (in the form) is found, set the value.
+// In case of a select, it is possible to limit the number of options, depending on the category
 export const form_populate = async (category, data, meta = null) => {
     for (let [field_name, value] of Object.entries(data)) {
         const field = document.querySelector(`[name=${field_name}]`);

@@ -347,10 +347,8 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                         data.incident_type = data.event;
                         if (incident_update) {
                             data.id = incident.id;
-                            data.event = "loaned"
                             await fetch_update("incident.incident", data);
                         } else {
-                            data.event = "started";
                             const owner_data = owner_field.select2("data")[0];
                             data.laptop_owner_name = owner_data.text;
                             data.category = category;
@@ -437,7 +435,7 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                     if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
                     await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
                     if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
-                    await form_populate(category, meta.default, meta);
+                    await form_populate(category, Object.assign(meta.default, {incident_state: "loaned"}), meta);
                 }
             },
         });

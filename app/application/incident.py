@@ -65,7 +65,7 @@ def __event(incident, event):
                 if incident.laptop_owner_password_default:
                     __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
         elif incident.category == "loan":
-            if event == "started":
+            if event == "prepared":
                 incident.incident_state = "loaned"
             elif event == "closed":
                 incident.incident_state = "closed"
