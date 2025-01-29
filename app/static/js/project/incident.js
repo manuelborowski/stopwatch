@@ -650,8 +650,14 @@ const filter_menu_items = [
     {
         type: 'checkbox',
         id: 'incident-state-closed',
-        label: 'Afgeleverd?',
+        label: 'Afhandeld?',
         default: false,
+        persistent: true
+    },
+    {
+        type: 'select',
+        id: 'incident-type',
+        label: 'Type',
         persistent: true
     },
     {
@@ -706,12 +712,18 @@ $(document).ready(async () => {
     owners = owners.map(e => ({label: e, value: e}));
     const incident_owner_options = [{label: current_user.username, value: current_user.username}, {label: "Iedereen", value: "all"}].concat(owners);
     const state_options = [{label: "Alles", value: "all"}].concat(meta.option.incident_state);
+    const type_options = [{label: "Alles", value: "all"}].concat(meta.option.incident_type);
     const filtered_location = meta.option.location.filter(i => i.value !== meta.default.location);
     const location_options = [{label: meta.label.location[meta.default.location], value: meta.default.location}, {label: "Alle", value: "all"}].concat(filtered_location);
     filter_menu_items.filter((e, i, a) => {
         if (e.id === "incident-owner-id") {
             a[i].options = incident_owner_options;
             a[i].default = current_user.username;
+            return true
+        }
+        if (e.id === "incident-type") {
+            a[i].options = type_options;
+            a[i].default = "all";
             return true
         }
         if (e.id === "incident-state") {
