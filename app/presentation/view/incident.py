@@ -98,6 +98,7 @@ def meta():
                        "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
+                       "location": locations,
                        "m4s": m4s_problem_types
                        })
 

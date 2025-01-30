@@ -250,12 +250,11 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
 
                 // hide/display hardware problem types
                 lis_type_field.addEventListener("change", e => {
-                    const sw2hw_location = {ictbb: "baliebb", ictsum: "baliesum"}
                     document.getElementById("hardware-repair-group").hidden = e.target.value !== "hardware"
                     if (e.target.value === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make sure the info field is filled in.
                         if (!(incident && incident.m4s_guid !== null)) info_field.parentElement.classList.add("required"); // option field not required when incident already in M4S
-                        if (location_field.value in sw2hw_location) {
-                            location_field.value = sw2hw_location[location_field.value];
+                        if (location_field.value in meta.location && "hardware" in meta.location[location_field.value]) { // if required, change the location to were hardware repair can take place
+                            location_field.value = meta.location[location_field.value].hardware;
                             location_field.style.background = "yellow";
                         }
                     } else {

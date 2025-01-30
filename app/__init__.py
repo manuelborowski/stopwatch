@@ -93,8 +93,9 @@ from functools import wraps
 # 0.58: added incident-type filter
 # 0.59: small bugfix
 # 0.60: remove keys from client
+# 0.61: incident-type is hardware, make location change more generic
 
-version = "0.60"
+version = "0.61"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
