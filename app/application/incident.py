@@ -170,6 +170,34 @@ def get(data={}):
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
 
+def laptop_get(data):
+    try:
+        id = data["id"]
+        type = data["type"]
+        url = app.config["ENTRA_API_URL"]
+        key = app.config["ENTRA_API_KEY"]
+        if type == 'leerling':
+            url += f'/student?filters=leerlingnummer$=${id}'
+        else:
+            url += f'/staff?filters=code$=${id}'
+        resp = requests.get(url, headers={"X-Api-Key": key})
+        if resp.status_code == 200:
+            data = resp.json()
+            if "status" in data and data["status"] == True:
+                user_entra_id = data["data"][0]["entra_id"]
+                url = app.config["ENTRA_API_URL"]
+                url = f'{url}/device/get?filters=user_entra_id$=${user_entra_id},active$=$null'
+                resp = requests.get(url, headers={"X-Api-Key": key})
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if "status" in data and data["status"] == True:
+                        return data["data"]
+        else:
+            raise
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
+        raise
+
 def message_default(incident_id):
     try:
         incident = dl.incident.get(("id", "=", incident_id))

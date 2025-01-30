@@ -158,16 +158,8 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                     owner_field.on('change', async e => {
                         const [laptop_type, laptop_owner_id] = e.target.value.split("-");
                         if (laptop_owner_id !== "") {
-                            const url_suffix = laptop_type === "leerling" ? `student?filters=leerlingnummer$=$${laptop_owner_id}` : `staff?filters=code$=$${laptop_owner_id}`
-                            const url = `${form.data.url}/${url_suffix}`
-                            const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
-                            let resp = await fetch_resp.json();
-                            if ("status" in resp) {
-                                const user_entra_id = resp.data[0].entra_id;
-                                const url = `${form.data.url}/device/get?filters=user_entra_id$=$${user_entra_id},active$=$null`
-                                const fetch_resp = await fetch(url, {headers: {'x-api-key': form.data.key}});
-                                resp = await fetch_resp.json();
-                                const devices = resp.data;
+                            const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
+                            if (devices) {
                                 const laptop_field = document.getElementById("laptop-field");
                                 laptop_field.innerHTML = "";
                                 for (const device of devices) {

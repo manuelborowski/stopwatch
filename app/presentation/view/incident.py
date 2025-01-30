@@ -114,6 +114,16 @@ def location():
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
         return fetch_return_error(f'Exception, {e}')
 
+@bp_incident.route('/incident/laptop', methods=['GET',])
+@login_required
+def laptop():
+    try:
+        ret = al.incident.laptop_get(request.args)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
+        return fetch_return_error()
+
 @bp_incident.route('/incident/form', methods=['GET'])
 @login_required
 def form():
@@ -123,7 +133,6 @@ def form():
             optional = []
             template = ""
             if form == "sw-hw-new":
-                optional = {"url": app.config["ENTRA_API_URL"], "key": app.config["ENTRA_API_KEY"]}
                 template = open(pathlib.Path("app/presentation/template/forms/sw_hw_new.html")).read()
             if form == "sw-hw-update":
                 template = open(pathlib.Path("app/presentation/template/forms/sw_hw_update.html")).read()

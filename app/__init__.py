@@ -92,8 +92,9 @@ from functools import wraps
 # 0.57: esthetic updates.  Added installation of new laptop
 # 0.58: added incident-type filter
 # 0.59: small bugfix
+# 0.60: remove keys from client
 
-version = "0.59"
+version = "0.60"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
