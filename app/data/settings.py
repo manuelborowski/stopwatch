@@ -98,7 +98,7 @@ default_configuration_settings = {
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
 
-    'api-keys': ([], Settings.SETTING_TYPE.E_JSON),
+    'api-keys': ([], Settings.SETTING_TYPE.E_YAML),
 
     'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
     'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),

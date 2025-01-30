@@ -94,8 +94,9 @@ from functools import wraps
 # 0.59: small bugfix
 # 0.60: remove keys from client
 # 0.61: incident-type is hardware, make location change more generic
+# 0.62: first version of return-api
 
-version = "0.61"
+version = "0.62"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
