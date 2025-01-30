@@ -291,6 +291,7 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
                 }
                 data.id = incident.id;
                 data.event = document.getElementById("incident-state-field").value;
+                if (data.incident_type !== "hardware") data.m4s_problem_type_guid = "";  // make sure to clear this field, else it pops up in different places
                 await fetch_update("incident.incident", data);
             } else {  // new incident
                 if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop

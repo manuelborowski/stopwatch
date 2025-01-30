@@ -91,8 +91,9 @@ from functools import wraps
 # 0.56: spare loan, added state "in preparation"
 # 0.57: esthetic updates.  Added installation of new laptop
 # 0.58: added incident-type filter
+# 0.59: small bugfix
 
-version = "0.58"
+version = "0.59"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
