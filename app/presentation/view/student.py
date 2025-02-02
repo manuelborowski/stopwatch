@@ -21,3 +21,15 @@ def student():
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return fetch_return_error()
+
+# Try to find students based on not completely correct name, firstname, class...
+@bp_student.route('/student/fuzzy', methods=['GET'])
+@login_required
+def fuzzy():
+    try:
+        ret = al.student.fuzzy(request.args)
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
+

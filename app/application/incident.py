@@ -10,7 +10,7 @@ from app import MyLogFilter, top_log_handle
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
-def __event_location_changed(incident):
+def __send_incident_message_to_location(incident):
     try:
         if incident.lis_badge_id > 999999:
             return True
@@ -49,13 +49,28 @@ def __event_location_changed(incident):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
+def __send_return_message_to_location(incident):
+    try:
+        locations = dl.settings.get_configuration_setting("lis-locations")
+        location = locations[incident.location]
+        if "email" in location:
+            url = request.url_root
+            body = "<b><u>1 laptop aangemeld voor retour</u></b><br>"
+            body += (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
+                    f'(Locatie) {locations[incident.location]["label"]}, (Info) {incident.info}')
+            body += "<br><br>Laptop Incident Systeem"
+            dl.entra.entra.send_mail(location["email"], "LIS update", body)
+            log.info(f"{sys._getframe().f_code.co_name}, new-return mail sent to {location['email']}, {incident.info}")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+
 def __event(incident, event):
     try:
         incident.flag_reset("state-timeout")
         if incident.category == "repair":
             if event == "transition":
                 incident.incident_state = "transition"
-                __event_location_changed(incident)
+                __send_incident_message_to_location(incident)
             elif event == "started":
                 incident.incident_state = "started"
             elif event == "repaired":
@@ -64,11 +79,9 @@ def __event(incident, event):
                 incident.incident_state = "closed"
                 if incident.laptop_owner_password_default:
                     __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
-        elif incident.category == "loan":
+        elif incident.category == "return":
             if event == "prepared":
-                incident.incident_state = "loaned"
-            elif event == "closed":
-                incident.incident_state = "closed"
+                __send_return_message_to_location(incident)
 
         dl.incident.commit()
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
@@ -177,7 +190,7 @@ def laptop_get(data):
         url = app.config["ENTRA_API_URL"]
         key = app.config["ENTRA_API_KEY"]
         if type == 'leerling':
-            url += f'/student?filters=leerlingnummer$=${id}'
+            url += f'/student?filters=leerlingnummer$=${id},active$=$null'
         else:
             url += f'/staff?filters=code$=${id}'
         resp = requests.get(url, headers={"X-Api-Key": key})
@@ -414,8 +427,6 @@ def incident_cron_state_timeout(opaque=None):
                 timeout = al.common.ini2timedelta(type["timeout"])
                 incidents = dl.incident.get_m([("incident_type", "=", key), ("incident_state", "!", "closed")])
                 __check_timeout(incidents, key, timeout)
-
-
         dl.incident.commit()
         body_template = {"s": "1 incident staat te lang in dezelfde toestand", "m": "{nbr} incidenten staan te lang in dezelfde toestand"}
         url = request.url_root

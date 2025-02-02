@@ -63,14 +63,18 @@ const __sw_hw_form = async (category = null, incident = null, history = null) =>
             message: form.template,
             buttons: {
                 confirm: {label: "Bewaar", className: "btn-primary", callback: () => false},
-                cancel: {label: "Annuleer", className: "btn-secondary", callback: async () => {if (incident_update) datatable_reload_table()}},
+                cancel: {
+                    label: "Annuleer", className: "btn-secondary", callback: async () => {
+                        if (incident_update) datatable_reload_table()
+                    }
+                },
             },
             onShown: async () => {
                 const location_field = document.getElementById("location-field");
                 const incident_state_field = document.getElementById("incident-state-field");
                 const lis_type_field = document.getElementById("lis-type-field");
                 const info_field = document.getElementById("info-field");
-                    const spare_field = document.getElementById("spare-field")
+                const spare_field = document.getElementById("spare-field")
 
                 if (!incident_update) { //new incident
                     owner_field = $("#owner-field");
@@ -336,8 +340,7 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                         const data = Object.fromEntries(form_data)
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("loan-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-                        data.event = data.long_loan ? "longloan" : "shortloan"
-                        data.incident_type = data.event;
+                        data.incident_type = data.long_loan ? "longloan" : "shortloan";
                         if (incident_update) {
                             data.id = incident.id;
                             await fetch_update("incident.incident", data);
@@ -420,6 +423,117 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                     incident.long_loan = incident.incident_type === "longloan";
                     await form_populate(category, incident, meta);
                 } else {
+                    const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
+                    const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
+                    const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
+                    const staff_data = staff ? staff.map(e => ({id: "personeel-" + e.code, text: `${e.naam} ${e.voornaam}`})) : []
+                    const data = student_data.concat(staff_data);
+                    if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
+                    await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
+                    if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
+                    await form_populate(category, Object.assign(meta.default, {incident_state: "loaned"}), meta);
+                }
+            },
+        });
+    }
+}
+
+const __return_form = async (category = null, incident = null, history = null) => {
+    const incident_update = incident !== null;
+    const form = await fetch_get("incident.form", {form: "return"});
+    if (form) {
+        let owner_field = null;
+        bootbox.dialog({
+            title: "Binnenbrengen van laptop",
+            size: "xl",
+            message: form.template,
+            buttons: {
+                confirm: {
+                    label: "Bewaar",
+                    className: "btn-primary",
+                    callback: async () => {
+                        const owner_field = document.getElementById("owner-field");
+                        const laptop_field = document.getElementById("laptop-field");
+                        const form_data = new FormData(document.getElementById("incident-form"));
+                        const data = Object.fromEntries(form_data)
+                        // checkboxes are present only when selected and have the value "on" => convert
+                        document.getElementById("incident-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
+                        if (incident_update) {
+                            data.id = incident.id;
+                            if (incident.incident_state === "prepared") {
+                                data.laptop_owner_name = owner_field.options[owner_field.selectedIndex].innerHTML.replace(/ \(.*/, ""); // remove trailing " (34)"
+                                data.laptop_name = laptop_field.options[laptop_field.selectedIndex].innerHTML;
+                                data.incident_state = "expecting"
+                                data.info = data.info.split("+").slice(-2).join("; ");
+
+                            }
+                            await fetch_update("incident.incident", data);
+                        } else {
+                            const owner_data = owner_field.select2("data")[0];
+                            data.laptop_owner_name = owner_data.text;
+                            data.category = category;
+                            [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
+                            data.laptop_name = "NVT";
+                            await fetch_post("incident.incident", data);
+                        }
+                        datatable_reload_table();
+                    }
+                },
+                cancel: {
+                    label: "Annuleer", className: "btn-secondary", callback: async () => {
+                        if (incident_update) datatable_reload_table();
+                    }
+                },
+            },
+            onShown: async () => {
+                const owner_field = document.getElementById("owner-field");
+                const laptop_field = document.getElementById("laptop-field");
+
+                // when the owner field changes, get the associated laptops and populate the laptop field
+                owner_field.addEventListener('change', async e => {
+                    const laptop_owner_id = e.target.value;
+                    if (laptop_owner_id === "") {
+                        laptop_field.innerHTML = "";
+                        laptop_field.add(new Option(incident.info.split("+")[3], "", true, true));
+                    } else {
+                        const devices = await fetch_get("incident.laptop", {type: "leerling", id: laptop_owner_id});
+                        if (devices) {
+                            laptop_field.innerHTML = "";
+                            for (const device of devices) {
+                                const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
+                                const label = label_list.join(" / ");
+                                // add an option with the received name and class
+                                laptop_field.add(new Option(label, device.serial_number, device.active, device.active));
+                            }
+                        }
+                    }
+                });
+
+                // set default values
+                if (incident_update) {
+                    if (history !== "") {
+                        const previous_info_field = document.getElementById("info_previous");
+                        previous_info_field.innerHTML = history;
+                        previous_info_field.closest(".form-row").hidden = false;
+                    }
+                    document.querySelector(".prepared-visible").hidden = incident.incident_state !== "prepared";
+                    document.querySelector(".prepared-hidden").hidden = incident.incident_state === "prepared";
+                    if (incident.incident_state === "prepared") {
+                        const [naam, voornaam, klasgroepcode, laptop] = incident.info.split("+");
+                        let students = await fetch_get("student.fuzzy", {number: 5, fields: `voornaam=${voornaam},naam=${naam},klasgroepcode=${klasgroepcode}`}) || [];
+                        const students2 = await fetch_get("student.fuzzy", {number: 5, fields: `voornaam=${naam},naam=${voornaam},klasgroepcode=${klasgroepcode}`}) || [];
+                        students = students.concat(students2);
+                        if (students) {
+                            students.sort((a, b) => b.fuzzy_score - a.fuzzy_score);
+                            owner_field.innerHTML = "";
+                            students.forEach(i => owner_field.add(new Option(`${i.naam} ${i.voornaam} ${i.klasgroepcode} (${i.fuzzy_score})`, i.leerlingnummer)));
+                            owner_field.add(new Option(incident.info.split("+").slice(0, 3).join(" "), ""), 1);
+                            owner_field.options[1].style.background = "yellow";
+                            owner_field.dispatchEvent(new Event("change"));
+                        }
+                    }
+                    await form_populate(category, incident, meta);
+                } else { // new return
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
                     const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
@@ -669,6 +783,8 @@ const __table_loaded = () => {
         const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
         if (incident.category === "repair") {
             await __sw_hw_form(incident.category, incident, history);
+        } else if (incident.category === "return") {
+            await __return_form(incident.category, incident, history);
         } else {
             await __loan_form(incident.category, incident, history)
         }

@@ -1,5 +1,6 @@
 from app import data as dl, application as al
 import sys, requests
+from thefuzz import process
 
 #logging on file level
 import logging
@@ -11,11 +12,32 @@ log.addFilter(MyLogFilter())
 def get(data):
     try:
         students = al.models.get(dl.student.Student, data)
-        log.info(students)
         return {"status": "ok", "data": students}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
+
+# data is the number of found items to return and a list of fields with values
+# {"number": 5,
+#  "fields": "naam=pieters,voornaam=johan,..." }
+def fuzzy(data):
+    try:
+        students = dl.student.get_m()
+        fields = [f.split("=")[0] for f in data["fields"].split(",")]
+        search_for = "".join([f.split("=")[1] for f in data["fields"].split(",")]).replace(" ", "").lower()
+        fuzzy_students = {"".join([getattr(s, f) for f in fields]).replace(" ", "").lower(): s for s in students}
+        students_found = process.extract(search_for, list(fuzzy_students.keys()), limit=int(data["number"]) if "number" in data else 5)
+        students_out = []
+        for s in students_found:
+            student = fuzzy_students[s[0]].to_dict()
+            student["fuzzy_score"] = s[1]
+            students_out.append(student)
+        return students_out
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
+        return {"status": "error", "msg": {str(e)}}
+
+
 
 ######################### CRON HANDLERS ##################################
 

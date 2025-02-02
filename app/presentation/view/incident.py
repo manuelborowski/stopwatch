@@ -145,6 +145,8 @@ def form():
                 template = open(pathlib.Path("app/presentation/template/forms/loan_new.html")).read()
             if form == "setting":
                 template = open(pathlib.Path("app/presentation/template/forms/setting.html")).read()
+            if form == "return":
+                template = open(pathlib.Path("app/presentation/template/forms/return_new.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
@@ -184,6 +186,8 @@ class Config(DatatableConfig):
             "transition": standard_button_template + message_button_template,
             "repaired": standard_button_template + message_button_template + close_button_template,
             "prepared": standard_button_template + message_button_template,
+            "expecting": standard_button_template + close_button_template,
+            "signpost": standard_button_template + close_button_template,
             "loaned": standard_button_template + message_button_template + close_button_template,
             "closed": "NVT"
         }

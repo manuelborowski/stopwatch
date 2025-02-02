@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from app import log, data as dl
+from app import log, data as dl, application as al
 import json, sys, html
 from functools import wraps
 
@@ -53,6 +53,19 @@ def level_5(func):
 @bp_api.route('/api/retour', methods=['POST'])
 @level_1
 def retour():
-    data = json.loads(request.data)
-    log.info(data)
-    return("ok")
+    try:
+        din = json.loads(request.data)
+        log.info(din)
+        dout = {"info": f'{din["naam"]}+{din["voornaam"]}+{din["klas"]}+{din["laptop"]}+{din["telefoon"]}+{din["email"]}',
+                "category": "return",
+                "incident_type": din["naar"],
+                "incident_state": "prepared",
+                "location": din["locatie"],
+                "incident_owner": "admin",
+                "event": "prepared"
+                }
+        ret = al.incident.add(dout)
+        return("ok")
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return "Deze velden zijn verplicht: naam, voornaam, klas, laptop, telefoon, email"

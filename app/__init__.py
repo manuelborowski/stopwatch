@@ -95,8 +95,9 @@ from functools import wraps
 # 0.60: remove keys from client
 # 0.61: incident-type is hardware, make location change more generic
 # 0.62: first version of return-api
+# 0.63: implemented laptop return, use thefuzz to match a given name with a name in the database
 
-version = "0.62"
+version = "0.63"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
