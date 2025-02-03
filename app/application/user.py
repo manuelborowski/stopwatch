@@ -1,5 +1,6 @@
-import sys
+import sys, qrcode, secrets, base64, io
 from app import data as dl
+from flask import request
 
 #logging on file level
 import logging
@@ -67,6 +68,33 @@ def get(data):
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": {str(e)}}
 
+def login_url_generate(user):
+    try:
+        url_token = secrets.token_urlsafe(32)
+        user.url_token = url_token
+        dl.user.commit()
+        return url_token
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return None
+
+def qr_get(user, new_qr=False):
+    try:
+        if new_qr: user.url_token = None
+        url_token = user.url_token if user.url_token else login_url_generate(user)
+        url = f"{request.root_url}m/{url_token}"
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4, )
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill="black", back_color="white")
+        img_io = io.BytesIO()
+        img.save(img_io, format="PNG")
+        img_io.seek(0)
+        img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
+        return {"qr": img_base64}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": {str(e)}}
 
 ############ user overview list #########
 def format_data(db_list, total_count=None, filtered_count=None):

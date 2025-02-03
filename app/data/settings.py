@@ -89,6 +89,7 @@ default_configuration_settings = {
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'incident-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'incidentm-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'incident-history-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'spare-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'lis-badge-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),

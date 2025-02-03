@@ -42,13 +42,11 @@ def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
-
 SMARTSCHOOL_ALLOWED_BASE_ROLES = [
     'Andere',
     'Leerkracht',
     'Directie'
 ]
-
 
 @bp_auth.route('/ss', methods=['POST', 'GET'])
 def login_ss():
@@ -92,3 +90,16 @@ def login_ss():
             return redirect(f'{app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
+
+@bp_auth.route('/m/<string:user_token>', methods=['POST', 'GET'])
+def login_m(user_token):
+    try:
+        user = dl.user.get(('url_token', "=" ,user_token))
+        if user:
+            login_user(user)
+            log.info(f'OAUTH user {user.username} logged in')
+            return redirect(url_for('incident.showm'))
+        return "geen toegang"
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
+

@@ -152,7 +152,6 @@ def form():
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
         return fetch_return_error(f'Exception, {e}')
 
-
 class Config(DatatableConfig):
     def pre_sql_query(self):
         return dl.incident.pre_sql_query()
@@ -213,5 +212,26 @@ class Config(DatatableConfig):
 
     def format_data(self, db_list, total_count=None, filtered_count=None):
         return al.incident.format_data(db_list, total_count, filtered_count)
-
 config = Config("incident", "Incidenten")
+
+@bp_incident.route('/incidentshowm', methods=['GET'])
+@login_required
+def showm():
+
+    id_to_show = request.args.get("id")
+    data = {"filters": [{"id": "incident-id", "value": id_to_show}]}
+    return render_template("m/incident.html")
+
+@bp_incident.route('/incident/qr', methods=['GET'])
+@login_required
+def qr():
+    try:
+        if request.method == "GET":
+            generate_new_qr = request.args.get("new")
+            qr = al.user.qr_get(current_user, generate_new_qr)
+            return qr
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
+        return fetch_return_error(f'Exception, {e}')
+
+

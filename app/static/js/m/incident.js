@@ -576,18 +576,8 @@ const __setting_form = async () => {
                 },
             },
             onShown: async () => {
-                const new_login_url_btn = document.getElementById("new-login-url-btn");
-                const new_login_url_chk = document.getElementById("new-login-url-chk");
-                new_login_url_btn.addEventListener("click", async (e) => {
-                    e.preventDefault();
-                    const resp = await fetch_get("incident.qr", {new: true});
-                    if (resp) document.getElementById("login-url-img").src = `data:image/png;base64,${resp.qr}`;
-                });
-                new_login_url_chk.addEventListener("click", e => new_login_url_btn.disabled = !e.target.checked);
                 const defaults = {location: meta.default.location};
                 form_populate("software", defaults, meta);
-                const resp = await fetch_get("incident.qr", {new: false});
-                if (resp) document.getElementById("login-url-img").src = `data:image/png;base64,${resp.qr}`;
             },
         });
     }

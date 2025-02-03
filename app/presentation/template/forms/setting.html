@@ -5,4 +5,17 @@
             <label>standaard locatie<select id="location-default-field" name="location"></select></label>
         </div>
     </div>
+    <div class="form-row" id="owner-row">
+        <div class="form-element">
+            <label>Nieuwe QR code maken?<input type="checkbox" id="new-login-url-chk"></label>
+        </div>
+        <div class="form-element">
+            <button id="new-login-url-btn" class="btn btn-success" disabled>Genereer nieuwe URL</button>
+        </div>
+    </div>
+    <div class="form-row" id="owner-row">
+        <div class="form-element">
+            <img id="login-url-img" src="data:image/png;base64," alt="QR Code">
+        </div>
+    </div>
 </form>

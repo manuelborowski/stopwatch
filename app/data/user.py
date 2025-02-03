@@ -4,13 +4,14 @@ from flask_login import current_user
 from app import db, log
 from sqlalchemy_serializer import SerializerMixin
 from app import data as dl
+import app.data.models
 
 class User(UserMixin, db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     date_format = '%d/%m/%Y'
     datetime_format = '%d/%m/%Y %H:%M'
-    serialize_rules = ("-password_hash",)
+    serialize_rules = ("-password_hash","-url_token")
 
     class USER_TYPE:
         LOCAL = 'local'
@@ -22,6 +23,7 @@ class User(UserMixin, db.Model, SerializerMixin):
     first_name = db.Column(db.String(256))
     last_name = db.Column(db.String(256))
     password_hash = db.Column(db.String(256))
+    url_token = db.Column(db.String(256), default=None)
     level = db.Column(db.Integer)
     user_type = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
@@ -71,6 +73,8 @@ class User(UserMixin, db.Model, SerializerMixin):
     def log(self):
         return '<User: {}/{}>'.format(self.id, self.username)
 
+def commit():
+    return app.data.models.commit()
 
 def add(data = {}):
     if 'password' in data:
