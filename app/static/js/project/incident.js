@@ -6,9 +6,9 @@ import {qr_decode} from "../common/qr.js";
 
 const meta = await fetch_get("incident.meta")
 
-const __repair_form = async (category = null, incident = null, history = null) => {
+const __repair_form = async (incident = null, history = "") => {
     const incident_update = incident !== null;
-
+    const category = "repair"
     const __state_select_set = incident => {
         const next_state = {
             "software": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition"],},
@@ -52,8 +52,8 @@ const __repair_form = async (category = null, incident = null, history = null) =
         }
     }
 
-    const title = incident_update ? "Incident aanpassen" : "Nieuw incident (<span style='color:orangered;'>verplichte velden</span>)";
-    const form = await fetch_get("incident.form", {form: incident_update ? "sw-hw-update" : "sw-hw-new"});
+    const title = incident_update ? "Incident aanpassen (<span style='color:orangered;'>verplichte velden</span>)" : "Nieuw incident (<span style='color:orangered;'>verplichte velden</span>)";
+    const form = await fetch_get("incident.form", {form: "repair"});
     let bootbox_dialog = null;
     if (form) {
         let owner_field = null;
@@ -76,115 +76,113 @@ const __repair_form = async (category = null, incident = null, history = null) =
                 const info_field = document.getElementById("info-field");
                 const spare_field = document.getElementById("spare-field")
 
-                if (!incident_update) { //new incident
-                    owner_field = $("#owner-field");
+                owner_field = $("#owner-field");
 
-                    // Scan LIS badge
-                    document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
-                        e.preventDefault();
-                        bootbox.prompt({
-                            title: "Scan de LIS badge",
-                            callback: async res => {
-                                if (res !== null) {
-                                    const [valid_code, code] = badge_raw2hex(res);
-                                    if (valid_code) {
-                                        const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
-                                        if (badges && badges.length > 0) document.getElementById("lis-badge-field").value = badges[0].id;
-                                    }
-                                }
-                            }
-                        })
-                    });
-
-                    // Scan laptop owner badge
-                    document.getElementById("owner-badge-scan").addEventListener("click", (e) => {
-                        e.preventDefault();
-                        bootbox.prompt({
-                            title: "Scan de badge van de eigenaar",
-                            callback: async res => {
-                                if (res !== null) {
-                                    const [valid_code, code] = badge_raw2hex(res);
-                                    if (valid_code) {
-                                        let loaners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
-                                        if (loaners && loaners.length > 0) {
-                                            owner_field.val("leerling-" + loaners[0].leerlingnummer).trigger("change");
-                                            return true
-                                        } else {
-                                            const loaners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
-                                            if (loaners && loaners.length > 0) {
-                                                owner_field.val("personeel-" + loaners[0].code).trigger("change");
-                                                return true
-                                            }
-                                        }
-                                    }
-                                    new AlertPopup("warning", "Ongeldige badge");
-                                }
-                            }
-                        })
-                    });
-
-                    // Scan laptop owner laptop -> QR code
-                    document.getElementById("laptop-code-scan").addEventListener("click", (e) => {
-                        e.preventDefault();
-                        bootbox.prompt({
-                            title: "Scan de QR code van de laptop",
-                            callback: async res => {
-                                if (res !== null) {
-                                    const label = qr_decode(res);
-                                    const laptop_field = document.getElementById("laptop-field");
-                                    laptop_field.innerHTML = "";
-                                    laptop_field.add(new Option(label, label, true, true));
-                                }
-                            }
-                        })
-                    });
-
-                    // Scan spare badge
-                    document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
-                        e.preventDefault();
-                        bootbox.prompt({
-                            title: "Scan de badge van de reservelaptop",
-                            callback: async res => {
-                                if (res !== null) {
-                                    const [valid_code, code] = badge_raw2hex(res);
-                                    if (valid_code) {
-                                        const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
-                                        if (spares && spares.length > 0) spare_field.value = spares[0].label;
-                                    } else {
-                                        spare_field.value = code;
-                                    }
-                                }
-                            }
-                        })
-                    });
-
-                    // when the owner field changes, get the associated laptops and populate the laptop field
-                    owner_field.on('change', async e => {
-                        const [laptop_type, laptop_owner_id] = e.target.value.split("-");
-                        if (laptop_owner_id !== "") {
-                            const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
-                            if (devices) {
-                                const laptop_field = document.getElementById("laptop-field");
-                                laptop_field.innerHTML = "";
-                                for (const device of devices) {
-                                    const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
-                                    const label = label_list.join(" / ");
-                                    const option = document.createElement("option");
-                                    option.innerHTML = label;
-                                    option.value = device.serial_number;
-                                    if (device.active === true) option.selected = true;
-                                    laptop_field.appendChild(option);
+                // Scan LIS badge
+                document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    bootbox.prompt({
+                        title: "Scan de LIS badge",
+                        callback: async res => {
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                if (valid_code) {
+                                    const badges = await fetch_get("lisbadge.lisbadge", {filters: `rfid$=$${code}`})
+                                    if (badges && badges.length > 0) document.getElementById("lis-badge-field").value = badges[0].id;
                                 }
                             }
                         }
-                    });
+                    })
+                });
 
-                    // Incident is for spare laptop
-                    document.getElementById("type-spare-laptop-chk").addEventListener("click", e => {
-                        document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = e.target.checked);
-                        spare_field.parentElement.classList.toggle("required", e.target.checked);
-                    });
-                }
+                // Scan laptop owner badge
+                document.getElementById("owner-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    bootbox.prompt({
+                        title: "Scan de badge van de eigenaar",
+                        callback: async res => {
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                if (valid_code) {
+                                    let loaners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
+                                    if (loaners && loaners.length > 0) {
+                                        owner_field.val("leerling-" + loaners[0].leerlingnummer).trigger("change");
+                                        return true
+                                    } else {
+                                        const loaners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
+                                        if (loaners && loaners.length > 0) {
+                                            owner_field.val("personeel-" + loaners[0].code).trigger("change");
+                                            return true
+                                        }
+                                    }
+                                }
+                                new AlertPopup("warning", "Ongeldige badge");
+                            }
+                        }
+                    })
+                });
+
+                // Scan laptop owner laptop -> QR code
+                document.getElementById("laptop-code-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    bootbox.prompt({
+                        title: "Scan de QR code van de laptop",
+                        callback: async res => {
+                            if (res !== null) {
+                                const label = qr_decode(res);
+                                const laptop_field = document.getElementById("laptop-field");
+                                laptop_field.innerHTML = "";
+                                laptop_field.add(new Option(label, label, true, true));
+                            }
+                        }
+                    })
+                });
+
+                // Scan spare badge
+                document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    bootbox.prompt({
+                        title: "Scan de badge van de reservelaptop",
+                        callback: async res => {
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                if (valid_code) {
+                                    const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
+                                    if (spares && spares.length > 0) spare_field.value = spares[0].label;
+                                } else {
+                                    spare_field.value = code;
+                                }
+                            }
+                        }
+                    })
+                });
+
+                // when the owner field changes, get the associated laptops and populate the laptop field
+                owner_field.on('change', async e => {
+                    const [laptop_type, laptop_owner_id] = e.target.value.split("-");
+                    if (laptop_owner_id && laptop_owner_id !== "") {
+                        const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
+                        if (devices) {
+                            const laptop_field = document.getElementById("laptop-field");
+                            laptop_field.innerHTML = "";
+                            for (const device of devices) {
+                                const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
+                                const label = label_list.join(" / ");
+                                const option = document.createElement("option");
+                                option.innerHTML = label;
+                                option.value = device.serial_number;
+                                if (device.active === true) option.selected = true;
+                                laptop_field.appendChild(option);
+                            }
+                        }
+                    }
+                });
+
+                // Incident is for spare laptop
+                document.getElementById("type-spare-laptop-chk").addEventListener("click", e => {
+                    document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = e.target.checked);
+                    spare_field.parentElement.classList.toggle("required", e.target.checked);
+                });
 
                 // if default password checked, disable the password field
                 const password_field = document.getElementById("password-field");
@@ -195,23 +193,37 @@ const __repair_form = async (category = null, incident = null, history = null) =
                 const password_show_field = document.getElementById("password-show-field");
                 password_show_field.addEventListener("click", e => __password_field_toggle());
 
-                // set default values
-                if (incident_update) {
-                    if (history !== "") {
-                        const previous_info_field = document.getElementById("info_previous");
-                        previous_info_field.innerHTML = history;
-                        previous_info_field.closest(".form-row").hidden = false;
-                    }
-                    incident.info = "";
-                    // if the location is updated, change the event to transition
-                    location_field.addEventListener("change", e => {
-                        incident_state_field.value = "transition";
-                    });
-                    // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
-                    incident_state_field.addEventListener("change", e => {
-                        if (e.target.value !== "transition") location_field.value = incident.location;
-                    });
+                // if the location is updated, change the event to transition
+                location_field.addEventListener("change", e => {
+                    incident_state_field.value = "transition";
+                });
+                // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
+                incident_state_field.addEventListener("change", e => {
+                    if (e.target.value !== "transition") location_field.value = incident.location;
+                });
 
+                // hardware incident specific, update m4s-id options when m4s-category has changed
+                document.getElementById("m4s-category-field").addEventListener("change", (e) => {
+                    e.preventDefault();
+                    const options = meta.m4s[e.target.value];
+                    const m4s_id_field = document.getElementById("m4s-problem-type-guid-field");
+                    m4s_id_field.innerHTML = "";
+                    for (const item of options) m4s_id_field.add(new Option(item.label, item.value));
+                });
+
+                // if history is available, show the history list
+                if (history !== "") {
+                    const previous_info_field = document.getElementById("info_previous");
+                    previous_info_field.innerHTML = history;
+                    previous_info_field.closest(".form-row").hidden = false;
+                }
+
+                // set default values, create the select2 for the laptop-owners and populate with a single student/staff (update) or a list of all students and staffs
+                let owner_field_options = null;
+
+                // other default values
+                if (incident_update) {
+                    incident.info = "";
                     // Just in case, populate the m4s category
                     incident.m4s_category = meta.default.m4s_category;
                     // in case of hardware incident, get the configured m4s category and guid and populate the respective fields
@@ -224,49 +236,51 @@ const __repair_form = async (category = null, incident = null, history = null) =
                             }
                         }
                     }
+                    // disable the m4s category and type when the incident is not of the hardware-repair type
                     document.querySelectorAll("#hardware-repair-group select").forEach(item => item.disabled = incident.m4s_guid !== null);
-                    await form_populate(category, incident, meta);
+                    // hide some fields when the repair concerns a spare laptop
                     document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = incident.laptop_type === "reserve");
+                    // set the owner-laptop value
+                    meta.option.laptop_serial = [{value: incident.laptop_serial, label: incident.laptop_name}];
 
+                    await form_populate(category, incident, meta);
+                    owner_field_options = [{id: incident.laptop_owner_id, text: incident.laptop_owner_name}];
+
+                    document.querySelectorAll(".repair-update-hidden").forEach(i => i.hidden = true);
+                    document.querySelectorAll(".repair-update-disabled").forEach(i => i.disabled = true);
+                    document.querySelectorAll(".required").forEach(i => i.classList.toggle("required"));
                 } else { // new incident
-                    // populate owner list
+                    const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
+                    await form_populate(category, defaults, meta);
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
                     const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
                     const staff_data = staff ? staff.map(e => ({id: "personeel-" + e.code, text: `${e.naam} ${e.voornaam}`})) : []
-                    const data = student_data.concat(staff_data);
-                    if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
-                    await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
-                    if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
-                    const defaults = Object.assign(meta.default, {incident_state: "started", incident_type: "software"}); // clear password and lis field
-                    await form_populate(category, defaults, meta);
+                    owner_field_options = student_data.concat(staff_data);
                 }
+                // select2 field has it's own way of adding options
+                if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
+                await owner_field.select2({dropdownParent: $(".bootbox"), data: owner_field_options, width: "600px"});
+                if (owner_field_options.length > 0) await owner_field.val(owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
+
+                // default hide the password when the incident is being updated
                 __password_field_visibility(incident_update);
 
-                // hardware incident specific, update m4s-id options when m4s-category has changed
-                document.getElementById("m4s-category-field").addEventListener("change", (e) => {
-                    e.preventDefault();
-                    const options = meta.m4s[e.target.value];
-                    const m4s_id_field = document.getElementById("m4s-problem-type-guid-field");
-                    m4s_id_field.innerHTML = "";
-                    for (const item of options) m4s_id_field.add(new Option(item.label, item.value));
-                });
-
-                // hide/display hardware problem types
+                // hide/display hardware problem types (M4S)
                 lis_type_field.addEventListener("change", e => {
                     document.getElementById("hardware-repair-group").hidden = e.target.value !== "hardware"
-                    if (e.target.value === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make sure the info field is filled in.
-                        if (!(incident && incident.m4s_guid !== null)) info_field.parentElement.classList.add("required"); // option field not required when incident already in M4S
+                    if (e.target.value === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make clear the info field is required
+                        if (!(incident && incident.m4s_guid !== null)) info_field.parentElement.classList.add("required"); // info field not required when incident already in M4S
                         if (location_field.value in meta.location && "hardware" in meta.location[location_field.value]) { // if required, change the location to were hardware repair can take place
                             location_field.value = meta.location[location_field.value].hardware;
-                            location_field.style.background = "yellow";
+                            location_field.style.background = "yellow";  // and make the background yellow to make clear the location has changed.
                         }
-                    } else {
-                        info_field.parentElement.classList.remove("required");
+                    } else { // not a hardware incident
+                        info_field.parentElement.classList.remove("required"); // info field is not required
                         location_field.value = meta.default.location;
                         location_field.style.background = "white";
                     }
-                    if (incident) __state_select_set(incident); // when changing the incident_type, update the possible states
+                    if (incident) __state_select_set(incident); // The possible states depend on the incident type
                 })
                 lis_type_field.dispatchEvent(new Event("change"));
             },
@@ -694,7 +708,7 @@ const button_menu_items = [
         type: 'button',
         id: 'repair-new',
         label: 'Nieuw Incident',
-        cb: () => __repair_form("repair")
+        cb: () => __repair_form()
     },
     {
         type: 'button',
@@ -792,7 +806,7 @@ const __table_loaded = () => {
         const histories = await fetch_get("history.history", {filters: `incident_id$=$${row.id}`});
         const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
         if (incident.category === "repair") {
-            await __repair_form(incident.category, incident, history);
+            await __repair_form(incident, history);
         } else if (incident.category === "return") {
             await __return_form(incident.category, incident, history);
         } else {

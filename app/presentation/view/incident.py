@@ -135,10 +135,8 @@ def form():
             form = request.args.get('form')
             optional = []
             template = ""
-            if form == "sw-hw-new":
-                template = open(pathlib.Path("app/presentation/template/forms/repair_new.html")).read()
-            if form == "sw-hw-update":
-                template = open(pathlib.Path("app/presentation/template/forms/repair_update.html")).read()
+            if form == "repair":
+                template = open(pathlib.Path("app/presentation/template/forms/repair.html")).read()
             if form == "history":
                 template = open(pathlib.Path("app/presentation/template/forms/history.html")).read()
             if form == "message":

@@ -4,26 +4,26 @@
 <form id="incident-form">
     <div class="form-row">
         <div class="form-element">
-            <label class="required">LIS badgenummer<input id="lis-badge-field" name="lis_badge_id"></label>
+            <label class="required">LIS badgenummer<input class="repair-update-disabled" id="lis-badge-field" name="lis_badge_id"></label>
         </div>
-        <button id="lis-badge-scan" class="btn btn-success">Scan LIS badge</button>
+        <button id="lis-badge-scan" class="btn btn-success  repair-update-hidden">Scan LIS badge</button>
     </div>
-    <div class="form-row">
+    <div class="form-row repair-update-hidden">
         <div class="form-element"><label><input type="checkbox" id="type-spare-laptop-chk" name="spare_laptop_check">Is het een reserve laptop?</label></div>
     </div>
 
     <div class="group-spare-laptop">
         <div class="form-row" id="owner-row">
             <div class="form-element">
-                <label class="required">Eigenaar<select id="owner-field" name="laptop_owner_id"></select></label>
+                <label class="required">Eigenaar<select class="repair-update-disabled" id="owner-field" name="laptop_owner_id"></select></label>
             </div>
-            <button id="owner-badge-scan" class="btn btn-success">Scan badge van eigenaar</button>
+            <button id="owner-badge-scan" class="btn btn-success  repair-update-hidden">Scan badge van eigenaar</button>
         </div>
         <div class="form-row">
             <div class="form-element">
-                <label class="required">Laptop<select id="laptop-field" style="min-width: 400px" name="laptop_serial"></select></label>
+                <label class="required">Laptop<select class="repair-update-disabled" id="laptop-field" style="min-width: 400px" name="laptop_serial"></select></label>
             </div>
-            <button id="laptop-code-scan" class="btn btn-success">Scan laptop label</button>
+            <button id="laptop-code-scan" class="btn btn-success repair-update-hidden">Scan laptop label</button>
         </div>
         <div class="form-row">
             <div class="form-element"><label>Wachtwoord<input id="password-field" name="laptop_owner_password"></label></div>
@@ -42,7 +42,7 @@
     </div>
     <div class="form-row">
         <div class="form-element"><label>Locatie<select id="location-field" name="location"></select></label></div>
-        <div class="form-element"><label>Status<input name="incident_state" disabled></label></div>
+        <div class="form-element"><label>Status<select id="incident-state-field" name="incident_state"></select></label></div>
     </div>
     <div class="form-row">
         <div class="form-element">
@@ -54,7 +54,7 @@
             <label>M4S Probleem<select id="m4s-problem-type-guid-field" name="m4s_problem_type_guid"></select></label>
         </div>
     </div>
-    <div class="form-row" hidden>
+    <div class="form-row repair-update-visible" hidden>
         <div class="form-element">
             <div style="display: flex; flex-direction: column">
                 <p><b>Vorige info:</b></p>

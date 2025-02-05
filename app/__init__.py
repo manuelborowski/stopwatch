@@ -99,8 +99,9 @@ from functools import wraps
 # 0.63-mobile-0.1: implement a seperate page for mobile login.  Create user specific urls to avoid logging in
 # 0.63-mobile-0.2: continue with mobile page, view and update repair incident.  Update incident-generate.
 # 0.63-mobile-0.3: small updates
+# 0.63-mobile-0.4: update repair form so that only one is required for new repairs and repairs to update
 
-version = "0.63-mobile-0.3"
+version = "0.63-mobile-0.4"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
