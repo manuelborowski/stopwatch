@@ -6,7 +6,7 @@ import {qr_decode} from "../common/qr.js";
 
 const meta = await fetch_get("incident.meta")
 
-const __sw_hw_form = async (category = null, incident = null, history = null) => {
+const __repair_form = async (category = null, incident = null, history = null) => {
     const incident_update = incident !== null;
 
     const __state_select_set = incident => {
@@ -694,7 +694,7 @@ const button_menu_items = [
         type: 'button',
         id: 'repair-new',
         label: 'Nieuw Incident',
-        cb: () => __sw_hw_form("repair")
+        cb: () => __repair_form("repair")
     },
     {
         type: 'button',
@@ -792,7 +792,7 @@ const __table_loaded = () => {
         const histories = await fetch_get("history.history", {filters: `incident_id$=$${row.id}`});
         const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
         if (incident.category === "repair") {
-            await __sw_hw_form(incident.category, incident, history);
+            await __repair_form(incident.category, incident, history);
         } else if (incident.category === "return") {
             await __return_form(incident.category, incident, history);
         } else {

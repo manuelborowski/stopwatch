@@ -136,9 +136,9 @@ def form():
             optional = []
             template = ""
             if form == "sw-hw-new":
-                template = open(pathlib.Path("app/presentation/template/forms/sw_hw_new.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/repair_new.html")).read()
             if form == "sw-hw-update":
-                template = open(pathlib.Path("app/presentation/template/forms/sw_hw_update.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/repair_update.html")).read()
             if form == "history":
                 template = open(pathlib.Path("app/presentation/template/forms/history.html")).read()
             if form == "message":
