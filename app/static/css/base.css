@@ -19,10 +19,6 @@ body {
     padding: 0;
 }
 
-body > nav {
-
-}
-
 body > nav > div {
     display: flex;
     background-color: #007bff;

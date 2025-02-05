@@ -305,34 +305,43 @@ def generate(nbr):
         students = dl.student.get_m()
         staff = dl.staff.get_m()
         incident_owners = dl.user.get_m()
+        m4s_guids = dl.m4s.get_m()
+        m4s_guids = [g for g in m4s_guids if g.category]
         user_with_default_location = []
         for owner in incident_owners:
             found, default_location = dl.settings.get_setting("default-location", user=owner.username)
             if found:
                 owner.default_location = default_location
                 user_with_default_location.append(owner)
+        categories = dl.settings.get_configuration_setting("lis-categories")
+        states = dl.settings.get_configuration_setting("lis-state")
 
         entra_url = app.config["ENTRA_API_URL"]
         entra_key = app.config["ENTRA_API_KEY"]
         for i in range(nbr):
+            category = random.choice([k for k, _ in categories.items()])
+            type = random.choice(categories[category]["incident_type"])
+            state = categories[category]["incident_state"][0]
+
+
             incident_owner = random.choice(user_with_default_location)
             laptop_type = random.choice(["leerling", "personeel"])
+
             default_password = random.choice([False, True])
-            incident_type = random.choice(["hardware", "software", "herinstalleren"])
-            drop_damage = random.choice([True, False]) if incident_type == "hardware" else False
-            water_damage = random.choice([True, False]) if incident_type == "hardware" else False
             entra_id = None
             device = None
             if laptop_type == "leerling":
                 laptop_owner = random.choice(students)
+                laptop_owner_name = laptop_owner.naam + " " + laptop_owner.voornaam + " " + laptop_owner.klasgroepcode
                 laptop_owner_id = laptop_owner.leerlingnummer
                 res = requests.get(f"{entra_url}/student?filters=leerlingnummer$=${laptop_owner_id}", headers={'x-api-key': entra_key})
                 if res.status_code == 200:
                     entra_students = res.json()
-                    if entra_students['status']:
+                    if entra_students['status'] and len(entra_students['data']) > 0:
                         entra_id = entra_students["data"][0]["entra_id"]
             else:
                 laptop_owner = random.choice(staff)
+                laptop_owner_name = laptop_owner.naam + " " + laptop_owner.voornaam
                 laptop_owner_id = laptop_owner.code
                 res = requests.get(f"{entra_url}/staff?filters=code=${laptop_owner_id}", headers={'x-api-key': entra_key})
                 if res.status_code == 200:
@@ -347,12 +356,16 @@ def generate(nbr):
                         device = [d for d in devices["data"] if d["active"]][0]
             if device:
                 data = {
-                    "lis_badge_id": 1000000+i, "laptop_owner_name": f"{laptop_owner.naam} {laptop_owner.voornaam}", "laptop_owner_id": laptop_owner_id,
+                    "lis_badge_id": 1000000+i, "laptop_owner_name": laptop_owner_name, "laptop_owner_id": laptop_owner_id,
                     "laptop_owner_password": random.choice(["password1", "password2"]) if not default_password else "", "laptop_owner_password_default": default_password,
                     "laptop_type": laptop_type, "laptop_name": device["m4s_csu_label"], "laptop_serial": device["serial_number"], "spare_laptop_name": "", "spare_laptop_serial": "",
-                    "charger": "", "info": random_info.sentence(), "incident_type": incident_type, "drop_damage": drop_damage, "water_damage": water_damage,
-                    "location": incident_owner.default_location, "incident_owner": incident_owner.username, "m4s_problem_type_guid": "",
+                    "charger": "", "info": random_info.sentence(), "incident_type": type, "incident_state": state, "category": category,
+                    "location": incident_owner.default_location, "incident_owner": incident_owner.username,
                 }
+
+                if type == "hardware":
+                    data.update({"m4s_problem_type_guid": random.choice(m4s_guids).guid})
+
                 add(data)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

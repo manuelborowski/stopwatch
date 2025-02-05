@@ -97,8 +97,9 @@ from functools import wraps
 # 0.62: first version of return-api
 # 0.63: implemented laptop return, use thefuzz to match a given name with a name in the database
 # 0.63-mobile-0.1: implement a seperate page for mobile login.  Create user specific urls to avoid logging in
+# 0.63-mobile-0.2: continue with mobile page, view and update repair incident.  Update incident-generate.
 
-version = "0.63-mobile-0.1"
+version = "0.63-mobile-0.2"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

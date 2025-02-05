@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
@@ -22,9 +22,11 @@ def show():
     generate = request.args.get("generate")
     if generate:
         al.incident.generate(int(generate))
+        return redirect(url_for("incident.show"))
     event = request.args.get("event")
     if event:
         al.incident.event(int(event))
+        return redirect(url_for("incident.show"))
     locations = dl.settings.get_configuration_setting("lis-locations")
     location_options = [{"label": v["label"], "value": k} for (k, v) in locations.items()]
     found, default_location = dl.settings.get_setting("default-location", current_user.username)
@@ -214,13 +216,22 @@ class Config(DatatableConfig):
         return al.incident.format_data(db_list, total_count, filtered_count)
 config = Config("incident", "Incidenten")
 
-@bp_incident.route('/incidentshowm', methods=['GET'])
+@bp_incident.route('/mincidentshow', methods=['GET'])
 @login_required
-def showm():
+def m_show():
+    incidents = dl.incident.get_m(("category", "=", "repair"), fields=["id", "lis_badge_id", "laptop_owner_name"])
+    incidents = [{"id": i, "lis_badge_id": l, "laptop_owner_name": n} for (i, l, n) in incidents]
+    return render_template("m/incident.html", incidents=incidents)
 
-    id_to_show = request.args.get("id")
-    data = {"filters": [{"id": "incident-id", "value": id_to_show}]}
-    return render_template("m/incident.html")
+@bp_incident.route('/mincidentdetail', methods=['GET'])
+@login_required
+def m_detail():
+    id = request.args.get('id')
+    incident = dl.incident.get(("id", "=", id))
+    if incident:
+        return render_template("m/incident_update.html", incident=incident.to_dict())
+    else:
+        redirect(url_for("incident.m_show"))
 
 @bp_incident.route('/incident/qr', methods=['GET'])
 @login_required

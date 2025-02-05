@@ -19,7 +19,7 @@ class Incident(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     lis_badge_id = db.Column(db.Integer, default=-1)
     priority = db.Column(db.Integer, default=1)
-    category = db.Column(db.String(256), default="software")
+    category = db.Column(db.String(256), default=None)
     laptop_owner_name = db.Column(db.String(256), default=None)
     laptop_owner_id = db.Column(db.String(256), default=None)
     laptop_owner_password = db.Column(db.String(256), default=None)

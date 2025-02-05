@@ -98,7 +98,7 @@ def login_m(user_token):
         if user:
             login_user(user)
             log.info(f'OAUTH user {user.username} logged in')
-            return redirect(url_for('incident.showm'))
+            return redirect(url_for('incident.m_show'))
         return "geen toegang"
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
