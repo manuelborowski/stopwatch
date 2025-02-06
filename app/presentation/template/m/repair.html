@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Layout</title>
+    <link href="static/css/m/incident.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+{{ JSGlue.include() }}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+<body>
+<nav>
+    <div>
+        <button id="cancel-btn" class="red">Annuleer</button>
+        <button id="save-btn" class="green">Opslaan</button>
+    </div>
+</nav>
+<main>
+{% include "forms/repair.html" %}
+</main>
+<footer><p class="copyright text-muted small">{{ version }}</p></footer>
+
+<script>
+    const incident = {{ (incident or None)|tojson }};
+    const histories = {{ (histories or [])|tojson }};
+</script>
+<script type="module" src="/static/js/m/incident.js"></script>
+
+
+</body>
+
+</html>

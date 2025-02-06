@@ -2,16 +2,20 @@
 // the popup disappears after a delay (5s) or when clicked next to the popup
 export class AlertPopup {
     timer_id = null;
-
     constructor(status = "ok", msg, delay = 5000) {
-        if (this.timer_id !== null) clearTimeout(timer.timer_id);
-        this.timer_id = setTimeout(() => this.dialog.modal("hide"), delay);
-        this.dialog = bootbox.dialog({
-            backdrop: true,
-            message: msg,
-            closeButton: false,
-            className: status === "ok" ? "alert-popup timed-popup-ok" : status === "warning" ? "alert-popup timed-popup-warning" : "alert-popup timed-popup-error"
-        })
+        if (window["bootbox"]) {
+
+            if (this.timer_id !== null) clearTimeout(timer.timer_id);
+            this.timer_id = setTimeout(() => this.dialog.modal("hide"), delay);
+            this.dialog = bootbox.dialog({
+                backdrop: true,
+                message: msg,
+                closeButton: false,
+                className: status === "ok" ? "alert-popup timed-popup-ok" : status === "warning" ? "alert-popup timed-popup-warning" : "alert-popup timed-popup-error"
+            })
+        } else {
+            alert(msg)
+        }
     }
 }
 

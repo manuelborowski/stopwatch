@@ -4,7 +4,7 @@ from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
 from app.presentation.view import datatable_get_data, fetch_return_error
 from app.application.m4s import m4s
-import json, sys, pathlib
+import json, sys, pathlib, datetime
 
 # logging on file level
 import logging
@@ -100,6 +100,7 @@ def meta():
                        "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
+                       "state": states,
                        "location": locations,
                        "m4s": m4s_problem_types
                        })
@@ -217,19 +218,22 @@ config = Config("incident", "Incidenten")
 @bp_incident.route('/mincidentshow', methods=['GET'])
 @login_required
 def m_show():
-    incidents = dl.incident.get_m(("category", "=", "repair"), fields=["id", "lis_badge_id", "laptop_owner_name"])
-    incidents = [{"id": i, "lis_badge_id": l, "laptop_owner_name": n} for (i, l, n) in incidents]
+    fields = ["id", "lis_badge_id", "laptop_owner_name", "incident_state", "time"]
+    incidents = dl.incident.get_m(("category", "=", "repair"), fields=fields)
+    incidents = [{f: i[e].strftime("%Y-%m-%d %H:%M") if isinstance(i[e], datetime.datetime) else i[e] for e, f in enumerate(fields)} for i in incidents]
     return render_template("m/incident.html", incidents=incidents)
 
 @bp_incident.route('/mincidentdetail', methods=['GET'])
 @login_required
 def m_detail():
     id = request.args.get('id')
-    incident = dl.incident.get(("id", "=", id))
-    if incident:
-        return render_template("m/incident_update.html", incident=incident.to_dict())
+    if id:
+        incident = dl.incident.get(("id", "=", id))
+        histories = [h.to_dict() for h in dl.history.get_m(("incident_id", "=", incident.id))]
+        if incident:
+            return render_template("m/repair.html", incident=incident.to_dict(), histories=histories)
     else:
-        redirect(url_for("incident.m_show"))
+        return render_template("m/repair.html")
 
 @bp_incident.route('/incident/qr', methods=['GET'])
 @login_required

@@ -59,10 +59,15 @@ button {
 
 .green {
     background-color: #aaff00;
+    color: black;
 }
 
 .red {
     background-color: #e10e3b;
+}
+
+.form-element .required {
+    color: orangered;
 }
 
 input, select, textarea {
