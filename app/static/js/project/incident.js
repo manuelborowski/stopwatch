@@ -29,13 +29,14 @@ const __repair_form = async (incident = null, history = "") => {
             },
             onShown: async () => {
                 repair = new IncidentRepair({meta, incident, history, dropdown_parent: $(".bootbox")});
-                repair.display()
+                await repair.display()
+                if (current_user.level < 3) document.querySelector(".bootbox-accept").hidden = true; // regular users cannot save changes
             },
         });
 
         // Confirm button pushed
         document.querySelector(".bootbox .btn-primary").addEventListener("click", async e => {
-            repair.save();
+            await repair.save();
             datatable_reload_table();
             if (bootbox_dialog) bootbox_dialog.modal("hide");
 
@@ -580,4 +581,5 @@ $(document).ready(async () => {
     const callbacks = {table_loaded: __table_loaded, created_row: __row_created};
     datatables_init({button_menu_items, context_menu_items, filter_menu_items, callbacks});
     __update_toolbar_fields();
+    if (current_user.level < 3) document.querySelector(".button-menu-placeholder").hidden = true;
 });

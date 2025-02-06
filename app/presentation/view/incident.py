@@ -171,8 +171,9 @@ class Config(DatatableConfig):
         state_colors = {k: v["color"] for (k, v) in states.items()}
         standard_button_template = f'<a type="button" class="btn-incident-update btn btn-success"><i class="fa-solid fa-pen-to-square" title="Incident aanpassen"></i></a></div>'
         standard_button_template += f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek bekijken"></i></a></div>'
-        message_button_template = f'<a type="button" class="btn-send-message btn btn-success"><i class="fa-regular fa-envelope" title="Bericht sturen"></i></a></div>'
-        close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>'
+        # regular user have less rights
+        message_button_template = f'<a type="button" class="btn-send-message btn btn-success"><i class="fa-regular fa-envelope" title="Bericht sturen"></i></a></div>' if current_user.level >= 3 else ""
+        close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>' if current_user.level >= 3 else ""
         categories = dl.settings.get_configuration_setting("lis-categories")
         category_labels = {k: v["label"] for k, v in categories.items()}
         types = dl.settings.get_configuration_setting("lis-incident-types")

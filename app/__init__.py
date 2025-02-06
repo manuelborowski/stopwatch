@@ -103,8 +103,9 @@ from functools import wraps
 # 0.63-mobile-0.5: incident.js, extracted functionality into a class.
 # 0.63-mobile-0.6: mobile and laptop view, shared code and form.  Small updates
 # 0.64: merge from 0.63-mobile-0.6
+# 0.65: regular users have less rights, cannot create or update incidents
 
-version = "0.64"
+version = "0.65"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
