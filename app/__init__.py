@@ -102,8 +102,9 @@ from functools import wraps
 # 0.63-mobile-0.4: update repair form so that only one is required for new repairs and repairs to update
 # 0.63-mobile-0.5: incident.js, extracted functionality into a class.
 # 0.63-mobile-0.6: mobile and laptop view, shared code and form.  Small updates
+# 0.64: merge from 0.63-mobile-0.6
 
-version = "0.63-mobile-0.6"
+version = "0.64"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
