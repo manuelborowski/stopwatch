@@ -100,8 +100,9 @@ from functools import wraps
 # 0.63-mobile-0.2: continue with mobile page, view and update repair incident.  Update incident-generate.
 # 0.63-mobile-0.3: small updates
 # 0.63-mobile-0.4: update repair form so that only one is required for new repairs and repairs to update
+# 0.63-mobile-0.5: incident.js, extracted functionality into a class.
 
-version = "0.63-mobile-0.4"
+version = "0.63-mobile-0.5"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
