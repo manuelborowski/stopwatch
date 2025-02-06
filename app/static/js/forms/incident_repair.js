@@ -6,7 +6,7 @@ import {qr_decode} from "../common/qr.js";
 export class IncidentRepair {
     category = "repair"
 
-    constructor({meta=null, incident=null, history = "", dropdown_parent=null}) {
+    constructor({meta = null, incident = null, history = "", dropdown_parent = null}) {
         this.incident_update = incident !== null;
         this.incident = incident;
         this.history = history;
@@ -186,7 +186,7 @@ export class IncidentRepair {
         });
         // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
         incident_state_field.addEventListener("change", e => {
-            if (e.target.value !== "transition") location_field.value = incident.location;
+            if (e.target.value !== "transition") location_field.value = this.incident.location;
         });
 
         // hardware incident specific, update m4s-id options when m4s-category has changed
@@ -291,11 +291,18 @@ export class IncidentRepair {
             if (data.incident_type !== "hardware") data.m4s_problem_type_guid = "";  // make sure to clear this field, else it pops up in different places
             await fetch_update("incident.incident", data);
         } else {  // new incident
+            let lis_badge_id_exist = [];
+            if (data.lis_badge_id !== "") lis_badge_id_exist = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${data.lis_badge_id},incident_state$!$closed`});
+            if (lis_badge_id_exist.length > 0) {
+                new AlertPopup("warning", "Dit nummer is al in gebruik")
+                return false
+            }
             if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
                 data.laptop_owner_name = this.meta.label.location[data.location];
                 data.laptop_owner_id = data.location;
                 data.laptop_name = data.spare_laptop_name;
                 data.spare_laptop_name = "NVT";
+
                 if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "") {
                     new AlertPopup("warning", "Roodgekleurde velden invullen aub.")
                     return false
@@ -318,5 +325,6 @@ export class IncidentRepair {
             data.event = "started";
             await fetch_post("incident.incident", data);
         }
+        return true
     }
 }

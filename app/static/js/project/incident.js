@@ -36,10 +36,10 @@ const __repair_form = async (incident = null, history = "") => {
 
         // Confirm button pushed
         document.querySelector(".bootbox .btn-primary").addEventListener("click", async e => {
-            await repair.save();
-            datatable_reload_table();
-            if (bootbox_dialog) bootbox_dialog.modal("hide");
-
+            if (await repair.save()) {
+                datatable_reload_table();
+                if (bootbox_dialog) bootbox_dialog.modal("hide");
+            }
         });
     }
 }

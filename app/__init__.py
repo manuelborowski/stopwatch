@@ -104,8 +104,9 @@ from functools import wraps
 # 0.63-mobile-0.6: mobile and laptop view, shared code and form.  Small updates
 # 0.64: merge from 0.63-mobile-0.6
 # 0.65: regular users have less rights, cannot create or update incidents
+# 0.66: small bugfixes.  lis-badge-id cannot be reused until incident is closed
 
-version = "0.65"
+version = "0.66"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
