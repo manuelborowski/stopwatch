@@ -247,7 +247,7 @@ export class IncidentRepair {
         }
         // select2 field has it's own way of adding options
         if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
-        let select2_config = {data: owner_field_options, width: "600px"};
+        let select2_config = {data: owner_field_options, width: "resolve"};
         if (this.dropdown_parent) select2_config.dropdownParent = this.dropdown_parent;
         await owner_field.select2(select2_config);
         if (owner_field_options.length > 0) await owner_field.val(owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
