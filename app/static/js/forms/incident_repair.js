@@ -6,12 +6,13 @@ import {qr_decode} from "../common/qr.js";
 export class IncidentRepair {
     category = "repair"
 
-    constructor({meta = null, incident = null, history = "", dropdown_parent = null}) {
+    constructor({meta = null, incident = null, history = "", dropdown_parent = null, callbacks = {}}) {
         this.incident_update = incident !== null;
         this.incident = incident;
         this.history = history;
         this.meta = meta;
         this.dropdown_parent = dropdown_parent;
+        this.callbacks = callbacks;
     }
 
     __state_select_set = () => {
@@ -128,20 +129,24 @@ export class IncidentRepair {
         // Scan spare badge
         document.getElementById("spare-badge-scan").addEventListener("click", (e) => {
             e.preventDefault();
-            bootbox.prompt({
-                title: "Scan de badge van de reservelaptop",
-                callback: async res => {
-                    if (res !== null) {
-                        const [valid_code, code] = badge_raw2hex(res);
-                        if (valid_code) {
-                            const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
-                            if (spares && spares.length > 0) spare_field.value = spares[0].label;
-                        } else {
-                            spare_field.value = code;
+            if ("spare-badge-scan" in this.callbacks) {
+                this.callbacks["spare-badge-scan"]();
+            } else {
+                bootbox.prompt({
+                    title: "Scan de badge van de reservelaptop",
+                    callback: async res => {
+                        if (res !== null) {
+                            const [valid_code, code] = badge_raw2hex(res);
+                            if (valid_code) {
+                                const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
+                                if (spares && spares.length > 0) spare_field.value = spares[0].label;
+                            } else {
+                                spare_field.value = code;
+                            }
                         }
                     }
-                }
-            })
+                });
+            }
         });
 
         // when the owner field changes, get the associated laptops and populate the laptop field

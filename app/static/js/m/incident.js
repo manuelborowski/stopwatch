@@ -63,9 +63,33 @@ $(document).ready(async () => {
         });
 
     } else if (document.getElementById("location-field")) { // update repair incident
+
+        const __scan_spare_laptop = () => {
+            const modal = document.getElementById("qr-modal");
+            modal.style.display = "block";
+            document.getElementById("qr-scanner-out").innerHTML = "";
+            const qr_scanner = new QrScanner(
+                document.getElementById("qr-scanner-video"),
+                result => {
+                    document.getElementById("qr-scanner-out").innerHTML = result.data;
+                },
+                {
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                }
+            );
+            qr_scanner.start();
+            modal.addEventListener("click", () => {
+                document.getElementById("spare-field").value = document.getElementById("qr-scanner-out").innerHTML;
+                qr_scanner.stop();
+                modal.style.display = "none";
+            })
+        }
+
         const history = histories.map(e => e.info).filter(e => e !== "").join("<br>");
-        const repair = new IncidentRepair({meta, incident, history});
-        repair.display();
+        const callbacks = {"spare-badge-scan": __scan_spare_laptop};
+        const repair = new IncidentRepair({meta, incident, history, callbacks});
+        await repair.display();
         const cancel_btn = document.getElementById("cancel-btn");
         const save_btn = document.getElementById("save-btn");
         document.querySelectorAll(".repair-update-hidden").forEach(i => i.hidden = true);

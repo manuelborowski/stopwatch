@@ -106,8 +106,9 @@ from functools import wraps
 # 0.65: regular users have less rights, cannot create or update incidents
 # 0.66: small bugfixes.  lis-badge-id cannot be reused until incident is closed
 # 0.67: minor layout updates
+# 0.68: minor layout updates.  Implemented QR code scanner (mobile).
 
-version = "0.67"
+version = "0.68"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
