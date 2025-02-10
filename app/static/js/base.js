@@ -7,6 +7,7 @@ var menu = [
     ["lisbadge.show", "LIS badges", 3],
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
+    ["incident.help", "Help", 1],
 ]
 
 export const inject_menu = new_menu => {

@@ -107,8 +107,9 @@ from functools import wraps
 # 0.66: small bugfixes.  lis-badge-id cannot be reused until incident is closed
 # 0.67: minor layout updates
 # 0.68: minor layout updates.  Implemented QR code scanner (mobile).
+# 0.69: added minimalistic help
 
-version = "0.68"
+version = "0.69"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

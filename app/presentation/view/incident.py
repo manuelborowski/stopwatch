@@ -249,3 +249,8 @@ def qr():
         return fetch_return_error(f'Exception, {e}')
 
 
+@bp_incident.route('/incidenthelp', methods=['GET'])
+@login_required
+def help():
+    return render_template("help.html")
+
