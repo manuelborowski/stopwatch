@@ -456,10 +456,11 @@ const __filter_scan_lis_badge = () => {
                 } else {
                     lis_id = code;  // it is assumed a valid lis code is entered
                 }
-                const incidents = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${lis_id},incident_state$!$closed`, fields: "id"})
-                if (incidents && incidents.length > 0) {
-                    const latest_id = incidents.reduce((max, item) => item.id > max.id ? item : max).id;
-                    location.href = `${location.href}?id=${latest_id}`;
+
+                const dt_search = document.querySelector(".dt-search .dt-input");
+                if (dt_search) {
+                    dt_search.value = lis_id;
+                    dt_search.dispatchEvent(new Event("input"));
                 }
             }
         }
@@ -488,7 +489,7 @@ const filter_menu_items = [
     {
         type: 'checkbox',
         id: 'incident-state-closed',
-        label: 'Afhandeld?',
+        label: 'Afgehandeld?',
         default: false,
         persistent: true
     },
@@ -558,7 +559,7 @@ $(document).ready(async () => {
     filter_menu_items.filter((e, i, a) => {
         if (e.id === "incident-owner-id") {
             a[i].options = incident_owner_options;
-            a[i].default = current_user.username;
+            a[i].default = "all";
             return true
         }
         if (e.id === "incident-type") {
