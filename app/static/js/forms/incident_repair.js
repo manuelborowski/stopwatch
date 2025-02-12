@@ -13,6 +13,7 @@ export class IncidentRepair {
         this.meta = meta;
         this.dropdown_parent = dropdown_parent;
         this.callbacks = callbacks;
+        this.__stored_password = this.incident ? this.incident.laptop_owner_password : "";
     }
 
     __state_select_set = () => {
@@ -29,11 +30,10 @@ export class IncidentRepair {
         }
     }
 
-    __stored_password = this.incident ? this.incident.laptop_owner_password : "";
-    __password_field_visibility = (hidden = true) => {
+    __password_field_hide = (hide = true) => {
         const password_field = document.getElementById("password-field");
         const password_show_field = document.getElementById("password-show-field");
-        if (hidden) {
+        if (hide) {
             password_show_field.classList.replace("fa-eye", "fa-eye-slash");
             password_field.value = "**";
             password_field.disabled = true;
@@ -49,12 +49,12 @@ export class IncidentRepair {
         const password_show_field = document.getElementById("password-show-field");
         if (password_show_field.classList.contains("fa-eye-slash")) {
             // hidden to visible
-            this.__password_field_visibility(false);
+            this.__password_field_hide(false);
 
         } else {
             // visible to hidden
             this.__stored_password = password_field.value;
-            this.__password_field_visibility(true)
+            this.__password_field_hide(true)
         }
     }
 
@@ -258,7 +258,7 @@ export class IncidentRepair {
         if (owner_field_options.length > 0) await owner_field.val(owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
 
         // default hide the password when the incident is being updated
-        this.__password_field_visibility(this.incident_update);
+        this.__password_field_hide(this.incident_update);
 
         // hide/display hardware problem types (M4S)
         lis_type_field.addEventListener("change", e => {

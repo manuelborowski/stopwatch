@@ -109,8 +109,9 @@ from functools import wraps
 # 0.68: minor layout updates.  Implemented QR code scanner (mobile).
 # 0.69: added minimalistic help
 # 0.70: small updates
+# 0.71: small bugfix when entering an owners' password
 
-version = "0.70"
+version = "0.71"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
