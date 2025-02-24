@@ -42,34 +42,41 @@ export class CellEdit {
     }
 
     create_input_element = ($target, column_config, old_value) => {
+        let $edit_element = null;
         switch (column_config.type) {
             case "select":
-                const select = $(`<select class="${this.input_css}"></select>`);
+                const $select = $(`<select class="${this.input_css}"></select>`);
                 $.each(column_config.options, function (index, option) {
                     const selected = old_value === option.value ? "selected" : "";
-                    const option_element = $(`<option value=${option.value} ${selected} style="z-index: 1000">${option.display}</option>`);
-                    select.append(option_element);
+                    const $option_element = $(`<option value=${option.value} ${selected} style="z-index: 1000">${option.display}</option>`);
+                    $select.append($option_element);
                 });
-                select.on("change", this.update);
+                $select.on("change", this.update);
                 // The span is required because in Edge, there is a gap between the select and the options, which causes the mouseleave to trigger too early.
-                const $span = $(`<span id="wrapper" style="height:30px; display:inline-block">`).append(select);
-                $($target).html($span);
-                $span.on("mouseleave", e => {
-                    const $td = $(e.currentTarget.closest("td"))
-                    this.cancel($td, old_value)})
+                $edit_element = $(`<span id="wrapper" style="height:30px; display:inline-block">`).append($select);
+                $($target).html($edit_element);
                 break;
             case "text-confirmkey": // text input w/ confirm
             case "int-confirmkey": // integer input w/ confirm
-                const input = $(`<input class="${this.input_css}" value="${old_value}">`);
-                input.on("keyup", e => {
+                const $input = $(`<input class="${this.input_css}" value="${old_value}">`);
+                $input.on("keyup", e => {
                     if (e.keyCode === 13) this.update(e)
-                    else if (e.keyCode === 27) this.cancel(target_cell, old_value)
+                    else if (e.keyCode === 27) this.cancel($target, old_value)
                 });
-                $($target).html(input);
-                input.focus();
+                $($target).html($input);
+                const length = $input.val().length;
+                $input[0].focus();
+                $input[0].setSelectionRange(length, length);
+                $edit_element = $input;
                 break;
             default:
                 break;
+        }
+        if ($edit_element) {
+            $edit_element.on("mouseleave", e => {
+                const $td = $(e.currentTarget.closest("td"))
+                this.cancel($td, old_value)
+            })
         }
     }
 
@@ -79,9 +86,13 @@ export class CellEdit {
         const $td = $(event.currentTarget.closest("td"))
         const $dt_cell = this.table.cell($td); // parentNode: td element
         const column_index = this.table.column($td).index();
+        const column_config = this.columns[column_index];
         const old_value = $dt_cell.data();
         $dt_cell.data(event.currentTarget.value);
-        $($td).html(this.select_options[column_index][event.currentTarget.value]);
+        if (column_config.type === "select")
+            $($td).html(this.select_options[column_index][event.currentTarget.value]);
+        else if (column_index.type === "text-confirmkey")
+            $($td).html(event.currentTarget.value);
         this.update_cb($dt_row, column_index, event.currentTarget.value, old_value);
     }
 

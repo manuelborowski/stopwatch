@@ -111,8 +111,9 @@ from functools import wraps
 # 0.70: small updates
 # 0.71: small bugfix when entering an owners' password
 # 0.72: small bugfixes.  Reworked cell_edit, works for select only.  Added homelocation to spares.
+# 0.73: cell_edit works for regular input.  LIS-badge is also available when state is repaired
 
-version = "0.72"
+version = "0.73"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

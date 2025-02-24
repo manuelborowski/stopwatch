@@ -297,10 +297,12 @@ export class IncidentRepair {
             await fetch_update("incident.incident", data);
         } else {  // new incident
             let lis_badge_id_exist = [];
-            if (data.lis_badge_id !== "") lis_badge_id_exist = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${data.lis_badge_id},incident_state$!$closed`});
-            if (lis_badge_id_exist.length > 0) {
-                new AlertPopup("warning", "Dit nummer is al in gebruik")
-                return false
+            if (data.lis_badge_id !== "") {
+                lis_badge_id_exist = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${data.lis_badge_id},incident_state$!$closed,incident_state$!$repaired`});
+                if (lis_badge_id_exist.length > 0) {
+                    new AlertPopup("warning", "Dit nummer is al in gebruik")
+                    return false
+                }
             }
             if (document.getElementById("type-spare-laptop-chk").checked) {  // spare laptop
                 data.laptop_owner_name = this.meta.label.location[data.location];
