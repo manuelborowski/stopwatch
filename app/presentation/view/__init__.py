@@ -26,7 +26,7 @@ def datatable_get_data(table_config, data):
         al.socketio.send_to_client({"type": f"{table_config.view}-datatable-data", "data": ret["data"]})
         return json.dumps(ret["data"])
     else:
-        send_alert_to_client("error", ret["msg"])
+        send_alert_to_client("error", ret["data"])
         return "[]"
 
 # use only in context of a fetch call

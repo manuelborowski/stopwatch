@@ -17,14 +17,15 @@ class Spare(db.Model, SerializerMixin):
     rfid = db.Column(db.String(256), default=None)
     label = db.Column(db.String(256), default=None)
     serial = db.Column(db.String(256), default=None)
+    location = db.Column(db.String(256), default=None)
     active = db.Column(db.Boolean, default=True)    # long term
 
 def add(data = {}):
     return dl.models.add_single(Spare, data)
 
 
-def update(incident, data={}):
-    return dl.models.update_single(Spare, incident, data)
+def update(spare, data={}):
+    return dl.models.update_single(Spare, spare, data)
 
 
 def get_m(filters=[], fields=[], order_by=None, first=False, count=False, active=True):

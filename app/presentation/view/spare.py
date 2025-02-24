@@ -22,6 +22,13 @@ def show():
 # invoked when the client requests data from the database
 al.socketio.subscribe_on_type("spare-datatable-data", lambda type, data: datatable_get_data(config, data))
 
+def value_update(type, data):
+    spare = dl.spare.get(("id", "=", data["id"]))
+    dl.spare.update(spare, {data["column"]: data["value"]})
+
+# invoked when a single cell in the table is updated
+al.socketio.subscribe_on_type("spare-cell-update", value_update)
+
 @bp_spare.route('/spare', methods=["POST", "UPDATE", "GET"])
 @login_required
 def spare():

@@ -69,15 +69,37 @@ const __dialog_new_single_spare = async (default_id = null, default_auto_increme
     }
 }
 
-const __dialog_new_list_spare = () => {
-    bootbox.dialog({
-        title: "Lijst met nieuwe laptops",
+const __parse_line = line => {
+    let data = {};
+    var [id, label, home, serial] = line.split(";");
+    if (id !== "") {
+        data.id = id;
+        if (label !== "") data.label = label;
+        if (home !== "") data.location = home;
+        if (serial !== "") data.serial = serial
+    }
+    return data
+}
+
+const __dialog_update_list = () => {
+    const popup = bootbox.dialog({
+        title: "Aanpassen van reservelaptops",
         message: `
         <form>
             <div class="form-row">
                 <div class="form-element" >
-                    <label for="list-field">Lijst met laptops, velden gescheiden door <b>;</b><br>serienummer is optioneel.<br> badgenummer;laptop-label;serienummer</label>
-                    <textarea id="list-field" style="flex: 1;" rows="4" cols="50"></textarea>
+                    <label for="list-field">
+                    velden gescheiden door <b>;</b> (puntkomma) <br>
+                    <b>Velden:</b> badgenummer;laptop-label;thuislocatie;serienummer<br>
+                    thuislocatie: moet <b>baliesum</b> of <b>baliebb</b> zijn.<br>                    
+                    Laat een veld leeg als het niet moet worden aangepast.<br>
+                    Bv:<br> 
+                    <b>23;;baliesum;</b><br>
+                    <b>21;R22-45 [SPB2022-12345];;ABCDE</b><br>
+                    Laptop 23 krijgt baliesum als thuislocatie.<br>
+                    Laptop 21 krijgt R22-45 [SPB2022-12345] als label en ABCDE als serienummer. 
+                    </label>
+                    <textarea id="list-field" style="padding: 2px;flex: 1;" rows="30" cols="80"></textarea>
                 </div>
             </div>
         </form> `,
@@ -88,16 +110,11 @@ const __dialog_new_list_spare = () => {
                 callback: async () => {
                     const list_text = document.getElementById("list-field").value;
                     const list = list_text.split("\n");
-                    for (const line of list) {
-                        var [id, label, serial] = line.split(";");
-                        if (label !== "") {
-                            let params = {};
-                            if (serial === undefined)
-                                params = {id, label};
-                            else
-                                params = {id, label, serial}
-                            const resp = await fetch_update("spare.spare", params);
-                        }
+                    for (let line of list) {
+                        line = line.trim();
+                        if (line === "") continue;
+                        const data = __parse_line(line);
+                        if (data !== {}) await fetch_update("spare.spare", data)
                     }
                     datatable_reload_table();
                 }
@@ -110,6 +127,7 @@ const __dialog_new_list_spare = () => {
         onShown: function () {
         }
     });
+    popup[0].children[0].style.maxWidth="692px"
 }
 
 const button_menu_items = [
@@ -121,9 +139,9 @@ const button_menu_items = [
     },
     {
         type: 'button',
-        id: 'spare-new-list',
-        label: 'Lijst toevoegen',
-        cb: () => __dialog_new_list_spare()
+        id: 'spare-label-list',
+        label: 'Wijzigen',
+        cb: () => __dialog_update_list()
     },
 ]
 

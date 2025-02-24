@@ -110,8 +110,9 @@ from functools import wraps
 # 0.69: added minimalistic help
 # 0.70: small updates
 # 0.71: small bugfix when entering an owners' password
+# 0.72: small bugfixes.  Reworked cell_edit, works for select only.  Added homelocation to spares.
 
-version = "0.71"
+version = "0.72"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

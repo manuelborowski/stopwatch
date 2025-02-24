@@ -60,7 +60,7 @@ def value_update(type, data):
     dl.user.update(user, {data["column"]: data["value"]})
 
 # invoked when a single cell in the table is updated
-al.socketio.subscribe_on_type("cell-update", value_update)
+al.socketio.subscribe_on_type("user-cell-update", value_update)
 
 
 class Config(DatatableConfig):

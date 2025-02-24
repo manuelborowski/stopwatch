@@ -192,7 +192,6 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     DataTable.type('date', 'className', 'dt-left');
     DataTable.defaults.column.orderSequence = ['desc', 'asc'];
     ctx.table = new DataTable('#datatable', datatable_config);
-    const cell_edit = new CellEdit(ctx.table, table_config.template, __cell_edit_changed_cb);
 
     // if columns are invisible, the column index in rowCallback is reduced, depending on the invisible columns.
     // create a translation table to go from actual column index to the reduced (with invisible columns) column index
@@ -202,13 +201,12 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         ctx.table.draw();
     });
 
-    function update_cell_changed(data) {socketio.send_to_server("cell-update", data);}
+    const update_cell_changed  =  data=>  {socketio.send_to_server(`${ctx.table_config.view}-cell-update`, data);}
 
-    function __cell_edit_changed_cb(cell, row, old_value) {
-        const column = cell.index().column;
-        const value = ctx.table_config.template[column].celledit.value_type === 'int' ? parseInt(cell.data()) : cell.data();
-        const column_name = ctx.table.column(column).dataSrc()
-        update_cell_changed({id: row.data().DT_RowId, column: column_name, value});
+    const __cell_edit_changed_cb = ($dt_row, column_index, new_value, old_value) => {
+        const value = ctx.table_config.template[column_index].celledit.value_type === 'int' ? parseInt(new_value) : new_value;
+        const column_name = ctx.table.column(column_index).dataSrc()
+        update_cell_changed({id: $dt_row.data().DT_RowId, column: column_name, value});
     }
 
     function cell_toggle_changed_cb(cell, row, value) {
@@ -219,6 +217,8 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         }
         update_cell_changed(data);
     }
+
+    const cell_edit = new CellEdit(ctx.table, table_config.template, __cell_edit_changed_cb);
 
     if ("row_detail" in table_config) {
         //For an extra-measure, show the associated remarks as a sub-table
