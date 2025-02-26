@@ -109,7 +109,10 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
 
     // get data from server and send to datatables to render it
     let __datatable_data_cb = null;
-    const data_from_server = (type, data) => __datatable_data_cb(data);
+    const data_from_server = (type, data) => {
+        __datatable_data_cb(data);
+        busy_indication_off();
+    }
     socketio.subscribe_on_receive(`${ctx.table_config.view}-datatable-data`, data_from_server);
 
     let datatable_config = {
@@ -118,6 +121,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         stateSave: true,
         stateDuration: 0,
         ajax: function (data, cb, settings) {
+            busy_indication_on();
             let filters = filter_menu.filters;
             if ("filters" in view_data) filters = filters.concat(view_data.filters);
             socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {filters}));
@@ -159,12 +163,10 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             }
         },
         preDrawCallback: function (settings) {
-            busy_indication_on();
             __calc_column_shift();
         },
 
         drawCallback: function (settings) {
-            busy_indication_off();
             if (ctx.cell_to_color) {
                 ctx.table.cells().every(function () {
                     if (this.data() in ctx.cell_to_color) {

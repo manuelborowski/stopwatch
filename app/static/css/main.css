@@ -50,7 +50,7 @@ hr.nice-green-line {
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
   position: fixed; /* Sit on top of the page content */
-  display: none; /* Hidden by default */
+  display: block; /* Hidden by default */
   width: 500px;
   height: 500px;
   top: calc(50% - 250px);
@@ -58,7 +58,7 @@ hr.nice-green-line {
   right: 0;
   bottom: 0;
   background-color: rgba(0,0,0,0); /* Black background with opacity */
-  z-index: 20; /* Specify a stack order in case you're using a different order for other elements */
+  z-index: 2000; /* Specify a stack order in case you're using a different order for other elements */
   cursor: pointer; /* Add a pointer on hover */
 }
 

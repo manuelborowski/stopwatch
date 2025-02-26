@@ -1,5 +1,5 @@
 import {badge_raw2hex} from "../common/rfid.js";
-import {fetch_delete, fetch_get, fetch_post, fetch_update, form_populate} from "../common/common.js";
+import {busy_indication_off, busy_indication_on, fetch_delete, fetch_get, fetch_post, fetch_update, form_populate} from "../common/common.js";
 import {AlertPopup} from "../common/popup.js";
 import {qr_decode} from "../common/qr.js";
 
@@ -71,24 +71,25 @@ export class IncidentRepair {
 
         const __attachment_add_view_event_listener = () => {
             attachment_list.querySelectorAll(".attachment-view").forEach(a => a.addEventListener("click", async e => {
-                    const filename = e.target.innerHTML;
-                    const attachment = this.attachments.find(a => a.name === filename);
-                    const data = await fetch_get("incident.attachment", {id: attachment.id});
-                    if (attachment.type.includes("image")) {
-                        const base64_image = `data:${attachment.type};base64, ` + data.data.file;
-                        const new_tab = window.open();
-                        if (new_tab) {
-                            new_tab.document.write(`<img src="${base64_image}" alt="Base64 Image">`);
-                            new_tab.document.write(`<title>${filename}</title>`);
-                        } else {
-                            alert("Popup blocked! Please allow popups for this site.");
-                        }
-                    } else if (attachment.type.includes("video")) {
-                        const new_tab = window.open();
-                        if (new_tab) {
-                            const base64_mp4 = `data:${attachment.type};base64, ` + data.data.file;
-                            new_tab.document.write(`<title>${filename}</title>`);
-                            new_tab.document.write(`
+                busy_indication_on();
+                const filename = e.target.innerHTML;
+                const attachment = this.attachments.find(a => a.name === filename);
+                const data = await fetch_get("incident.attachment", {id: attachment.id});
+                if (attachment.type.includes("image")) {
+                    const base64_image = `data:${attachment.type};base64, ` + data.data.file;
+                    const new_tab = window.open();
+                    if (new_tab) {
+                        new_tab.document.write(`<img src="${base64_image}" alt="Base64 Image">`);
+                        new_tab.document.write(`<title>${filename}</title>`);
+                    } else {
+                        alert("Popup blocked! Please allow popups for this site.");
+                    }
+                } else if (attachment.type.includes("video")) {
+                    const new_tab = window.open();
+                    if (new_tab) {
+                        const base64_mp4 = `data:${attachment.type};base64, ` + data.data.file;
+                        new_tab.document.write(`<title>${filename}</title>`);
+                        new_tab.document.write(`
                                 <html>
                                   <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background-color:#000;">
                                     <video controls autoplay style="max-width:100%; max-height:100vh;">
@@ -98,21 +99,19 @@ export class IncidentRepair {
                                   </body>
                                 </html>
                               `);
-                            new_tab.document.close();
-                        } else {
-                            alert("Popup blocked! Please allow popups for this site.");
-                        }
-
-                    } else { // default: download
-                        const linkSource = `data:application/pdf;base64,${data.data.file}`;
-                        const downloadLink = document.createElement("a");
-                        downloadLink.href = linkSource;
-                        downloadLink.download = filename;
-                        downloadLink.click();
+                        new_tab.document.close();
+                    } else {
+                        alert("Popup blocked! Please allow popups for this site.");
                     }
+                } else { // default: download
+                    const linkSource = `data:application/pdf;base64,${data.data.file}`;
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = linkSource;
+                    downloadLink.download = filename;
+                    downloadLink.click();
                 }
-            ))
-            ;
+                busy_indication_off();
+            }));
         }
 
         const __attachment_add_delete_event_listener = () => {
@@ -382,6 +381,7 @@ export class IncidentRepair {
     }
 
     save = async () => {
+        busy_indication_on();
         const owner_field = $("#owner-field");
         const form_data = new FormData(document.getElementById("incident-form"));
         const data = Object.fromEntries(form_data)
@@ -391,6 +391,7 @@ export class IncidentRepair {
         if (this.incident_update) {
             if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && data.info === "" && this.incident.m4s_guid === null) {
                 new AlertPopup("warning", "Roodgekleurde velden invullen aub.");
+                busy_indication_off();
                 return false
             }
             data.id = this.incident.id;
@@ -419,6 +420,7 @@ export class IncidentRepair {
                 lis_badge_id_exist = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${data.lis_badge_id},incident_state$!$closed,incident_state$!$repaired`});
                 if (lis_badge_id_exist.length > 0) {
                     new AlertPopup("warning", "LIS badgenummer is al in gebruik")
+                    busy_indication_off();
                     return false
                 }
             }
@@ -430,6 +432,7 @@ export class IncidentRepair {
 
                 if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "") {
                     new AlertPopup("warning", "Roodgekleurde velden invullen aub.")
+                    busy_indication_off();
                     return false
                 }
                 data.laptop_type = "reserve";
@@ -440,6 +443,7 @@ export class IncidentRepair {
                 data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
                 if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && data.info === "") {
                     new AlertPopup("warning", "Roodgekleurde velden invullen aub.");
+                    busy_indication_off();
                     return false
                 }
                 [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
@@ -461,6 +465,7 @@ export class IncidentRepair {
                 new AlertPopup("ok", `Incident ${resp.data.id} toegevoegd.`)
             }
         }
+        busy_indication_off();
         return true
     }
 }

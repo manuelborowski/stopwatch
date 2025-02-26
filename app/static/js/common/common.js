@@ -81,8 +81,8 @@ let busy_indicator = null;
 export function busy_indication_on() {
     // document.querySelector(".busy-indicator").style.display = "block";
     busy_indicator = document.createElement("div");
-    busy_indicator.classList.add(".busy-indicator");
-    document.querySelector("body").appendChild(busy_indicator);
+    busy_indicator.classList.add("busy-indicator");
+    document.querySelector("main").appendChild(busy_indicator);
 }
 
 export function busy_indication_off() {
