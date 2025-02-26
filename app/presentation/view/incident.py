@@ -57,6 +57,36 @@ def incident():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return fetch_return_error()
 
+@bp_incident.route('/incident/attachment', methods=['POST', "GET", "DELETE"])
+@login_required
+def attachment():
+    try:
+        ret = {}
+        if request.method == "POST":
+            files = request.files.getlist("attachment_file")
+            incident_id = request.form.get("incident_id")
+            al.attachment.add(incident_id, files)
+        if request.method == "GET":
+            ret = al.attachment.get(request.args["id"])
+        if request.method == "DELETE":
+            al.attachment.delete(request.args["ids"].split(","))
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
+
+@bp_incident.route('/incident/attachment/meta', methods=["GET"])
+@login_required
+def attachment_meta():
+    try:
+        ret = {}
+        if request.method == "GET":
+            ret = al.attachment.get_meta(request.args["incident_id"])
+        return json.dumps(ret)
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return fetch_return_error()
+
 @bp_incident.route('/incident/message', methods=['POST', "GET"])
 @login_required
 def message():

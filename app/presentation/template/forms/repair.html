@@ -9,7 +9,8 @@
         <button id="lis-badge-scan" class="btn btn-success  repair-update-hidden">Scan LIS badge</button>
     </div>
     <div class="form-row repair-update-hidden">
-        <div class="form-element repair-update-hidden"><label><input type="checkbox" id="type-spare-laptop-chk" name="spare_laptop_check">Is&nbsp;het&nbsp;een&nbsp;reserve&nbsp;laptop?</label></div>
+        <div class="form-element repair-update-hidden"><label><input type="checkbox" id="type-spare-laptop-chk" name="spare_laptop_check">Is&nbsp;het&nbsp;een&nbsp;reserve&nbsp;laptop?</label>
+        </div>
     </div>
 
     <div class="group-spare-laptop">
@@ -26,7 +27,8 @@
             <button id="laptop-code-scan" class="btn btn-success repair-update-hidden">Scan laptop label</button>
         </div>
         <div class="form-row">
-            <div class="form-element"><label>Wachtwoord&nbsp;<i id="password-show-field" class="fa-regular fa-eye-slash"></i><input id="password-field" name="laptop_owner_password"></label></div>
+            <div class="form-element"><label>Wachtwoord&nbsp;<i id="password-show-field" class="fa-regular fa-eye-slash"></i><input id="password-field"
+                                                                                                                                    name="laptop_owner_password"></label></div>
             <div class="form-element"><label><input type="checkbox" id="password-default-chk" name="laptop_owner_password_default">Standaard&nbsp;paswoord?</label></div>
         </div>
     </div>
@@ -66,4 +68,23 @@
             <label>Info<textarea id="info-field" rows="6" cols="80" style="line-height: 1" name="info"></textarea></label>
         </div>
     </div>
+    <div class="form-row">
+        <div class="form-element">
+            <button id="upload-attachment-btn" class="btn btn-success">Bijlagen uploaden</button>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-element">
+            <div style="display: flex; flex-direction: column">
+                <p style="margin-top: 10px; margin-bottom: 0"><b>Bijlagen:</b></p>
+                <p style="margin-top: 0; margin-bottom: 0" id="attachment-list"></p>
+            </div>
+        </div>
+
+    </div>
+</form>
+<form id="attachment-form">
+    <input id="attachment-field" name="attachment_file" type="file" multiple hidden>
+    <input id="incident-id-field" name="incident_id" hidden>
+
 </form>

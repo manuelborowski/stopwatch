@@ -1,5 +1,5 @@
 import {badge_raw2hex} from "../common/rfid.js";
-import {fetch_get, fetch_post, fetch_update, form_populate} from "../common/common.js";
+import {fetch_delete, fetch_get, fetch_post, fetch_update, form_populate} from "../common/common.js";
 import {AlertPopup} from "../common/popup.js";
 import {qr_decode} from "../common/qr.js";
 
@@ -14,6 +14,8 @@ export class IncidentRepair {
         this.dropdown_parent = dropdown_parent;
         this.callbacks = callbacks;
         this.__stored_password = this.incident ? this.incident.laptop_owner_password : "";
+        this.attachments = [];
+        this.attachments_to_delete = [];
     }
 
     __state_select_set = () => {
@@ -65,6 +67,76 @@ export class IncidentRepair {
         const info_field = document.getElementById("info-field");
         const spare_field = document.getElementById("spare-field")
         const owner_field = $("#owner-field");
+        const attachment_list = document.getElementById("attachment-list");
+
+        const __attachment_add_view_event_listener = () => {
+            attachment_list.querySelectorAll(".attachment-view").forEach(a => a.addEventListener("click", async e => {
+                    const filename = e.target.innerHTML;
+                    const attachment = this.attachments.find(a => a.name === filename);
+                    const data = await fetch_get("incident.attachment", {id: attachment.id});
+                    if (attachment.type.includes("image")) {
+                        const base64_image = `data:${attachment.type};base64, ` + data.data.file;
+                        const new_tab = window.open();
+                        if (new_tab) {
+                            new_tab.document.write(`<img src="${base64_image}" alt="Base64 Image">`);
+                            new_tab.document.write(`<title>${filename}</title>`);
+                        } else {
+                            alert("Popup blocked! Please allow popups for this site.");
+                        }
+                    } else if (attachment.type.includes("video")) {
+                        const new_tab = window.open();
+                        if (new_tab) {
+                            const base64_mp4 = `data:${attachment.type};base64, ` + data.data.file;
+                            new_tab.document.write(`<title>${filename}</title>`);
+                            new_tab.document.write(`
+                                <html>
+                                  <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background-color:#000;">
+                                    <video controls autoplay style="max-width:100%; max-height:100vh;">
+                                      <source src="${base64_mp4}" type="${attachment.type}">
+                                      Your browser does not support the video tag.
+                                    </video>
+                                  </body>
+                                </html>
+                              `);
+                            new_tab.document.close();
+                        } else {
+                            alert("Popup blocked! Please allow popups for this site.");
+                        }
+
+                    } else { // default: download
+                        const linkSource = `data:application/pdf;base64,${data.data.file}`;
+                        const downloadLink = document.createElement("a");
+                        downloadLink.href = linkSource;
+                        downloadLink.download = filename;
+                        downloadLink.click();
+                    }
+                }
+            ))
+            ;
+        }
+
+        const __attachment_add_delete_event_listener = () => {
+            attachment_list.querySelectorAll(".btn-attachment-remove").forEach(i => i.addEventListener("click", e => {
+                    e.preventDefault();
+                    const filename = e.target.closest("a").dataset.id;
+                    const find_file = this.attachments.find(i => i.name.replaceAll(" ", "") === filename);
+                    if (find_file && "id" in find_file) this.attachments_to_delete.push(find_file.id);
+                    this.attachments = this.attachments.filter(i => i.name.replaceAll(" ", "") !== filename);
+                    attachment_list.innerHTML = "";
+                    for (const file of this.attachments) {
+                        attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                        if ("id" in file) {
+                            attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
+                        } else {
+                            attachment_list.innerHTML += file.name + "<br>";
+                        }
+                    }
+                    __attachment_add_delete_event_listener();
+                    __attachment_add_view_event_listener();
+                })
+            );
+        }
+
 
         // Scan LIS badge
         document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
@@ -147,6 +219,23 @@ export class IncidentRepair {
                     }
                 });
             }
+        });
+
+        //upload attachments, simulate a click on the hidden file-input
+        document.getElementById("upload-attachment-btn").addEventListener("click", e => {
+            e.preventDefault();
+            document.getElementById("attachment-field").click();
+        });
+
+        // upload attachments, called when the file select dialog closes.
+        document.getElementById("attachment-field").addEventListener("change", e => {
+            for (const file of e.target.files) {
+                attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                attachment_list.innerHTML += file.name + "<br>";
+                this.attachments.push(file);
+            }
+            __attachment_add_delete_event_listener();
+            __attachment_add_view_event_listener();
         });
 
         // when the owner field changes, get the associated laptops and populate the laptop field
@@ -238,6 +327,19 @@ export class IncidentRepair {
             await form_populate(this.category, this.incident, this.meta);
             owner_field_options = [{id: this.incident.laptop_owner_id, text: this.incident.laptop_owner_name}];
 
+            // Get attachments
+            const attachments = await fetch_get("incident.attachment_meta", {incident_id: this.incident.id});
+            if (attachments.data.length > 0) {
+                this.attachments = [...attachments.data];
+
+                for (const file of this.attachments) {
+                    attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                    attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
+                }
+                __attachment_add_delete_event_listener();
+                __attachment_add_view_event_listener();
+            }
+
             document.querySelectorAll(".repair-update-hidden").forEach(i => i.hidden = true);
             document.querySelectorAll(".repair-update-disabled").forEach(i => i.disabled = true);
             document.querySelectorAll(".required").forEach(i => i.classList.toggle("required"));
@@ -295,12 +397,28 @@ export class IncidentRepair {
             data.event = document.getElementById("incident-state-field").value;
             if (data.incident_type !== "hardware") data.m4s_problem_type_guid = "";  // make sure to clear this field, else it pops up in different places
             await fetch_update("incident.incident", data);
+
+            // check for new or deleted attachments
+            if (this.attachments_to_delete.length > 0) await fetch_delete("incident.attachment", {ids: this.attachments_to_delete.join(",")})
+            if (this.attachments.length > 0) {
+                const data = new FormData();
+                data.append("incident_id", this.incident.id);
+                for (const file of this.attachments) {
+                    if ("id" in file) continue; // skip, already in database
+                    data.append("attachment_file", file);
+                }
+                if (data.has("attachment_file")) {
+                    const resp1 = await fetch(Flask.url_for("incident.attachment"), {method: 'POST', body: data});
+                    await resp1.json();
+                }
+            }
+
         } else {  // new incident
             let lis_badge_id_exist = [];
             if (data.lis_badge_id !== "") {
                 lis_badge_id_exist = await fetch_get("incident.incident", {filters: `lis_badge_id$=$${data.lis_badge_id},incident_state$!$closed,incident_state$!$repaired`});
                 if (lis_badge_id_exist.length > 0) {
-                    new AlertPopup("warning", "Dit nummer is al in gebruik")
+                    new AlertPopup("warning", "LIS badgenummer is al in gebruik")
                     return false
                 }
             }
@@ -330,7 +448,18 @@ export class IncidentRepair {
             data.lis_badge_id = parseInt(data.lis_badge_id);
             if (data["incident_type"] !== "hardware") data["m4s_problem_type_guid"] = ""
             data.event = "started";
-            await fetch_post("incident.incident", data);
+            var resp = await fetch_post("incident.incident", data);
+            if (resp.data.status) {
+                if (this.attachments.length > 0) {
+                    document.getElementById("incident-id-field").value = resp.data.id;
+                    const data = new FormData();
+                    data.append("incident_id", resp.data.id);
+                    for (const file of this.attachments) data.append("attachment_file", file);
+                    const resp1 = await fetch(Flask.url_for("incident.attachment"), {method: 'POST', body: data});
+                    await resp1.json()
+                }
+                new AlertPopup("ok", `Incident ${resp.data.id} toegevoegd.`)
+            }
         }
         return true
     }

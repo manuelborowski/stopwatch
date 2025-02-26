@@ -129,7 +129,7 @@ def add(data):
                 __password_update(incident, app.config["AD_DEFAULT_PASSWORD"])
             history = dl.history.add(history_data)
         log.info(f'{sys._getframe().f_code.co_name}: incident added, {data}')
-        return {"status": "ok", "msg": f"Incident, {incident.id} toegevoegd."}
+        return {"data": {"status": True, "id": incident.id}}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
