@@ -115,8 +115,9 @@ from functools import wraps
 # 0.74: upload, view and delete attachments
 # 0.75: busy-indication activated
 # 0.76: bugfix busy-indication activated
+# 0.77: bugfix busy-indication activated
 
-version = "0.76"
+version = "0.77"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

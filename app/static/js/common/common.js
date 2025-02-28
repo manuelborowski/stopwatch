@@ -76,17 +76,18 @@ export const form_populate = async (category, data, meta = null) => {
     }
 }
 
-let busy_indicator = null;
+let busy_indicator = [];
 
 export function busy_indication_on() {
     // document.querySelector(".busy-indicator").style.display = "block";
-    busy_indicator = document.createElement("div");
-    busy_indicator.classList.add("busy-indicator");
-    document.querySelector("main").appendChild(busy_indicator);
+    const indicator = document.createElement("div");
+    indicator.classList.add("busy-indicator");
+    document.querySelector("main").appendChild(indicator);
+    busy_indicator.push(indicator);
 }
 
 export function busy_indication_off() {
     // document.querySelector(".busy-indicator").style.display = "none";
-    if (busy_indicator !== null) busy_indicator.remove();
-    busy_indicator = null;
+    for (const indicator of busy_indicator) indicator.remove();
+    busy_indicator = [];
 }
