@@ -114,8 +114,9 @@ from functools import wraps
 # 0.73: cell_edit works for regular input.  LIS-badge is also available when state is repaired
 # 0.74: upload, view and delete attachments
 # 0.75: busy-indication activated
+# 0.76: bugfix busy-indication activated
 
-version = "0.75"
+version = "0.76"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

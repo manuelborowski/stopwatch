@@ -110,8 +110,8 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     // get data from server and send to datatables to render it
     let __datatable_data_cb = null;
     const data_from_server = (type, data) => {
+       busy_indication_off();
         __datatable_data_cb(data);
-        busy_indication_off();
     }
     socketio.subscribe_on_receive(`${ctx.table_config.view}-datatable-data`, data_from_server);
 
