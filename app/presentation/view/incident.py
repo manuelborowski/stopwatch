@@ -103,6 +103,7 @@ def message():
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return fetch_return_error()
 
+# used in incident.js
 @bp_incident.route('/incident/meta', methods=['GET'])
 @login_required
 def meta():
@@ -111,12 +112,22 @@ def meta():
     locations = dl.settings.get_configuration_setting("lis-locations")
     location_options = [{"value": k, "label": v["label"]} for k, v in locations.items()]
     location_labels = {k: v["label"] for k, v in locations.items()}
-    types = dl.settings.get_configuration_setting("lis-incident-types")
-    type_options = [{"value": k, "label": v["label"]} for k, v in types.items()]
-    type_labels = {k: v["label"] for k, v in types.items()}
+    incident_types = dl.settings.get_configuration_setting("lis-incident-types")
+    type_options = [{"value": k, "label": v["label"]} for k, v in incident_types.items()]
+    type_labels = {k: v["label"] for k, v in incident_types.items()}
+    fields = ["incident_state", "location"]
+    keyed_options = {f: {"key_field": "incident_type"} for f in fields}
+    for type, data in incident_types.items():
+        for f in fields:
+            if f in data: keyed_options[f][type] = data[f]
+    keyed_options["incident_type"] = {"key_field": "category"}
+    for category, data in categories.items():
+        if "incident_type" in data: keyed_options["incident_type"][category] = data["incident_type"]
     states = dl.settings.get_configuration_setting("lis-state")
     state_options = [{"value": k, "label": v["label"]} for k, v in states.items()]
     state_labels = {k: v["label"] for k, v in states.items()}
+    home_locations = dl.settings.get_configuration_setting("lis-home-locations")
+    home_location_options = [{"value": k, "label": location_labels[k]} for k in home_locations]
     m4s_problem_types = m4s.problem_type_get()
     m4s_category_options = [{"value": k, "label": k} for k, _ in m4s_problem_types.items()]
     m4s_problem_options = m4s_problem_types["Algemeen"]
@@ -125,14 +136,16 @@ def meta():
 
     _, default_location = dl.settings.get_setting("default-location", current_user.username)
     default_password = app.config["AD_DEFAULT_PASSWORD"]
-    return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options, "m4s_category": m4s_category_options, "m4s_problem_type_guid": m4s_problem_options},
+    return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options, "m4s_category": m4s_category_options, "m4s_problem_type_guid": m4s_problem_options, "home_location": home_location_options},
                        "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels, "m4s_problem_type_guid": m4s_problem_labels},
                        "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
                        "state": states,
+                       "keyed_option": keyed_options,
                        "location": locations,
-                       "m4s": m4s_problem_types
+                       "m4s": m4s_problem_types,
+
                        })
 
 @bp_incident.route('/incident/location', methods=['POST',])
@@ -177,7 +190,7 @@ def form():
             if form == "setting":
                 template = open(pathlib.Path("app/presentation/template/forms/setting.html")).read()
             if form == "return":
-                template = open(pathlib.Path("app/presentation/template/forms/return_new.html")).read()
+                template = open(pathlib.Path("app/presentation/template/forms/return.html")).read()
             return {"template": template, "defaults": [], "data": optional}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
@@ -199,8 +212,8 @@ class Config(DatatableConfig):
         states = dl.settings.get_configuration_setting("lis-state")
         state_labels = {k: v["label"] for (k, v) in states.items()}
         state_colors = {k: v["color"] for (k, v) in states.items()}
-        standard_button_template = f'<a type="button" class="btn-incident-update btn btn-success"><i class="fa-solid fa-pen-to-square" title="Incident aanpassen"></i></a></div>'
-        standard_button_template += f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek bekijken"></i></a></div>'
+        edit_button_template = f'<a type="button" class="btn-incident-update btn btn-success"><i class="fa-solid fa-pen-to-square" title="Incident aanpassen"></i></a></div>'
+        history_button_template = f'<a type="button" class="btn-show-history btn btn-success"><i class="fa-solid fa-clock-rotate-left" title="Historiek bekijken"></i></a></div>'
         # regular user have less rights
         message_button_template = f'<a type="button" class="btn-send-message btn btn-success"><i class="fa-regular fa-envelope" title="Bericht sturen"></i></a></div>' if current_user.level >= 3 else ""
         close_button_template = f'<a type="button" class="btn-incident-close btn btn-success"><i class="fa-solid fa-xmark" title="Incident sluiten"></i></a></div>' if current_user.level >= 3 else ""
@@ -213,23 +226,31 @@ class Config(DatatableConfig):
         m4s_problem_labels.update({"": "NVT"})
 
         action_labels = {
-            "started": standard_button_template + message_button_template,
-            "transition": standard_button_template + message_button_template,
-            "repaired": standard_button_template + message_button_template + close_button_template,
-            "prepared": standard_button_template + message_button_template,
-            "expecting": standard_button_template + close_button_template,
-            "signpost": standard_button_template + close_button_template,
-            "loaned": standard_button_template + message_button_template + close_button_template,
-            "closed": "NVT"
+            "started": edit_button_template + history_button_template + message_button_template,
+            "transition": edit_button_template + history_button_template + message_button_template,
+            "repaired": edit_button_template + history_button_template + message_button_template + close_button_template,
+            "prepared": edit_button_template + history_button_template + message_button_template,
+            "expecting": edit_button_template + history_button_template + close_button_template,
+            "signpost": edit_button_template + history_button_template + close_button_template,
+            "loaned": edit_button_template + history_button_template + message_button_template + close_button_template,
+            "closed":  history_button_template
         }
 
+        # used in dt.js
+        # for each column below, a specific cell-render-function is attached to it.  These functions are called when the table is populated with data.
+        # The render function depends on the required behaviour:
+        # label: depending on the content of the cell, display a label
+        # color: depending on the content of the cell, set the background color
+        # ellipsis: long strings in the cell will be cut off and ellipsis are displayed
+        # bool: show a tick-box when the content of the cell is true
+        # condition: if the content of the cell equals a certain value, then display another value else display yet another value.
+        # display: apply mulitple renderers (if required) and combine into template (if required).
         for column in template:
             if "data" in column:
                 if column["data"] == "incident_state" and column["name"] == "Status":
-                    column["label"] = {"labels": state_labels}
-                    column["color"] = {"colors": state_colors}
-                if column["data"] == "location":
-                    column["label"] = {"labels": location_labels}
+                    column["display"] = {"template": "%0% (%1%/%2%)", "fields": [{"field": "incident_state", "labels": state_labels}, {"field": "current_location", "labels": location_labels}, {"field": "current_incident_owner"}, {"field": "incident_state", "colors": state_colors}]}
+                if column["data"] == "home_location":
+                    column["display"] = {"template": "%0% / %1%", "fields": [{"field": "home_location", "labels": location_labels}, {"field": "home_incident_owner"}]}
                 if column["data"] == "category":
                     column["label"] = {"labels": category_labels}
                 if column["data"] == "incident_type":

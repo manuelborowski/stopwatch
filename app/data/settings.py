@@ -28,18 +28,21 @@ class Settings(db.Model, SerializerMixin):
 def get_setting(name, user=None, convert_to_string=False):
     try:
         setting = Settings.query.filter_by(name=name, username=user).first()
-        if setting.type == Settings.SETTING_TYPE.E_INT:
-            value = int(setting.value)
-        elif setting.type == Settings.SETTING_TYPE.E_FLOAT:
-            value = float(setting.value)
-        elif setting.type == Settings.SETTING_TYPE.E_BOOL:
-            value = True if setting.value == 'True' else False
-        elif setting.type == Settings.SETTING_TYPE.E_JSON:
-            value = json.dumps(json.loads(setting.value), indent=2) if convert_to_string else json.loads(setting.value)
-        elif setting.type == Settings.SETTING_TYPE.E_YAML:
-            value = setting.value if convert_to_string else yaml.safe_load(setting.value)
-        else:
-            value = setting.value
+        if setting:
+            if setting.type == Settings.SETTING_TYPE.E_INT:
+                value = int(setting.value)
+            elif setting.type == Settings.SETTING_TYPE.E_FLOAT:
+                value = float(setting.value)
+            elif setting.type == Settings.SETTING_TYPE.E_BOOL:
+                value = True if setting.value == 'True' else False
+            elif setting.type == Settings.SETTING_TYPE.E_JSON:
+                value = json.dumps(json.loads(setting.value), indent=2) if convert_to_string else json.loads(setting.value)
+            elif setting.type == Settings.SETTING_TYPE.E_YAML:
+                value = setting.value if convert_to_string else yaml.safe_load(setting.value)
+            else:
+                value = setting.value
+            return True, value
+        return False, ""
     except Exception as e:
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
@@ -115,6 +118,7 @@ default_configuration_settings = {
     'lis-state': ({}, Settings.SETTING_TYPE.E_YAML),
     'lis-incident-types': ({}, Settings.SETTING_TYPE.E_YAML),
     'lis-categories': ({}, Settings.SETTING_TYPE.E_YAML),
+    'lis-home-locations': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
 

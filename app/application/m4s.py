@@ -94,15 +94,13 @@ class M4S:
             self.init_bearer()
             url = app.config["M4S_API_URL"]
             headers = {"Authorization": f"Bearer {self.bearer_token}", "Content-Type": "application/json"}
-            location = dl.settings.get_configuration_setting("lis-locations")[incident.location]
+            location = dl.settings.get_configuration_setting("lis-locations")[incident.current_location]
             [street, number] = location["signpost"].split("+")
             staff = dl.staff.get(("code", "=", current_user.username))
             [contact_first_name, contact_last_name] = [staff.voornaam, staff.naam] if staff else ["manuel", "borowski"]
             contact_email = f"{contact_first_name}.{contact_last_name}@campussintursula.be"
             data = {
                 "truthStatement": True,
-                "waterDamage": incident.water_damage,
-                "fallDamage": incident.drop_damage,
                 "serialNumber": incident.laptop_serial,
                 "institutionGuid": app.config["M4S_INSTITUTION_GUID"],
                 "problemTypeGuid": incident.m4s_problem_type_guid,

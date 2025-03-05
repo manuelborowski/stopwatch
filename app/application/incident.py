@@ -18,13 +18,16 @@ def __send_incident_message_to_location(incident):
             {"state": "transition", "heading": {"s": "1 incident komt van een andere locatie", "m": "{nbr} incidenten komen van een andere locatie"}},
             {"state": "started", "heading": {"s": "1 incident in reparatie", "m": "{nbr} incidenten in reparatie"}},
             {"state": "repaired", "heading": {"s": "1 incident hersteld, laptop nog niet afgehaald", "m": "{nbr} incidenten hersteld, laptop nog niet afgehaald"}},
+            {"state": "expecting", "heading": {"s": "1 retour-laptop wordt verwacht", "m": "{nbr} retour-laptops worden verwacht"}},
+            {"state": "signpost", "heading": {"s": "1 retour-laptop wacht om opgehaald te worden door Signpost", "m": "{nbr} retour-laptops wachten om opgehaald te worden door Signpost"}},
         ]
-        logging = f"{incident.id}/{incident.location}"
+        logging = f"{incident.id}/{incident.current_location}"
         locations = dl.settings.get_configuration_setting("lis-locations")
-        location = locations[incident.location]
+        states = dl.settings.get_configuration_setting("lis-state")
+        location = locations[incident.current_location]
         if "email" in location:
             url = request.url_root
-            incidents = dl.incident.get_m(("location", "=", incident.location))
+            incidents = dl.incident.get_m(("current_location", "=", incident.current_location))
             state2incident = {}
             for incident in incidents:
                 if incident.incident_state in state2incident:
@@ -36,10 +39,10 @@ def __send_incident_message_to_location(incident):
                 if item["state"] in state2incident:
                     nbr = len(state2incident[item["state"]])
                     line = item["heading"]["m"].replace("{nbr}", str(nbr)) if nbr > 1 else item["heading"]["s"]
-                    body += f"<b><u>{line}</u></b><br>"
+                    body += f"<b style=\"background-color:{states[item['state']]['color']}\"><u>{line}</u></b><br>"
                     for incident in state2incident[item["state"]]:
-                        line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
-                                f'(Locatie) {locations[incident.location]["label"]}, (Type) {incident.incident_type}, (Info) {incident.info}')
+                        line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.current_incident_owner}, '
+                                f'(thuis) {locations[incident.home_location]["label"]}, (Type) {incident.incident_type}, (Info) {incident.info}')
                         body += f"{line}<br>"
                     body += "<br><br>"
             if body:
@@ -52,12 +55,12 @@ def __send_incident_message_to_location(incident):
 def __send_return_message_to_location(incident):
     try:
         locations = dl.settings.get_configuration_setting("lis-locations")
-        location = locations[incident.location]
+        location = locations[incident.home_location]
         if "email" in location:
             url = request.url_root
             body = "<b><u>1 laptop aangemeld voor retour</u></b><br>"
-            body += (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
-                    f'(Locatie) {locations[incident.location]["label"]}, (Info) {incident.info}')
+            body += (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.current_incident_owner}, '
+                    f'(Locatie) {locations[incident.home_location]["label"]}, (Info) {incident.info}')
             body += "<br><br>Laptop Incident Systeem"
             dl.entra.entra.send_mail(location["email"], "LIS update", body)
             log.info(f"{sys._getframe().f_code.co_name}, new-return mail sent to {location['email']}, {incident.info}")
@@ -69,20 +72,15 @@ def __event(incident, event):
         incident.flag_reset("state-timeout")
         if incident.category == "repair":
             if event == "transition":
-                incident.incident_state = "transition"
                 __send_incident_message_to_location(incident)
-            elif event == "started":
-                incident.incident_state = "started"
-            elif event == "repaired":
-                incident.incident_state = "repaired"
             elif event == "closed":
-                incident.incident_state = "closed"
                 if incident.laptop_owner_password_default:
                     __password_update(incident, app.config["AD_DEFAULT_PASSWORD"], True)
         elif incident.category == "return":
             if event == "prepared":
                 __send_return_message_to_location(incident)
-
+            if event == "transition":
+                __send_incident_message_to_location(incident)
         dl.incident.commit()
         log.info(f'{sys._getframe().f_code.co_name}: state change, incident-id/state/event, {incident.id}/{incident.incident_state}/{event}')
     except Exception as e:
@@ -114,17 +112,20 @@ def __password_update(incident, password, must_update=False):
 def add(data):
     try:
         data["time"] = datetime.datetime.now()
-        states = dl.settings.get_configuration_setting("lis-state")
-        if "incident_owner" not in data: data["incident_owner"] = current_user.username
+        data["home_incident_owner"] = current_user.username
+        data["current_incident_owner"] = current_user.username
+        _, default_location = dl.settings.get_setting("default-location", current_user.username)
+        data["home_location"] = default_location
+        data["current_location"] = data["location"]
         incident = dl.incident.add(data)
         if incident:
+            if data["current_location"] != data["home_location"]:
+                __event(incident, "transition")
             if incident.incident_type == "hardware":
                 m4s.case_add(incident)
-            if "event" in data:
-                __event(incident, data["event"])
             # store some data in history
-            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
-                            "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner, "time": incident.time, }
+            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type,
+                            "incident_state": incident.incident_state, "current_location": incident.current_location, "current_incident_owner": incident.current_incident_owner, "time": incident.time, }
             if incident.laptop_owner_password_default:
                 __password_update(incident, app.config["AD_DEFAULT_PASSWORD"])
             history = dl.history.add(history_data)
@@ -146,17 +147,22 @@ def update(data):
                 if history_latest:
                     data["info"] = history_latest.info
             data["time"] = datetime.datetime.now()
-            if "incident_owner" not in data: data["incident_owner"] = current_user.username
+            data["current_incident_owner"] = current_user.username
+            if "location" in data:
+                data["current_location"] = data["location"]
+                if data["current_location"] != incident.current_location:
+                    __event(incident, "transition")
             if "incident_type" in data and data["incident_type"] == "hardware" and incident.m4s_guid == None: # changed type from software to hardware, put incident in M4S if not already in M4S
                 m4s.case_add(incident)
             del data["id"]
+            event = data["incident_state"] if incident.incident_state != data["incident_state"] else None
             incident = dl.incident.update(incident, data)
             if incident:
-                if "event" in data:
-                    __event(incident, data["event"])
+                if event:
+                    __event(incident, event)
                 # store some data in history
-                history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
-                    "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner, "time": incident.time,}
+                history_data = {"incident_id": incident.id, "priority": incident.priority, "info": incident.info, "incident_type": incident.incident_type,
+                    "incident_state": incident.incident_state, "current_location": incident.current_location, "current_incident_owner": incident.current_incident_owner, "time": incident.time,}
                 history = dl.history.add(history_data)
                 if not current_laptop_owner_password_default and incident.laptop_owner_password_default:
                     __password_update(incident, app.config["AD_DEFAULT_PASSWORD"])
@@ -254,8 +260,8 @@ def message_send(data):
             data['message_content'] = data['message_content'].replace("\n", "<br>")
             info = f"Bericht gestuurd:(O) {data['message_subject']}(I) {data['message_content']}"
             info = re.sub(CLEANR, '', info)
-            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": info, "incident_type": incident.incident_type, "drop_damage": incident.drop_damage,
-                            "water_damage": incident.water_damage, "incident_state": incident.incident_state, "location": incident.location, "incident_owner": incident.incident_owner,
+            history_data = {"incident_id": incident.id, "priority": incident.priority, "info": info, "incident_type": incident.incident_type,
+                            "incident_state": incident.incident_state, "current_location": incident.current_location, "current_incident_owner": incident.current_incident_owner,
                             "time": incident.time, "id": incident.id}
             update(history_data)
             send_to_overwrite = dl.settings.get_configuration_setting("generic-ss-send-to")
@@ -298,111 +304,6 @@ def message_send(data):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
-# generate a number of random incidents (lis_badge_id > 999999)
-def generate(nbr):
-    try:
-        random_info = wonderwords.RandomSentence()
-        students = dl.student.get_m()
-        staff = dl.staff.get_m()
-        incident_owners = dl.user.get_m()
-        m4s_guids = dl.m4s.get_m()
-        m4s_guids = [g for g in m4s_guids if g.category]
-        user_with_default_location = []
-        for owner in incident_owners:
-            found, default_location = dl.settings.get_setting("default-location", user=owner.username)
-            if found:
-                owner.default_location = default_location
-                user_with_default_location.append(owner)
-        categories = dl.settings.get_configuration_setting("lis-categories")
-        states = dl.settings.get_configuration_setting("lis-state")
-
-        entra_url = app.config["ENTRA_API_URL"]
-        entra_key = app.config["ENTRA_API_KEY"]
-        for i in range(nbr):
-            category = random.choice([k for k, _ in categories.items()])
-            type = random.choice(categories[category]["incident_type"])
-            state = categories[category]["incident_state"][0]
-
-
-            incident_owner = random.choice(user_with_default_location)
-            laptop_type = random.choice(["leerling", "personeel"])
-
-            default_password = random.choice([False, True])
-            entra_id = None
-            device = None
-            if laptop_type == "leerling":
-                laptop_owner = random.choice(students)
-                laptop_owner_name = laptop_owner.naam + " " + laptop_owner.voornaam + " " + laptop_owner.klasgroepcode
-                laptop_owner_id = laptop_owner.leerlingnummer
-                res = requests.get(f"{entra_url}/student?filters=leerlingnummer$=${laptop_owner_id}", headers={'x-api-key': entra_key})
-                if res.status_code == 200:
-                    entra_students = res.json()
-                    if entra_students['status'] and len(entra_students['data']) > 0:
-                        entra_id = entra_students["data"][0]["entra_id"]
-            else:
-                laptop_owner = random.choice(staff)
-                laptop_owner_name = laptop_owner.naam + " " + laptop_owner.voornaam
-                laptop_owner_id = laptop_owner.code
-                res = requests.get(f"{entra_url}/staff?filters=code=${laptop_owner_id}", headers={'x-api-key': entra_key})
-                if res.status_code == 200:
-                    entra_staffs = res.json()
-                    if entra_staffs['status']:
-                        entra_id = entra_staffs["data"][0]["entra_id"]
-            if entra_id:
-                res = requests.get(f"{entra_url}/device/get?filters=user_entra_id$=${entra_id}", headers={'x-api-key': entra_key})
-                if res.status_code == 200:
-                    devices = res.json()
-                    if devices['status'] and len(devices["data"]) > 0:
-                        device = [d for d in devices["data"] if d["active"]][0]
-            if device:
-                data = {
-                    "lis_badge_id": 1000000+i, "laptop_owner_name": laptop_owner_name, "laptop_owner_id": laptop_owner_id,
-                    "laptop_owner_password": random.choice(["password1", "password2"]) if not default_password else "", "laptop_owner_password_default": default_password,
-                    "laptop_type": laptop_type, "laptop_name": device["m4s_csu_label"], "laptop_serial": device["serial_number"], "spare_laptop_name": "", "spare_laptop_serial": "",
-                    "charger": "", "info": random_info.sentence(), "incident_type": type, "incident_state": state, "category": category,
-                    "location": incident_owner.default_location, "incident_owner": incident_owner.username,
-                }
-
-                if type == "hardware":
-                    data.update({"m4s_problem_type_guid": random.choice(m4s_guids).guid})
-
-                add(data)
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
-# send random event to random incident (lis_badge_id > 999999)
-def event(nbr):
-    try:
-        random_info = wonderwords.RandomSentence()
-        incidents = dl.incident.get_m(("lis_badge_id", ">", 999999))
-        locations = [k for k, _ in dl.settings.get_setting("lis-locations")[1].items()]
-        incident_owners = dl.user.get_m()
-        location_owner = {}
-        for owner in incident_owners:
-            found, location = dl.settings.get_setting("default-location", user=owner.username)
-            if found: location_owner[location] = owner.username
-
-        for i in range(nbr):
-            incident = random.choice(incidents)
-            data = {}
-            event = None
-            data["incident_owner"] = incident.incident_owner
-            if incident.incident_state == "started":
-                event = random.choice(["location", "repaired"])
-                if event == "location":
-                    data["location"] = random.choice(locations)
-                    if data["location"] in location_owner:
-                        data["incident_owner"] = location_owner[data["location"]]
-            elif incident.incident_state == "transition":
-                event = "started"
-            elif incident.incident_state == "repaired":
-                event = random.choice(["closed", "started"])
-            if event:
-                data.update({"event": event, "info": random_info.sentence(), "id": incident.id,})
-                update(data)
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-
 def format_data(db_list, total_count=None, filtered_count=None):
     out = []
     for i in db_list:
@@ -420,10 +321,10 @@ def incident_cron_state_timeout(opaque=None):
                 if now > incident.time + timeout and not incident.flag_check("state-timeout"):
                     log.info(f'{sys._getframe().f_code.co_name}: state/incident-type timeout, incident {incident.id}, state/incident-type {key}')
                     incident.flag_set("state-timeout")
-                    if incident.location in timeout_locations:
-                        timeout_locations[incident.location].append(incident)
+                    if incident.current_location in timeout_locations:
+                        timeout_locations[incident.current_location].append(incident)
                     else:
-                        timeout_locations[incident.location] = [incident]
+                        timeout_locations[incident.current_location] = [incident]
 
         log.info(f'{sys._getframe().f_code.co_name}: START')
         states = dl.settings.get_configuration_setting("lis-state")
@@ -451,8 +352,8 @@ def incident_cron_state_timeout(opaque=None):
                 line = body_template["m"].replace("{nbr}", str(nbr)) if nbr > 1 else body_template["s"]
                 body += f"<b><u>{line}</u></b><br>"
                 for incident in incidents:
-                    line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.incident_owner}, '
-                            f'(Toestand) {states[incident.incident_state]["label"]}, (Locatie) {locations[incident.location]["label"]}, '
+                    line = (f'<a href="{url}incidentshow?id={incident.id}">&#x1F517;</a>(Tijd) {incident.time}, (Wie) {incident.current_incident_owner}, '
+                            f'(Toestand) {states[incident.incident_state]["label"]}, (Locatie) {locations[incident.current_location]["label"]}, '
                             f'(Type) {incident.incident_type}, (Info) {incident.info}')
                     body += f"{line}<br>"
                 body += "<br><br>"

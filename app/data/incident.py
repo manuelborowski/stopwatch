@@ -32,11 +32,11 @@ class Incident(db.Model, SerializerMixin):
     charger = db.Column(db.Boolean, default=False)
     info = db.Column(db.String(256), default=None)
     incident_type = db.Column(db.String(256), default=None)
-    drop_damage = db.Column(db.Boolean, default=False)
-    water_damage = db.Column(db.Boolean, default=False)
     incident_state = db.Column(db.String(256), default=None)
-    location = db.Column(db.String(256), default=None)
-    incident_owner = db.Column(db.String(256), default=None)
+    home_location = db.Column(db.String(256), default=None)
+    home_incident_owner = db.Column(db.String(256), default=None)
+    current_location = db.Column(db.String(256), default=None)
+    current_incident_owner = db.Column(db.String(256), default=None)
     m4s_guid = db.Column(db.String(256), default=None)
     m4s_problem_type_guid = db.Column(db.String(256), default="")
     m4s_reference = db.Column(db.String(256), default="")
@@ -100,7 +100,7 @@ def pre_sql_filter(query, filters):
         if f['id'] == 'incident-state-closed' and not f['value']:
             query = query.filter(Incident.incident_state != "closed")
         if f['id'] == 'incident-owner-id' and f['value'] != 'all':
-            query = query.filter(Incident.incident_owner == f['value'])
+            query = query.filter(Incident.home_incident_owner == f['value'])
         if f['id'] == 'incident-state' and f['value'] != 'all':
             query = query.filter(Incident.incident_state == f['value'])
         if f['id'] == 'incident-type' and f['value'] != 'all':
@@ -108,13 +108,13 @@ def pre_sql_filter(query, filters):
         if f['id'] == 'incident-id' and f["value"]:
             query = query.filter(Incident.id == f['value'])
         if f['id'] == 'location' and f["value"] != "all":
-            query = query.filter(Incident.location == f['value'])
+            query = query.filter(Incident.home_location == f['value'])
     return query
 
 def pre_sql_search(search_string):
     search_constraints = []
     search_constraints.append(Incident.id.like(search_string))
-    search_constraints.append(Incident.incident_owner.like(search_string))
+    search_constraints.append(Incident.home_incident_owner.like(search_string))
     search_constraints.append(Incident.lis_badge_id.like(search_string))
     search_constraints.append(Incident.laptop_owner_name.like(search_string))
     search_constraints.append(Incident.laptop_name.like(search_string))

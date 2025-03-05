@@ -1,9 +1,13 @@
 from flask import request, Blueprint
-from app import log, data as dl, application as al
+from app import log, app, data as dl, application as al
 import json, sys, html
 from functools import wraps
+from flask_login import login_user, logout_user
 
 bp_api = Blueprint('api', __name__)
+
+with app.app_context():
+    user_api = dl.user.get(("username", "=", "api"))
 
 def api_core(api_level, func, *args, **kwargs):
     try:
@@ -17,7 +21,10 @@ def api_core(api_level, func, *args, **kwargs):
             if key_info["level"] >= api_level:
                 log.info(f"API access by '{key_info["label"]}', from {remote_ip}, URI {request.url}")
                 try:
-                    return func(*args, **kwargs)
+                    login_user(user_api)
+                    ret = func(*args, **kwargs)
+                    logout_user()
+                    return ret
                 except Exception as e:
                     log.error(f'{func.__name__}: {e}')
                     return json.dumps({"status": False, "data": f'API-EXCEPTION {func.__name__}: {html.escape(str(e))}'})
@@ -59,10 +66,8 @@ def retour():
         dout = {"info": f'{din["naam"]}+{din["voornaam"]}+{din["klas"]}+{din["laptop"]}+{din["telefoon"]}+{din["email"]}',
                 "category": "return",
                 "incident_type": din["naar"],
-                "incident_state": "prepared",
                 "location": din["locatie"],
-                "incident_owner": "admin",
-                "event": "prepared"
+                "incident_state": "prepared"
                 }
         ret = al.incident.add(dout)
         return("ok")

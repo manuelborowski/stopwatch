@@ -4,8 +4,6 @@ import {AlertPopup} from "../common/popup.js";
 import {qr_decode} from "../common/qr.js";
 
 export class IncidentRepair {
-    category = "repair"
-
     constructor({meta = null, incident = null, history = "", dropdown_parent = null, callbacks = {}}) {
         this.incident_update = incident !== null;
         this.incident = incident;
@@ -18,6 +16,18 @@ export class IncidentRepair {
         this.attachments_to_delete = [];
     }
 
+    __incident_type_changed = async (incident_type) => {
+        document.getElementById("hardware-repair-group").hidden = incident_type !== "hardware"
+        if (incident_type === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make clear the info field is required
+            if (!(this.incident && this.incident.m4s_guid !== null)) this.info_field.parentElement.classList.add("required"); // info field not required when incident already in M4S
+        } else { // not a hardware incident
+            this.info_field.parentElement.classList.remove("required"); // info field is not required
+            this.location_field.style.background = "white";
+        }
+        // if (this.incident) this.__state_select_set(); // The possible states depend on the incident type
+        await form_populate({incident_type, incident_state: "first", location: this.meta.default.location, category: "repair"}, this.meta);
+    }
+
     __state_select_set = () => {
         const next_state = {
             "software": {started: ["transition", "repaired"], transition: ["started"], repaired: ["started", "transition", "closed"],},
@@ -25,10 +35,9 @@ export class IncidentRepair {
             "hardware": {started: ["repaired"], repaired: ["started", "closed"]},
             "newlaptop": {started: ["repaired"], repaired: ["started", "closed"]}
         }
-        const incident_state_field = document.getElementById("incident-state-field");
-        incident_state_field.innerHTML = "";
+        this.incident_state_field.innerHTML = "";
         for (const state of [this.incident.incident_state].concat(next_state[this.incident.incident_type][this.incident.incident_state])) {
-            incident_state_field.add(new Option(this.meta.label.incident_state[state], state, this.incident.incident_state === state));
+            this.incident_state_field.add(new Option(this.meta.label.incident_state[state], state, this.incident.incident_state === state));
         }
     }
 
@@ -61,16 +70,16 @@ export class IncidentRepair {
     }
 
     display = async () => {
-        const location_field = document.getElementById("location-field");
-        const incident_state_field = document.getElementById("incident-state-field");
-        const lis_type_field = document.getElementById("lis-type-field");
-        const info_field = document.getElementById("info-field");
-        const spare_field = document.getElementById("spare-field")
-        const owner_field = $("#owner-field");
-        const attachment_list = document.getElementById("attachment-list");
+        this.location_field = document.getElementById("location-field");
+        this.incident_state_field = document.getElementById("incident-state-field");
+        this.lis_type_field = document.getElementById("lis-type-field");
+        this.info_field = document.getElementById("info-field");
+        this.spare_field = document.getElementById("spare-field")
+        this.owner_field = $("#owner-field");
+        this.attachment_list = document.getElementById("attachment-list");
 
         const __attachment_add_view_event_listener = () => {
-            attachment_list.querySelectorAll(".attachment-view").forEach(a => a.addEventListener("click", async e => {
+            this.attachment_list.querySelectorAll(".attachment-view").forEach(a => a.addEventListener("click", async e => {
                 busy_indication_on();
                 const filename = e.target.innerHTML;
                 const attachment = this.attachments.find(a => a.name === filename);
@@ -115,19 +124,19 @@ export class IncidentRepair {
         }
 
         const __attachment_add_delete_event_listener = () => {
-            attachment_list.querySelectorAll(".btn-attachment-remove").forEach(i => i.addEventListener("click", e => {
+            this.attachment_list.querySelectorAll(".btn-attachment-remove").forEach(i => i.addEventListener("click", e => {
                     e.preventDefault();
                     const filename = e.target.closest("a").dataset.id;
                     const find_file = this.attachments.find(i => i.name.replaceAll(" ", "") === filename);
                     if (find_file && "id" in find_file) this.attachments_to_delete.push(find_file.id);
                     this.attachments = this.attachments.filter(i => i.name.replaceAll(" ", "") !== filename);
-                    attachment_list.innerHTML = "";
+                    this.attachment_list.innerHTML = "";
                     for (const file of this.attachments) {
-                        attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                        this.attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
                         if ("id" in file) {
-                            attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
+                            this.attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
                         } else {
-                            attachment_list.innerHTML += file.name + "<br>";
+                            this.attachment_list.innerHTML += file.name + "<br>";
                         }
                     }
                     __attachment_add_delete_event_listener();
@@ -135,7 +144,6 @@ export class IncidentRepair {
                 })
             );
         }
-
 
         // Scan LIS badge
         document.getElementById("lis-badge-scan").addEventListener("click", (e) => {
@@ -165,12 +173,12 @@ export class IncidentRepair {
                         if (valid_code) {
                             let loaners = await fetch_get("student.student", {filters: `rfid$=$${code}`, fields: "leerlingnummer"});
                             if (loaners && loaners.length > 0) {
-                                owner_field.val("leerling-" + loaners[0].leerlingnummer).trigger("change");
+                                this.owner_field.val("leerling-" + loaners[0].leerlingnummer).trigger("change");
                                 return true
                             } else {
                                 const loaners = await fetch_get("staff.staff", {filters: `rfid$=$${code}`, fields: "code"});
                                 if (loaners && loaners.length > 0) {
-                                    owner_field.val("personeel-" + loaners[0].code).trigger("change");
+                                    this.owner_field.val("personeel-" + loaners[0].code).trigger("change");
                                     return true
                                 }
                             }
@@ -210,9 +218,9 @@ export class IncidentRepair {
                             const [valid_code, code] = badge_raw2hex(res);
                             if (valid_code) {
                                 const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
-                                if (spares && spares.length > 0) spare_field.value = spares[0].label;
+                                if (spares && spares.length > 0) this.spare_field.value = spares[0].label;
                             } else {
-                                spare_field.value = code;
+                                this.spare_field.value = code;
                             }
                         }
                     }
@@ -229,8 +237,8 @@ export class IncidentRepair {
         // upload attachments, called when the file select dialog closes.
         document.getElementById("attachment-field").addEventListener("change", e => {
             for (const file of e.target.files) {
-                attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
-                attachment_list.innerHTML += file.name + "<br>";
+                this.attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                this.attachment_list.innerHTML += file.name + "<br>";
                 this.attachments.push(file);
             }
             __attachment_add_delete_event_listener();
@@ -238,7 +246,7 @@ export class IncidentRepair {
         });
 
         // when the owner field changes, get the associated laptops and populate the laptop field
-        owner_field.on('change', async e => {
+        this.owner_field.on('change', async e => {
             const [laptop_type, laptop_owner_id] = e.target.value.split("-");
             if (laptop_owner_id && laptop_owner_id !== "") {
                 const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
@@ -261,7 +269,7 @@ export class IncidentRepair {
         // Incident is for spare laptop
         document.getElementById("type-spare-laptop-chk").addEventListener("click", e => {
             document.querySelectorAll(".group-spare-laptop").forEach(i => i.hidden = e.target.checked);
-            spare_field.parentElement.classList.toggle("required", e.target.checked);
+            this.spare_field.parentElement.classList.toggle("required", e.target.checked);
         });
 
         // if default password checked, disable the password field
@@ -274,12 +282,8 @@ export class IncidentRepair {
         password_show_field.addEventListener("click", e => this.__password_field_toggle());
 
         // if the location is updated, change the event to transition
-        location_field.addEventListener("change", e => {
-            incident_state_field.value = "transition";
-        });
-        // if the state is changed (not transition), set the location to the original location.  This to prevent the state and location are changed at the same time.
-        incident_state_field.addEventListener("change", e => {
-            if (e.target.value !== "transition") location_field.value = this.incident.location;
+        this.location_field.addEventListener("change", e => {
+            this.incident_state_field.value = "transition";
         });
 
         // hardware incident specific, update m4s-id options when m4s-category has changed
@@ -299,8 +303,6 @@ export class IncidentRepair {
         }
 
         // set default values, create the select2 for the laptop-owners and populate with a single student/staff (update) or a list of all students and staffs
-        let owner_field_options = null;
-
         // other default values
         if (this.incident_update) {
             this.incident.info = "";
@@ -323,8 +325,9 @@ export class IncidentRepair {
             // set the owner-laptop value
             this.meta.option.laptop_serial = [{value: this.incident.laptop_serial, label: this.incident.laptop_name}];
 
-            await form_populate(this.category, this.incident, this.meta);
-            owner_field_options = [{id: this.incident.laptop_owner_id, text: this.incident.laptop_owner_name}];
+            this.incident.location = this.incident.current_location;
+            await form_populate(this.incident, this.meta);
+            this.owner_field_options = [{id: this.incident.laptop_owner_id, text: this.incident.laptop_owner_name}];
 
             // Get attachments
             const attachments = await fetch_get("incident.attachment_meta", {incident_id: this.incident.id});
@@ -332,8 +335,8 @@ export class IncidentRepair {
                 this.attachments = [...attachments.data];
 
                 for (const file of this.attachments) {
-                    attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
-                    attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
+                    this.attachment_list.innerHTML += `<a type="button" class="btn-attachment-remove btn btn-danger" data-id=${file.name.replaceAll(" ", "")} style="padding:2px;line-height:1;"><i class="fa-solid fa-xmark" title="Bijlage verwijderen"></i></a></div>&nbsp;`
+                    this.attachment_list.innerHTML += `<a class="attachment-view">${file.name}</a><br>`;
                 }
                 __attachment_add_delete_event_listener();
                 __attachment_add_view_event_listener();
@@ -343,46 +346,34 @@ export class IncidentRepair {
             document.querySelectorAll(".repair-update-disabled").forEach(i => i.disabled = true);
             document.querySelectorAll(".required").forEach(i => i.classList.toggle("required"));
         } else { // new repair
-            const defaults = Object.assign(this.meta.default, {incident_state: "started", incident_type: "software", laptop_owner_password: ""}); // clear password and lis field
-            await form_populate(this.category, defaults, this.meta);
+            const defaults = Object.assign(this.meta.default, {incident_state: "started", incident_type: "software", laptop_owner_password: "", category: "repair"}); // clear password and lis field
+            await form_populate(defaults, this.meta);
             const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
             const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
             const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
             const staff_data = staff ? staff.map(e => ({id: "personeel-" + e.code, text: `${e.naam} ${e.voornaam}`})) : []
-            owner_field_options = student_data.concat(staff_data);
+            this.owner_field_options = student_data.concat(staff_data);
+            this.__incident_type_changed("software");
         }
+
         // select2 field has it's own way of adding options
-        if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
-        let select2_config = {data: owner_field_options, width: "resolve"};
+        if (this.owner_field.hasClass("select2-hidden-accessible")) await this.owner_field.empty().select2('destroy').trigger("change")
+        let select2_config = {data: this.owner_field_options, width: "resolve"};
         if (this.dropdown_parent) select2_config.dropdownParent = this.dropdown_parent;
-        await owner_field.select2(select2_config);
-        if (owner_field_options.length > 0) await owner_field.val(owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
+        await this.owner_field.select2(select2_config);
+        if (this.owner_field_options.length > 0) await this.owner_field.val(this.owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
 
         // default hide the password when the incident is being updated
         this.__password_field_hide(this.incident_update);
 
-        // hide/display hardware problem types (M4S)
-        lis_type_field.addEventListener("change", e => {
-            document.getElementById("hardware-repair-group").hidden = e.target.value !== "hardware"
-            if (e.target.value === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make clear the info field is required
-                if (!(this.incident && this.incident.m4s_guid !== null)) info_field.parentElement.classList.add("required"); // info field not required when incident already in M4S
-                if (location_field.value in this.meta.location && "hardware" in this.meta.location[location_field.value]) { // if required, change the location to were hardware repair can take place
-                    location_field.value = this.meta.location[location_field.value].hardware;
-                    location_field.style.background = "yellow";  // and make the background yellow to make clear the location has changed.
-                }
-            } else { // not a hardware incident
-                info_field.parentElement.classList.remove("required"); // info field is not required
-                location_field.value = this.meta.default.location;
-                location_field.style.background = "white";
-            }
-            if (this.incident) this.__state_select_set(); // The possible states depend on the incident type
-        })
-        lis_type_field.dispatchEvent(new Event("change"));
+        this.lis_type_field.addEventListener("change", async e => {
+            this.__incident_type_changed(e.target.value);
+        });
     }
 
     save = async () => {
         busy_indication_on();
-        const owner_field = $("#owner-field");
+        this.owner_field = $("#owner-field");
         const form_data = new FormData(document.getElementById("incident-form"));
         const data = Object.fromEntries(form_data)
         // checkboxes are present only when selected and have the value "on" => convert
@@ -395,7 +386,6 @@ export class IncidentRepair {
                 return false
             }
             data.id = this.incident.id;
-            data.event = document.getElementById("incident-state-field").value;
             if (data.incident_type !== "hardware") data.m4s_problem_type_guid = "";  // make sure to clear this field, else it pops up in different places
             await fetch_update("incident.incident", data);
 
@@ -437,7 +427,7 @@ export class IncidentRepair {
                 }
                 data.laptop_type = "reserve";
             } else { // regular laptop
-                const owner_data = owner_field.select2("data")[0];
+                const owner_data = this.owner_field.select2("data")[0];
                 data.laptop_owner_name = owner_data.text;
                 const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
                 data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
@@ -448,10 +438,9 @@ export class IncidentRepair {
                 }
                 [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
             }
-            data.category = this.category
+            data.category = "repair";
             data.lis_badge_id = parseInt(data.lis_badge_id);
             if (data["incident_type"] !== "hardware") data["m4s_problem_type_guid"] = ""
-            data.event = "started";
             var resp = await fetch_post("incident.incident", data);
             if (resp.data.status) {
                 if (this.attachments.length > 0) {

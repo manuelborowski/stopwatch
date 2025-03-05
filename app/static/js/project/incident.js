@@ -44,7 +44,7 @@ const __repair_form = async (incident = null, history = "") => {
     }
 }
 
-const __loan_form = async (category = null, incident = null, history = null) => {
+const __loan_form = async (incident = null, history = null) => {
     const incident_update = incident !== null;
     const form = await fetch_get("incident.form", {form: "loan"});
     if (form) {
@@ -69,7 +69,7 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                         } else {
                             const owner_data = owner_field.select2("data")[0];
                             data.laptop_owner_name = owner_data.text;
-                            data.category = category;
+                            data.category = "loan";
                             [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
                             data.laptop_name = "NVT";
                             await fetch_post("incident.incident", data);
@@ -143,7 +143,8 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                     incident.info = "";
                     meta.option.laptop_owner_id = [{value: incident.laptop_owner_id, label: incident.laptop_owner_name}];
                     incident.long_loan = incident.incident_type === "longloan";
-                    await form_populate(category, incident, meta);
+                    incident.location = incident.current_location;
+                    await form_populate(incident, meta);
                 } else {
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
@@ -153,14 +154,14 @@ const __loan_form = async (category = null, incident = null, history = null) => 
                     if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
                     await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
                     if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
-                    await form_populate(category, Object.assign(meta.default, {incident_state: "loaned"}), meta);
+                    await form_populate(Object.assign(meta.default, {category: "loan", incident_state: "first", incident_type: "shortloan"}), meta);
                 }
             },
         });
     }
 }
 
-const __return_form = async (category = null, incident = null, history = null) => {
+const __return_form = async (incident = null, history = null) => {
     const incident_update = incident !== null;
     const form = await fetch_get("incident.form", {form: "return"});
     if (form) {
@@ -174,7 +175,7 @@ const __return_form = async (category = null, incident = null, history = null) =
                     label: "Bewaar",
                     className: "btn-primary",
                     callback: async () => {
-                        const owner_field = document.getElementById("owner-field");
+                        owner_field = $("#owner-field");
                         const laptop_field = document.getElementById("laptop-field");
                         const form_data = new FormData(document.getElementById("incident-form"));
                         const data = Object.fromEntries(form_data)
@@ -183,7 +184,8 @@ const __return_form = async (category = null, incident = null, history = null) =
                         if (incident_update) {
                             data.id = incident.id;
                             if (incident.incident_state === "prepared") {
-                                data.laptop_owner_name = owner_field.options[owner_field.selectedIndex].innerHTML.replace(/ \(.*/, ""); // remove trailing " (34)"
+                                const owner_data = owner_field.select2("data")[0];
+                                data.laptop_owner_name = owner_data.text;
                                 data.laptop_name = laptop_field.options[laptop_field.selectedIndex].innerHTML;
                                 data.incident_state = "expecting"
                                 data.info = data.info.split("+").slice(-2).join("; ");
@@ -193,9 +195,11 @@ const __return_form = async (category = null, incident = null, history = null) =
                         } else {
                             const owner_data = owner_field.select2("data")[0];
                             data.laptop_owner_name = owner_data.text;
-                            data.category = category;
+                            data.category = "return";
                             [data.laptop_type, data.laptop_owner_id] = data.laptop_owner_id.split("-");
-                            data.laptop_name = "NVT";
+                            const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
+                            data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
+                            data.incident_state = "expecting";
                             await fetch_post("incident.incident", data);
                         }
                         datatable_reload_table();
@@ -208,17 +212,22 @@ const __return_form = async (category = null, incident = null, history = null) =
                 },
             },
             onShown: async () => {
-                const owner_field = document.getElementById("owner-field");
+                owner_field = $("#owner-field");
                 const laptop_field = document.getElementById("laptop-field");
+                const lis_type_field = document.getElementById("lis-type-field");
+                const incident_state_field = document.getElementById("incident-state-field");
+
+                // when the lis-type changes, the possible states change accordingly.
+                lis_type_field.addEventListener("change", async e => {
+                    const new_state = (e.target.value === "school" && incident_state_field.value === "signpost") ? "expecting" : incident_state_field.value;
+                    await form_populate({incident_type: e.target.value, incident_state: new_state}, meta);
+                })
 
                 // when the owner field changes, get the associated laptops and populate the laptop field
-                owner_field.addEventListener('change', async e => {
-                    const laptop_owner_id = e.target.value;
-                    if (laptop_owner_id === "") {
-                        laptop_field.innerHTML = "";
-                        laptop_field.add(new Option(incident.info.split("+")[3], "", true, true));
-                    } else {
-                        const devices = await fetch_get("incident.laptop", {type: "leerling", id: laptop_owner_id});
+                owner_field.on('change', async e => {
+                    const [laptop_type, laptop_owner_id] = e.target.value.split("-");
+                    if (laptop_owner_id && laptop_owner_id !== "") {
+                        const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
                         if (devices) {
                             laptop_field.innerHTML = "";
                             for (const device of devices) {
@@ -247,15 +256,18 @@ const __return_form = async (category = null, incident = null, history = null) =
                         students = students.concat(students2);
                         if (students) {
                             students.sort((a, b) => b.fuzzy_score - a.fuzzy_score);
-                            owner_field.innerHTML = "";
-                            students.forEach(i => owner_field.add(new Option(`${i.naam} ${i.voornaam} ${i.klasgroepcode} (${i.fuzzy_score})`, i.leerlingnummer)));
-                            owner_field.add(new Option(incident.info.split("+").slice(0, 3).join(" "), ""), 1);
-                            owner_field.options[1].style.background = "yellow";
-                            owner_field.dispatchEvent(new Event("change"));
+                            const data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
+                            if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
+                            await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
+                            if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
                         }
                     }
-                    await form_populate(category, incident, meta);
+                    incident.location = incident.current_location;
+                    // default setting of the owner-id field is taken care of a few lines here above.  The field takes the form 'leerling-83342' while the laptop_owner_id is just '83342'
+                    delete incident.laptop_owner_id;
+                    await form_populate(incident, meta);
                 } else { // new return
+                    document.querySelector(".prepared-hidden").hidden = true;
                     const students = await fetch_get("student.student", {fields: "naam,voornaam,klasgroepcode,leerlingnummer"})
                     const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
                     const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
@@ -264,7 +276,7 @@ const __return_form = async (category = null, incident = null, history = null) =
                     if (owner_field.hasClass("select2-hidden-accessible")) await owner_field.empty().select2('destroy').trigger("change")
                     await owner_field.select2({dropdownParent: $(".bootbox"), data, width: "600px"});
                     if (data.length > 0) await owner_field.val(data[0].id).trigger("change"); // use await to make sure the select2 is done initializing
-                    await form_populate(category, Object.assign(meta.default, {incident_state: "loaned"}), meta);
+                    await form_populate(Object.assign(meta.default, {category: "return", incident_state: "prepared", incident_type: "school"}), meta);
                 }
             },
         });
@@ -286,8 +298,8 @@ const __setting_form = async () => {
                         const data = Object.fromEntries(form_data)
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("setting-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
-                        await fetch_post("incident.location", {default: data.location})
-                        meta.default.location = data.location;
+                        await fetch_post("incident.location", {default: data.home_location})
+                        meta.default.location = data.home_location;
                         __update_toolbar_fields();
                         datatable_reload_table();
                     }
@@ -306,8 +318,8 @@ const __setting_form = async () => {
                     if (resp) document.getElementById("login-url-img").src = `data:image/png;base64,${resp.qr}`;
                 });
                 new_login_url_chk.addEventListener("click", e => new_login_url_btn.disabled = !e.target.checked);
-                const defaults = {location: meta.default.location};
-                form_populate("software", defaults, meta);
+                const defaults = {home_location: meta.default.location};
+                form_populate(defaults, meta);
                 const resp = await fetch_get("incident.qr", {new: false});
                 if (resp) document.getElementById("login-url-img").src = `data:image/png;base64,${resp.qr}`;
             },
@@ -336,10 +348,10 @@ const __history_form = async (ids) => {
                 const history_table = document.querySelector("#history-table");
                 for (const h of histories) {
                     let tr = "<tr>";
-                    for (const e of ["time", "incident_owner", "priority", "incident_state", "location", "info", "incident_type"]) {
+                    for (const e of ["time", "current_incident_owner", "priority", "incident_state", "current_location", "info", "incident_type"]) {
                         let val = h[e];
                         if (e === "incident_state") val = meta.label.incident_state[val];
-                        if (e === "location") val = meta.label.location[val];
+                        if (e === "current_location") val = meta.label.location[val];
                         if (val === true) val = "&#10003;"
                         if (val === false) val = "";
                         tr += `<td>${val}</td>`
@@ -347,7 +359,7 @@ const __history_form = async (ids) => {
                     tr += "</tr>";
                     history_table.innerHTML += tr;
                 }
-                await form_populate(incident.category, incident);
+                await form_populate(incident);
             },
         });
     }
@@ -422,7 +434,13 @@ const button_menu_items = [
         type: 'button',
         id: 'laptoploan-new',
         label: 'Laptop uitlenen',
-        cb: () => __loan_form("loan")
+        cb: () => __loan_form()
+    },
+    {
+        type: 'button',
+        id: 'return-new',
+        label: 'Laptop retourneren',
+        cb: () => __return_form()
     },
     {
         type: 'text',
@@ -517,9 +535,9 @@ const __table_loaded = () => {
         if (incident.category === "repair") {
             await __repair_form(incident, history);
         } else if (incident.category === "return") {
-            await __return_form(incident.category, incident, history);
+            await __return_form(incident, history);
         } else {
-            await __loan_form(incident.category, incident, history)
+            await __loan_form(incident, history)
         }
     }));
     document.querySelectorAll(".btn-show-history").forEach(s => s.addEventListener("click", async e => {
@@ -532,7 +550,7 @@ const __table_loaded = () => {
     }));
     document.querySelectorAll(".btn-incident-close").forEach(s => s.addEventListener("click", async e => {
         const row = datatable_row_data_from_target(e);
-        await fetch_update("incident.incident", {id: row.id, event: "closed", info: "Incident gesloten"});
+        await fetch_update("incident.incident", {id: row.id, incident_state: "closed", info: "Incident gesloten"});
         datatable_reload_table();
     }));
 }
@@ -548,8 +566,8 @@ const __row_created = (row, data, data_index, cells) => {
 }
 
 $(document).ready(async () => {
-    let owners = await fetch_get("incident.incident", {fields: "incident_owner"});
-    owners = owners ? [...new Set(owners.map(e => e.incident_owner))] : [];
+    let owners = await fetch_get("incident.incident", {fields: "home_incident_owner"});
+    owners = owners ? [...new Set(owners.map(e => e.home_incident_owner))] : [];
     owners = owners.map(e => ({label: e, value: e}));
     const incident_owner_options = [{label: current_user.username, value: current_user.username}, {label: "Iedereen", value: "all"}].concat(owners);
     const state_options = [{label: "Alles", value: "all"}].concat(meta.option.incident_state);
@@ -574,7 +592,7 @@ $(document).ready(async () => {
         }
         if (e.id === "location") {
             a[i].options = location_options;
-            a[i].default = location_options[0].value;
+            a[i].default = "all";
             return true
         }
         return false;

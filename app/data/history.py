@@ -19,11 +19,9 @@ class History(db.Model, SerializerMixin):
     priority = db.Column(db.Integer, default=1)
     info = db.Column(db.String(256), default=None)
     incident_type = db.Column(db.String(256), default=None)
-    drop_damage = db.Column(db.Boolean, default=False)
-    water_damage = db.Column(db.Boolean, default=False)
     incident_state = db.Column(db.String(256), default=None)
-    location = db.Column(db.String(256), default=None)
-    incident_owner = db.Column(db.String(256), default=None)
+    current_location = db.Column(db.String(256), default=None)
+    current_incident_owner = db.Column(db.String(256), default=None)
     time = db.Column(db.DateTime, default=None)
 
 

@@ -116,8 +116,9 @@ from functools import wraps
 # 0.75: busy-indication activated
 # 0.76: bugfix busy-indication activated
 # 0.77: bugfix busy-indication activated
-
-version = "0.77"
+# 0.77-home_current-0.1: introduction of home/current location/owner.  API calls are on behalve of default api user.
+# Reworked meta to supply keyed-options, i.e. in function of incident-state and category.  Added "display" tag to columns-data to apply multiple, combined renderings on datatable data.
+version = "0.77-home_current-0.1"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -160,20 +161,33 @@ login_manager.login_view = 'auth.login'
 socketio = SocketIO(app, async_mode=app.config['SOCKETIO_ASYNC_MODE'], cors_allowed_origins="*")
 
 
-def create_admin():
+def default_db_entries():
     with app.app_context():
         try:
             from app.data.user import User
+            from app import data as dl
+            # create admin account if not present
             find_admin = User.query.filter(User.username == 'admin').first()
             if not find_admin:
                 admin = User(username='admin', password='admin', level=5, user_type=User.USER_TYPE.LOCAL)
                 db.session.add(admin)
                 db.session.commit()
+            # create api account if not present
+            find_api = User.query.filter(User.username == 'api').first()
+            if not find_api:
+                api = User(username='api', password=app.config["USER_API_PASSWORD"], level=1, user_type=User.USER_TYPE.LOCAL)
+                db.session.add(api)
+                db.session.commit()
+            # create api default location if not present
+            found , _ = dl.settings.get_setting("default-location", "api")
+            if not found:
+                dl.settings.add_setting("default-location", app.config["USER_API_DEFAULT_LOCATION"], user="api")
+
         except Exception as e:
             db.session.rollback()
             log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
-create_admin()
+default_db_entries()
 
 SCHEDULER_API_ENABLED = True
 ap_scheduler = APScheduler()

@@ -101,9 +101,32 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             const render="render" in v ? v.render : null;
             v.render = function (data, type, full, meta) {
                 if (render) data = render(data);
-                return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`;}
+                return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`
+            }
         }
         if ("condition" in v) v.render = function (data, type, full, meta) {return data === v.condition.equals ? v.condition.then  : v.condition.else;}
+        if ("display" in v) {
+            v.render = function (data, typen, full, meta) {
+                let values = [];
+                let color = null;
+                for (const f of v.display.fields) {
+                    let value = full[f.field];
+                    if ("labels" in f) value = f.labels[value];
+                    if ("colors" in f) color = f.colors[value];
+                    values.push(value);
+                }
+                var template = values[0];
+                if ("template" in v.display) {
+                    template = v.display.template;
+                    for (let i=0; i < values.length; i++) template = template.replace(`%${i}%`, values[i]);
+                }
+                if (color) {
+                    return `<div style="background:${color};">${template}</div>`
+                } else {
+                    return template
+                }
+            }
+        }
         datatable_column2index[v.data] = i;
     });
 
