@@ -104,7 +104,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                 return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`
             }
         }
-        if ("condition" in v) v.render = function (data, type, full, meta) {return data === v.condition.equals ? v.condition.then  : v.condition.else;}
+        if ("less" in v) v.render = function (data, type, full, meta) {return data < v.less.than ? ("then" in v.less ? v.less.then : data)  : ("else" in v.less ? v.less.else : data);}
         if ("display" in v) {
             v.render = function (data, typen, full, meta) {
                 let values = [];
@@ -113,6 +113,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                     let value = full[f.field];
                     if ("labels" in f) value = f.labels[value];
                     if ("colors" in f) color = f.colors[value];
+                    if ("bool" in f) value = value === true ? "&#10003;" : "";
                     values.push(value);
                 }
                 var template = values[0];

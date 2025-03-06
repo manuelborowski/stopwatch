@@ -17,17 +17,17 @@ from functools import wraps
 # DONE: historiek: nieuwste bovenaan
 # DONE: incident-types toevoegen: "laptop vergeten", "nieuwe leerling, nog geen laptop"
 # DONE: link toevoegen naar m4s
-# TODO: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
-# TODO: laders ook een badge geven?
+# DONE: GSM gebruiken voor ingeven nieuwe incident of updaten bestaande
+# DONE: laders ook een badge geven? -> nee
 # DONE: bericht opnieuw verzenden, eventueel naar co-accounts
 # DONE: bericht verzenden, voorzie mogelijkheid om tekst uit te breiden
-# TODO: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
-# TODO: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
-# TODO: hoes -> ook inbrengen in m4s
+# DONE: retour laptops: nieuwe statussen ("wacht op laptop", "wacht op signpost", retour afgehandeld")
+# DONE: retour, onderscheid tussen laptops van de school (geen signpost) en signpost
+# DONE: hoes -> ook inbrengen in m4s
 # DONE: locaties -> signpost = hardware incident?
 # DONE: lader lenen
 # DONE: tijdelijk laptop lenen of nieuw in school en laptop lenen
-# TODO: tijdelijke laptop: in voorbereiding, uitgeleend, gesloten
+# DONE: tijdelijke laptop: in voorbereiding, uitgeleend, gesloten
 
 # 0.1 first backup, user-view is ok
 # 0.2: messages have status [ok, warning, error].  Reworked user add/update/delete
@@ -119,7 +119,9 @@ from functools import wraps
 # 0.77-home_current-0.1: introduction of home/current location/owner.  API calls are on behalve of default api user.
 # Reworked meta to supply keyed-options, i.e. in function of incident-state and category.  Added "display" tag to columns-data to apply multiple, combined renderings on datatable data.
 # 0.78: merge from 0.77-home_current-0.1
-version = "0.78"
+# 0.79: datatable, column-rendering, added "less", updated "display".
+
+version = "0.79"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

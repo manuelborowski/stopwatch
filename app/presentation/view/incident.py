@@ -243,14 +243,15 @@ class Config(DatatableConfig):
         # color: depending on the content of the cell, set the background color
         # ellipsis: long strings in the cell will be cut off and ellipsis are displayed
         # bool: show a tick-box when the content of the cell is true
-        # condition: if the content of the cell equals a certain value, then display another value else display yet another value.
+        # less: if the value is less than value of field "than", then replace with value of field "then" else with value of field "else"
+        #   if field "then" or "else" are not used, return the original data.
         # display: apply mulitple renderers (if required) and combine into template (if required).
         for column in template:
             if "data" in column:
                 if column["data"] == "incident_state" and column["name"] == "Status":
                     column["display"] = {"template": "%0% (%1%/%2%)", "fields": [{"field": "incident_state", "labels": state_labels}, {"field": "current_location", "labels": location_labels}, {"field": "current_incident_owner"}, {"field": "incident_state", "colors": state_colors}]}
                 if column["data"] == "home_location":
-                    column["display"] = {"template": "%0% / %1%", "fields": [{"field": "home_location", "labels": location_labels}, {"field": "home_incident_owner"}]}
+                    column["display"] = {"template": "%0%/%1%", "fields": [{"field": "home_location", "labels": location_labels}, {"field": "home_incident_owner"}]}
                 if column["data"] == "category":
                     column["label"] = {"labels": category_labels}
                 if column["data"] == "incident_type":
@@ -259,8 +260,12 @@ class Config(DatatableConfig):
                     column["label"] = {"labels": m4s_problem_labels}
                 if column["data"] == "info":
                     column["ellipsis"] = {"cutoff": 30, "wordbreak": True}
+                if column["data"] == "lis_badge_id":
+                    column["less"] = {"than": 0, "then": ""}
                 if column["data"] == "incident_state" and column["name"] == "Actie":
                     column["label"] = {"labels": action_labels}
+                if column["data"] == "spare_laptop_name":
+                    column["display"] = {"template": "%0% %1%", "fields": [{"field": "spare_laptop_name"}, {"field": "charger", "bool": True}]}
         return template
 
     def format_data(self, db_list, total_count=None, filtered_count=None):

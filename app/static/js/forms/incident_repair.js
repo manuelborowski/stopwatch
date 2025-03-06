@@ -217,8 +217,8 @@ export class IncidentRepair {
                         if (res !== null) {
                             const [valid_code, code] = badge_raw2hex(res);
                             if (valid_code) {
-                                const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "label"});
-                                if (spares && spares.length > 0) this.spare_field.value = spares[0].label;
+                                const spares = await fetch_get("spare.spare", {filters: `rfid$=$${code}`, fields: "id"});
+                                if (spares && spares.length > 0) this.spare_field.value = spares[0].id;
                             } else {
                                 this.spare_field.value = code;
                             }

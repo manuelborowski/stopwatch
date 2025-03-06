@@ -67,7 +67,7 @@ def retour():
                 "category": "return",
                 "incident_type": din["naar"],
                 "location": din["locatie"],
-                "incident_state": "prepared"
+                "incident_state": "prepared",
                 }
         ret = al.incident.add(dout)
         return("ok")
