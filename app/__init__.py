@@ -118,7 +118,8 @@ from functools import wraps
 # 0.77: bugfix busy-indication activated
 # 0.77-home_current-0.1: introduction of home/current location/owner.  API calls are on behalve of default api user.
 # Reworked meta to supply keyed-options, i.e. in function of incident-state and category.  Added "display" tag to columns-data to apply multiple, combined renderings on datatable data.
-version = "0.77-home_current-0.1"
+# 0.78: merge from 0.77-home_current-0.1
+version = "0.78"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
