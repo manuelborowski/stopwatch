@@ -1,4 +1,4 @@
-import sys, qrcode, secrets, base64, io
+import sys, qrcode, secrets, base64, io, hashlib
 from app import data as dl
 from flask import request
 
@@ -26,12 +26,22 @@ def add(data):
 
 def update(data):
     try:
-        user = dl.user.get(('id', "=", data['id']))
-        if user:
+        if "id" in data:
+            user = dl.user.get(('id', "=", data['id']))
             del data['id']
+        elif "username" in data:
+            user = dl.user.get(('username', "=", data['username']))
+            del data['username']
+        else:
+            user = None
+        if user:
+            if "pin" in data:
+                data["pin"] =  hashlib.sha256(data["pin"].encode()).hexdigest()
+            if "rfid" in data:
+                data["rfid"] = hashlib.sha256(data["rfid"].encode()).hexdigest()
             user = dl.user.update(user, data)
             if user:
-                data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash')}
+                data = {k: v for k, v in data.items() if k not in ('username', 'password', 'password_hash', "pin", "rfid")}
                 log.info(f"Update user: {data}")
                 return {"status": "ok", "msg": f"Gebruiker, {user.username} aangepast."}
         return {"status": "warning", "msg": f"Gebruiker met id {data['id']} bestaat niet"}

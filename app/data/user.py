@@ -27,6 +27,8 @@ class User(UserMixin, db.Model, SerializerMixin):
     level = db.Column(db.Integer)
     user_type = db.Column(db.String(256))
     last_login = db.Column(db.DateTime())
+    rfid = db.Column(db.String(256), default=None)
+    pin = db.Column(db.String(256), default=None)
 
     @property
     def is_local(self):

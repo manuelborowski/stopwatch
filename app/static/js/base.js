@@ -14,7 +14,7 @@ export const inject_menu = new_menu => {
     menu = new_menu;
 }
 
-export const base_init = ({button_menu_items=[]}) => {
+export const base_init = ({button_menu_items = []}) => {
     if (suppress_navbar) return;
 
     if (default_view) { // after login, go to default (= first) page
@@ -103,4 +103,25 @@ export const base_init = ({button_menu_items=[]}) => {
 
     const button_menu = new ButtonMenu(document.querySelector(".button-menu-placeholder"), button_menu_items);
 }
+
+var logout_enabled = true;
+export const autologout_disable = () => logout_enabled = false;
+
+export const autologout_enable = () => logout_enabled = true;
+
+if (logout && logout.to > 0) {
+    var timeout_timer = null;
+    const __reset_timer = () => {
+        if (timeout_timer) clearTimeout(timeout_timer);
+        timeout_timer = setTimeout(() => {
+            if (logout_enabled) window.location.href = Flask.url_for("auth.logout")}, logout.to * 1000
+        );
+    }
+    // Reset timer on user activity
+    document.addEventListener('mousemove', __reset_timer);
+    document.addEventListener('keydown', __reset_timer);
+    document.addEventListener('click', __reset_timer);
+    __reset_timer();
+}
+
 

@@ -1,7 +1,7 @@
-from flask import redirect, render_template, url_for, request, Blueprint
+from flask import redirect, render_template, url_for, request, Blueprint, session
 from flask_login import login_required, login_user, logout_user
 from app import app, data as dl
-import datetime, json, sys
+import datetime, json, sys, hashlib
 
 #logging on file level
 import logging
@@ -21,6 +21,7 @@ def login():
                 login_user(user)
                 log.info(f'user {user.username} logged in')
                 user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+                session["token-login"] = False
                 if not user:
                     log.error('Could not save timestamp')
                 # Ok, continue
@@ -40,6 +41,8 @@ def login():
 def logout():
     log.info(u'User logged out')
     logout_user()
+    if "token-login" in session and session["token-login"]:
+        return redirect(url_for('auth.login_t'))
     return redirect(url_for('auth.login'))
 
 SMARTSCHOOL_ALLOWED_BASE_ROLES = [
@@ -97,9 +100,38 @@ def login_m(user_token):
         user = dl.user.get(('url_token', "=" ,user_token))
         if user:
             login_user(user)
+            session["token-login"] = False
             log.info(f'OAUTH user {user.username} logged in')
             return redirect(url_for('incident.m_show'))
         return "geen toegang"
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
+
+@bp_auth.route(f'/{app.config["TOKEN_LOGIN"]}', methods=['POST', 'GET'])
+def login_t():
+    try:
+        message = None
+        if request.method == "POST":
+            token = hashlib.sha256(request.form['token'].encode()).hexdigest()
+            user = dl.user.get (('rfid', "=", token))
+            if not user:
+                user = dl.user.get(('pin', "=", token))
+            if user:
+                login_user(user)
+                log.info(f'user {user.username} logged in via token')
+                user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+                session["token-login"] = True
+                if not user:
+                    log.error('Could not save timestamp')
+                # Ok, continue
+                return redirect(url_for('incident.show'))
+            else:
+                log.error(f'{sys._getframe().f_code.co_name}: Invalid pin or rfid')
+                message = {"status": "error", "data": "Ongeldige Pincode of Rfidcode"}
+                return render_template('login_t.html', message=message)
+        return render_template('login_t.html', message=message)
+    except Exception as e:
+        message = {"status": "error", "data": f"{str(e)}"}
+        log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
+        return render_template('login_t.html', message=message)
 

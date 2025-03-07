@@ -36,10 +36,10 @@
                 <ul id="navbar"></ul>
             {% endif %}
         </div>
+        <h2 style="white-space: nowrap;margin-bottom: 0">{{ current_user.username }}&nbsp;&nbsp;</h2>
         <a href="{{ url_for('auth.logout') }}">
             <button class="btn btn-success navbar-btn">Logout</button>
         </a>&nbsp;&nbsp;
-        <a style="white-space: nowrap;">Hi, {{ current_user.username }}!</a>
 
     </div>
     <div>
@@ -79,6 +79,7 @@
         const stand_alone = {{ (stand_alone or False)|tojson }};
         const default_view = {{ (default_view or False)|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
+        const logout = {{ (logout or null)|tojson}};
         let view_data = {{ (view_data or {})|tojson }};
     </script>
 

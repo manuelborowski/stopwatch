@@ -3,6 +3,7 @@ import {fetch_get, fetch_post, fetch_update, form_default_set, form_populate} fr
 import {badge_raw2hex} from "../common/rfid.js";
 import {AlertPopup} from "../common/popup.js";
 import {IncidentRepair} from "../forms/incident_repair.js";
+import {autologout_disable, autologout_enable} from "../base.js";
 
 const meta = await fetch_get("incident.meta")
 
@@ -23,7 +24,8 @@ const __repair_form = async (incident = null, history = "") => {
                 confirm: {label: "Bewaar", className: "btn-primary", callback: () => false},
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
-                        if (incident) datatable_reload_table()
+                        if (incident) datatable_reload_table();
+                        autologout_enable();
                     }
                 },
             },
@@ -31,6 +33,7 @@ const __repair_form = async (incident = null, history = "") => {
                 repair = new IncidentRepair({meta, incident, history, dropdown_parent: $(".bootbox")});
                 await repair.display()
                 if (current_user.level < 3) document.querySelector(".bootbox-accept").hidden = true; // regular users cannot save changes
+                autologout_disable();
             },
         });
 
@@ -39,6 +42,7 @@ const __repair_form = async (incident = null, history = "") => {
             if (await repair.save()) {
                 datatable_reload_table();
                 if (bootbox_dialog) bootbox_dialog.modal("hide");
+                autologout_enable();
             }
         });
     }
@@ -75,15 +79,18 @@ const __loan_form = async (incident = null, history = null) => {
                             await fetch_post("incident.incident", data);
                         }
                         datatable_reload_table();
+                        autologout_enable();
                     }
                 },
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
                         if (incident_update) datatable_reload_table();
+                        autologout_enable();
                     }
                 },
             },
             onShown: async () => {
+                autologout_disable();
                 owner_field = $("#owner-field");
 
                 // Scan laptop owner badge
@@ -203,15 +210,18 @@ const __return_form = async (incident = null, history = null) => {
                             await fetch_post("incident.incident", data);
                         }
                         datatable_reload_table();
+                        autologout_enable();
                     }
                 },
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
                         if (incident_update) datatable_reload_table();
+                        autologout_enable();
                     }
                 },
             },
             onShown: async () => {
+                autologout_disable();
                 owner_field = $("#owner-field");
                 const laptop_field = document.getElementById("laptop-field");
                 const lis_type_field = document.getElementById("lis-type-field");
@@ -299,19 +309,44 @@ const __setting_form = async () => {
                         // checkboxes are present only when selected and have the value "on" => convert
                         document.getElementById("setting-form").querySelectorAll("input[type='checkbox']").forEach(c => data[c.name] = c.name in data)
                         await fetch_post("incident.location", {default: data.home_location})
+                        let user_data = {"username": current_user.username};
+                        if (data.rfid !=="") user_data["rfid"] = data.rfid;
+                        if (data.pin !=="") user_data["pin"] = data.pin;
+                        if ("pin" in user_data || "rfid" in user_data) await fetch_update("user.user", user_data);
                         meta.default.location = data.home_location;
                         __update_toolbar_fields();
                         datatable_reload_table();
+                        autologout_enable();
                     }
                 },
                 cancel: {
                     label: "Annuleer", className: "btn-secondary", callback: async () => {
+                        autologout_enable();
                     }
                 },
             },
             onShown: async () => {
+                autologout_disable();
                 const new_login_url_btn = document.getElementById("new-login-url-btn");
                 const new_login_url_chk = document.getElementById("new-login-url-chk");
+                const rfid_field = document.getElementById("rfid-field");
+
+                // Scan user badge
+                document.getElementById("user-badge-scan").addEventListener("click", (e) => {
+                    e.preventDefault();
+                    bootbox.prompt({
+                        title: "Scan je badge",
+                        callback: async res => {
+                            if (res !== null) {
+                                const [valid_code, code] = badge_raw2hex(res);
+                                rfid_field.value = code;
+                            }
+                        }
+                    })
+                });
+
+
+                // generate new QR code
                 new_login_url_btn.addEventListener("click", async (e) => {
                     e.preventDefault();
                     const resp = await fetch_get("incident.qr", {new: true});
@@ -592,7 +627,7 @@ $(document).ready(async () => {
         }
         if (e.id === "location") {
             a[i].options = location_options;
-            a[i].default = "all";
+            a[i].default = meta.default.location;
             return true
         }
         return false;

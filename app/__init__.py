@@ -120,8 +120,9 @@ from functools import wraps
 # Reworked meta to supply keyed-options, i.e. in function of incident-state and category.  Added "display" tag to columns-data to apply multiple, combined renderings on datatable data.
 # 0.78: merge from 0.77-home_current-0.1
 # 0.79: datatable, column-rendering, added "less", updated "display".
+# 0.80: added user pin and rfid so that users can login with a badge or pin code.
 
-version = "0.79"
+version = "0.80"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
