@@ -187,7 +187,7 @@ def get(data={}):
             return {"status": "error", "msg": f"Incident niet gevonden, filter {filters}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
-        return {"status": "error", "msg": {str(e)}}
+        return {"status": "error", "msg": str(e)}
 
 def laptop_get(data):
     try:

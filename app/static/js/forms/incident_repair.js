@@ -248,10 +248,10 @@ export class IncidentRepair {
         // when the owner field changes, get the associated laptops and populate the laptop field
         this.owner_field.on('change', async e => {
             const [laptop_type, laptop_owner_id] = e.target.value.split("-");
+            const laptop_field = document.getElementById("laptop-field");
             if (laptop_owner_id && laptop_owner_id !== "") {
                 const devices = await fetch_get("incident.laptop", {type: laptop_type, id: laptop_owner_id});
                 if (devices) {
-                    const laptop_field = document.getElementById("laptop-field");
                     laptop_field.innerHTML = "";
                     for (const device of devices) {
                         const label_list = [...new Set([device.m4s_csu_label, device.m4s_signpost_label, device.device_name])].filter(e => e !== null);
@@ -263,6 +263,8 @@ export class IncidentRepair {
                         laptop_field.appendChild(option);
                     }
                 }
+            } else {
+                    laptop_field.innerHTML = "";
             }
         });
 
@@ -352,7 +354,7 @@ export class IncidentRepair {
             const student_data = students ? students.map(e => ({id: "leerling-" + e.leerlingnummer, text: `${e.naam} ${e.voornaam} ${e.klasgroepcode}`})) : []
             const staff = await fetch_get("staff.staff", {fields: "naam,voornaam,code"})
             const staff_data = staff ? staff.map(e => ({id: "personeel-" + e.code, text: `${e.naam} ${e.voornaam}`})) : []
-            this.owner_field_options = student_data.concat(staff_data);
+            this.owner_field_options = [{id: "", text: "Selecteer een leerling of leerkracht"}].concat(student_data.concat(staff_data));
             this.__incident_type_changed("software");
         }
 
@@ -361,7 +363,6 @@ export class IncidentRepair {
         let select2_config = {data: this.owner_field_options, width: "resolve"};
         if (this.dropdown_parent) select2_config.dropdownParent = this.dropdown_parent;
         await this.owner_field.select2(select2_config);
-        if (this.owner_field_options.length > 0) await this.owner_field.val(this.owner_field_options[0].id).trigger("change"); // use await to make sure the select2 is done initializing
 
         // default hide the password when the incident is being updated
         this.__password_field_hide(this.incident_update);
