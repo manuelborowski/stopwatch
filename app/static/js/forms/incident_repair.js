@@ -19,9 +19,16 @@ export class IncidentRepair {
     __incident_type_changed = async (incident_type) => {
         document.getElementById("hardware-repair-group").hidden = incident_type !== "hardware"
         if (incident_type === "hardware") { // make sure that a valid location is displayed, and highlight if it is changed.  Make clear the info field is required
-            if (!(this.incident && this.incident.m4s_guid !== null)) this.info_field.parentElement.classList.add("required"); // info field not required when incident already in M4S
+            if (!(this.incident && this.incident.m4s_guid !== null)) {
+                // hardware incident, but no info or m4s error added yet
+                this.info_field.parentElement.classList.add("required");
+                this.m4s_category_field.parentElement.classList.add("required");
+                this.m4s_problem_type_guid_field.parentElement.classList.add("required");
+            }
         } else { // not a hardware incident
             this.info_field.parentElement.classList.remove("required"); // info field is not required
+            this.m4s_category_field.parentElement.classList.remove("required");
+            this.m4s_problem_type_guid_field.parentElement.classList.remove("required");
             this.location_field.style.background = "white";
         }
         // if (this.incident) this.__state_select_set(); // The possible states depend on the incident type
@@ -74,7 +81,9 @@ export class IncidentRepair {
         this.incident_state_field = document.getElementById("incident-state-field");
         this.lis_type_field = document.getElementById("lis-type-field");
         this.info_field = document.getElementById("info-field");
-        this.spare_field = document.getElementById("spare-field")
+        this.spare_field = document.getElementById("spare-field");
+        this.m4s_category_field = document.getElementById("m4s-category-field");
+        this.m4s_problem_type_guid_field = document.getElementById("m4s-problem-type-guid-field");
         this.owner_field = $("#owner-field");
         this.attachment_list = document.getElementById("attachment-list");
 
@@ -264,7 +273,7 @@ export class IncidentRepair {
                     }
                 }
             } else {
-                    laptop_field.innerHTML = "";
+                laptop_field.innerHTML = "";
             }
         });
 
@@ -347,6 +356,7 @@ export class IncidentRepair {
             document.querySelectorAll(".repair-update-hidden").forEach(i => i.hidden = true);
             document.querySelectorAll(".repair-update-disabled").forEach(i => i.disabled = true);
             document.querySelectorAll(".required").forEach(i => i.classList.toggle("required"));
+            this.__incident_type_changed(this.incident.incident_type);
         } else { // new repair
             const defaults = Object.assign(this.meta.default, {incident_state: "started", incident_type: "software", laptop_owner_password: "", category: "repair"}); // clear password and lis field
             await form_populate(defaults, this.meta);
