@@ -16,7 +16,7 @@
     <main class="content">
         <div style="display: flex;flex-wrap: wrap;">
             <div class="login-group">
-                <form class="login-form" method="POST" onsubmit="return false">
+                <form class="login-form" method="POST" onsubmit="return false" autocomplete="off">
                     <div class="form-element" style="font-size: xx-large;font-weight: 900;">
                         <label for="token">Pin of Rfid:</label>
                         <input type="text" id="token" name="token" placeholder="Pin of Rfid">
@@ -43,7 +43,7 @@
     $(document).ready(function () {
         const token_field = document.getElementById("token");
         const message = {{ message|tojson or null }};
-        if (message) new AlertPopup(message.status, message.data);
+        {#if (message) new AlertPopup(message.status, message.data);#}
         token_field.focus();
         token_field.addEventListener("keyup", e => {
                     if (e.key === "Enter") {

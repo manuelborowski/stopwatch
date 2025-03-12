@@ -124,8 +124,9 @@ from functools import wraps
 # 0.81: new incident, owner field is default empty.
 # 0.82: new incident, M4S category field is default empty.
 # 0.83: update software incident, make sure M4S fields are not visible
+# 0.84: token-login, disable browser autocomplete
 
-version = "0.83"
+version = "0.84"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
