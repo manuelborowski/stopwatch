@@ -432,7 +432,7 @@ export class IncidentRepair {
                 data.laptop_owner_name = owner_data.text;
                 const laptop_select_option = document.getElementById("laptop-field").selectedOptions[0];
                 data.laptop_name = laptop_select_option ? laptop_select_option.label : "";
-                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && data.info === "") {
+                if (data.lis_badge_id === "" || data.laptop_owner_id === "" || data.laptop_name === "" || data.incident_type === "hardware" && (data.info === "" || data.m4s_category === "none")) {
                     new AlertPopup("warning", "Roodgekleurde velden invullen aub.");
                     busy_indication_off();
                     return false

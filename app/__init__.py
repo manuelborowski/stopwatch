@@ -122,8 +122,9 @@ from functools import wraps
 # 0.79: datatable, column-rendering, added "less", updated "display".
 # 0.80: added user pin and rfid so that users can login with a badge or pin code.
 # 0.81: new incident, owner field is default empty.
+# 0.82: new incident, M4S category field is default empty.
 
-version = "0.81"
+version = "0.82"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

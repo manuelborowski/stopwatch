@@ -129,8 +129,9 @@ def meta():
     home_locations = dl.settings.get_configuration_setting("lis-home-locations")
     home_location_options = [{"value": k, "label": location_labels[k]} for k in home_locations]
     m4s_problem_types = m4s.problem_type_get()
-    m4s_category_options = [{"value": k, "label": k} for k, _ in m4s_problem_types.items()]
+    m4s_category_options =  [{"value": "none", "label": "Selecteer categorie"}] + [{"value": k, "label": k} for k, _ in m4s_problem_types.items()]
     m4s_problem_options = m4s_problem_types["Algemeen"]
+    m4s_problem_options = [{"value": "none", "label": ""}]
     m4s_problem_labels = {t["value"]: t["label"] for _, types in m4s_problem_types.items() for t in types}
     m4s_problem_labels.update({None: "NVT"})
 
@@ -138,7 +139,7 @@ def meta():
     default_password = app.config["AD_DEFAULT_PASSWORD"]
     return json.dumps({"option": {"location": location_options, "incident_state": state_options, "incident_type": type_options, "m4s_category": m4s_category_options, "m4s_problem_type_guid": m4s_problem_options, "home_location": home_location_options},
                        "label": {"location": location_labels, "incident_state": state_labels, "category": category_labels, "incident_type": type_labels, "m4s_problem_type_guid": m4s_problem_labels},
-                       "default": {"location": default_location, "m4s_category": "Algemeen", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
+                       "default": {"location": default_location, "m4s_category": "none", "m4s_problem_type_guid": m4s_problem_options[0]["value"]},
                        "default_password": default_password,
                        "category": categories,
                        "state": states,
