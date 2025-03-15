@@ -1,13 +1,8 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
-    ["incident.show", "Overzicht", 1],
-    ["history.show", "Historiek", 1],
-    ["spare.show", "Reserves", 3],
-    ["lisbadge.show", "LIS badges", 3],
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
-    ["incident.help", "Help", 1],
 ]
 
 export const inject_menu = new_menu => {
