@@ -91,11 +91,7 @@ default_configuration_settings = {
     'generic-ss-send-to': ('', Settings.SETTING_TYPE.E_STRING),
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-    'incident-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-    'incidentm-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-    'incident-history-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-    'spare-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-badge-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'person-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'ss-student-message-template': ('', Settings.SETTING_TYPE.E_STRING),
 

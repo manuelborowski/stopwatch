@@ -14,8 +14,9 @@ from functools import wraps
 
 # 0.1 copy from laptop-incident-systeem v0.84
 # 0.2: removed files not needed.  Get staff and students from SDH
+# 0.3: small bugfixes.  Reworked settings page to remove formio.
 
-version = "0.2"
+version = "0.3"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -31,7 +32,7 @@ LOG_FILENAME = os.path.join(sys.path[0], f'log/tickoff.txt')
 log_level = getattr(logging, 'INFO')
 log.setLevel(log_level)
 log_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024 * 1024, backupCount=20)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(username)s - %(message)s')
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
@@ -102,8 +103,9 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings
+from app.presentation.view import auth, api, user, settings, settings2
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
+app.register_blueprint(settings2.bp_settings2)

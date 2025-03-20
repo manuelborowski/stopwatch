@@ -3,6 +3,7 @@ import {ButtonMenu} from "./common/button_menu.js";
 var menu = [
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
+    ["settings2.show", "Instellingen2", 5],
 ]
 
 export const inject_menu = new_menu => {
@@ -63,7 +64,7 @@ export const base_init = ({button_menu_items = []}) => {
                 li.classList.add("nav-item");
                 const a = document.createElement("a");
                 a.classList.add("nav-link");
-                if (window.location.href.includes(url_path)) {
+                if (window.location.pathname === url_path) {
                     a.classList.add("active");
                 }
                 a.href = url_path;

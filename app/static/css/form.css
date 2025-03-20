@@ -35,6 +35,7 @@
 .form-element > label > textarea {
     line-height: 1;
     padding-left: 2px;
+    resize: both;
 }
 
 .form-element > label > * {
@@ -42,11 +43,17 @@
     margin-right: 5px;
 }
 
+label.top {
+    flex-direction: column;
+    align-items: unset;
+}
+
 .form-element select, .form-element input {
     height: 28px;
     border: 1px solid #aaa;
     border-radius: 4px;
 }
+
 .form-element th, .form-element td {
     border: thin;
     border-style: solid;
@@ -55,4 +62,47 @@
 
 .form-element .required {
     color: orangered;
+}
+
+
+/* Style the button that is used to open and close the collapsible content */
+.collapsible {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 4px;
+    padding-left: 10px;
+    width: 95%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    margin-left:10px;
+}
+
+.collapsible-1 {
+    background-color: #ffc109;
+    color: #ffffff;
+}
+
+.collapsible-2 {
+    background-color: #027cff;
+    color: #ffffff;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .collapsible:hover {
+    opacity: 75%;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.content {
+    padding: 0 18px;
+    display: none;
+    overflow: hidden;
+    width: 95%;
+    border-style: solid;
+    border-width: thin;
+    border-color: #d2d2be;
+    margin-left: 10px;
 }

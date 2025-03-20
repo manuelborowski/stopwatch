@@ -17,6 +17,15 @@ class User(UserMixin, db.Model, SerializerMixin):
         LOCAL = 'local'
         OAUTH = 'oauth'
 
+    label = {
+        1: "Gebruiker",
+        2: "Gebruiker+",
+        3: "Secretariaat",
+        4: "Secretariaat+",
+        5: "Administrator"
+    }
+
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(256))
     username = db.Column(db.String(256))
