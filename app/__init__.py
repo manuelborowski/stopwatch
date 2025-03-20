@@ -15,8 +15,9 @@ from functools import wraps
 # 0.1 copy from laptop-incident-systeem v0.84
 # 0.2: removed files not needed.  Get staff and students from SDH
 # 0.3: small bugfixes.  Reworked settings page to remove formio.
+# 0.4: removed old settings code and replaced with new (without formio)
 
-version = "0.3"
+version = "0.4"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -103,9 +104,8 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, settings2
+from app.presentation.view import auth, api, user, settings
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
-app.register_blueprint(settings2.bp_settings2)

@@ -1,27 +1,26 @@
 {% extends "base.html" %}
 {% block body %}
     {{ super() }}
+    <link href="static/css/form.css" rel="stylesheet">
     <div class="content-section">
-        <div class="center">
-            <div class="container-form">
-                <div id="configuration-settings"></div>
-            </div>
+        <div class="center container-form">
         </div>
-       </div>
+    </div>
     <style>
-    .card-header, .form-control, .btn {
-        padding: 0;
-    }
-    .form-group {
-        margin: 0;
-    }
+        .card-header, .form-control, .btn {
+            padding: 0;
+        }
+
+        .form-group {
+            margin: 0;
+        }
     </style>
 {% endblock %}
 
 {% block scripts %}
-   {{ super() }}
+    {{ super() }}
     <script>
-    var data = {{ data | tojson }}
+        var data = {{ data | tojson }}
     </script>
     <script type="module" src="/static/js/project/settings.js"></script>
 {% endblock %}

@@ -3,7 +3,6 @@ import {ButtonMenu} from "./common/button_menu.js";
 var menu = [
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
-    ["settings2.show", "Instellingen2", 5],
 ]
 
 export const inject_menu = new_menu => {
