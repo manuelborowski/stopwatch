@@ -16,8 +16,9 @@ from functools import wraps
 # 0.2: removed files not needed.  Get staff and students from SDH
 # 0.3: small bugfixes.  Reworked settings page to remove formio.
 # 0.4: removed old settings code and replaced with new (without formio)
+# 0.5: removed formio from users page
 
-version = "0.4"
+version = "0.5"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

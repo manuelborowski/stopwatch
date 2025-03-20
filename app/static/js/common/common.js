@@ -45,40 +45,6 @@ export const form_default_set = (defaults) => {
     }
 }
 
-// Iterate over data.  If a corresponding field (in the form) is found, set the value.
-// In case of a select, it is possible to limit the number of options, depending on the category
-export const form_populate = async (data, meta = null) => {
-    for (let [field_name, value] of Object.entries(data)) {
-        const field = document.querySelector(`[name=${field_name}]`);
-        if (field) {
-            if (field.type === "checkbox") {
-                field.checked = value;
-            } else if (field.classList.contains("select2-hidden-accessible")) { // select2 type
-                await $(`[name=${field_name}]`).val(value).trigger("change");
-            } else if (field.classList.contains("ql-container") && "quill" in meta && field_name in meta.quill) { // quill html editor
-                await meta.quill[field_name].clipboard.dangerouslyPasteHTML(value);
-            } else if (field.type === "select-one") {
-                if (meta && "keyed_option" in meta && field_name in meta.keyed_option) {
-                    if ("key_field" in meta.keyed_option[field_name]) {
-                        const key_value = data[meta.keyed_option[field_name].key_field];
-                        if (key_value) {
-                            const options = meta.keyed_option[field_name][key_value];
-                            field.innerHTML = "";
-                            for (const option of options) field.add(new Option(meta.label[field_name][option], option, value === option, value === option));
-                        }
-                    }
-                } else if (meta && "option" in meta && field_name in meta.option) {
-                    field.innerHTML = "";
-                    for (const item of meta.option[field_name]) field.add(new Option(item.label, item.value, value === item.value, value === item.value));
-                }
-            } else {
-                if (meta && "label" in meta && field_name in meta.label) value = meta.label[field_name][value];
-                field.value = value;
-            }
-        }
-    }
-}
-
 let busy_indicator = [];
 
 export function busy_indication_on() {

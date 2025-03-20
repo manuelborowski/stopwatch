@@ -23,6 +23,7 @@ def show():
 al.socketio.subscribe_on_type("user-datatable-data", lambda type, data: datatable_get_data(config, data))
 
 @bp_user.route('/user', methods=["POST", "UPDATE", "DELETE", "GET"])
+@admin_required
 @login_required
 def user():
     if request.method == "UPDATE":
@@ -34,33 +35,22 @@ def user():
     elif request.method == "DELETE":
         ret = al.user.delete(request.args["ids"].split(","))
     else: # GET
-        ret = al.user.get(request.args)
+        ret = al.models.get(dl.user.User, request.args)
+        # ret = al.user.get(request.args)
     return json.dumps(ret)
 
-@bp_user.route('/form', methods=["GET"])
+@bp_user.route('/user/meta', methods=['GET'])
+@admin_required
 @login_required
-def form():
-    try:
-        params = request.args
-        template = dl.settings.get_configuration_setting("popup-new-update-user")
-        defaults = {}
-        if "user_id" in params:
-            user = dl.user.get(("id", "=", params["user_id"]))
-            defaults = user.to_dict()
-            defaults["level"] = {"default": defaults["level"]}
-            defaults["user_type"] = {"default": defaults["user_type"]}
-        return {"template": template, "defaults": defaults}
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: Exception, {e}')
-        return fetch_return_error(f'Exception, {e}')
-
-
-def value_update(type, data):
-    user = dl.user.get(("id", "=", data["id"]))
-    dl.user.update(user, {data["column"]: data["value"]})
-
-# invoked when a single cell in the table is updated
-al.socketio.subscribe_on_type("user-cell-update", value_update)
+def meta():
+    user_level_label = dl.user.User.level_label
+    user_level_option =[{"value": k, "label": v} for k, v in user_level_label.items()]
+    user_type_label = dl.user.User.type_label
+    user_type_option = [{"value": k, "label": v} for k, v in user_type_label.items()]
+    return json.dumps({
+        "option": {"level": user_level_option, "user_type": user_type_option},
+        "default": {"level": 1, "user_type": dl.user.User.USER_TYPE.LOCAL},
+    })
 
 
 class Config(DatatableConfig):

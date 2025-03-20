@@ -57,7 +57,7 @@ def button():
 @bp_settings.route('/setting/meta', methods=['GET'])
 @login_required
 def meta():
-    user_level_label = dl.user.User.label
+    user_level_label = dl.user.User.level_label
     user_level_option =[{"value": k, "label": v} for k, v in user_level_label.items()]
     cron_enable_modules = dl.settings.get_configuration_setting('cron-enable-modules')
     filtered_cron_table = [{"id": c[0], "label": c[2]} for c in cron_table]

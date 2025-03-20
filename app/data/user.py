@@ -17,7 +17,12 @@ class User(UserMixin, db.Model, SerializerMixin):
         LOCAL = 'local'
         OAUTH = 'oauth'
 
-    label = {
+    type_label = {
+        USER_TYPE.LOCAL: 'Local',
+        USER_TYPE.OAUTH: 'OAuth',
+    }
+
+    level_label = {
         1: "Gebruiker",
         2: "Gebruiker+",
         3: "Secretariaat",
