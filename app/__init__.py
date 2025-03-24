@@ -17,8 +17,9 @@ from functools import wraps
 # 0.3: small bugfixes.  Reworked settings page to remove formio.
 # 0.4: removed old settings code and replaced with new (without formio)
 # 0.5: removed formio from users page
+# 0.6: added category-functionality.  Upload category-data from xlsx
 
-version = "0.5"
+version = "0.6"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -105,8 +106,9 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings
+from app.presentation.view import auth, api, user, settings, category
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
+app.register_blueprint(category.bp_category)

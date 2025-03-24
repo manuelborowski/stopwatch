@@ -1,4 +1,4 @@
-__all__ = ["user", "socketio", "datatables", "common", "formio", "settings", "person", "cron", "models"]
+__all__ = ["user", "socketio", "datatables", "common", "formio", "settings", "person", "cron", "models", "category"]
 
 import app.application.user
 import app.application.socketio
@@ -8,6 +8,7 @@ import app.application.formio
 import app.application.settings
 import app.application.person
 import app.application.models
+import app.application.category
 
 from app.application.person import person_cron_load_from_sdh
 

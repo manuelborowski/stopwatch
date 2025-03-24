@@ -2,15 +2,16 @@ import {AlertPopup} from "./popup.js";
 
 const __handle_fetch = async resp => {
     const data = await resp.json();
-    if ("status" in data) {
+    if (data && "status" in data) {
         new AlertPopup(data.status, data.msg);
         return null;
     }
     return data
 }
 
-export const fetch_post = async (endpoint, body) => {
-    const response = await fetch(Flask.url_for(endpoint), {method: 'POST', body: JSON.stringify(body),});
+export const fetch_post = async (endpoint, body, raw_body=false) => {
+    if (!raw_body) body = JSON.stringify(body);
+    const response = await fetch(Flask.url_for(endpoint), {method: 'POST', body});
     return __handle_fetch(response);
 }
 

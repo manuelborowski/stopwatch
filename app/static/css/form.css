@@ -26,6 +26,13 @@
     align-items: center;
 }
 
+/* labels are right aligned against a vertical, centered line */
+.vertical-center-label {
+    width: 400px;
+    justify-content: flex-end;
+    text-align: right;
+}
+
 .form-element > label > input {
     vertical-align: middle;
     margin-top: 0;
@@ -41,6 +48,11 @@
 .form-element > label > * {
     margin-left: 10px;
     margin-right: 5px;
+}
+
+/* elements are left aligned against a vertical, centered line */
+.vertical-center-element {
+    flex: 0 0 200px;
 }
 
 label.top {
@@ -65,8 +77,8 @@ label.top {
 }
 
 
-/* Style the button that is used to open and close the collapsible content */
-.collapsible {
+/* Style the button that is used to open and close the form-container content */
+.form-container {
     background-color: #eee;
     color: #444;
     cursor: pointer;
@@ -80,25 +92,25 @@ label.top {
     margin-left:10px;
 }
 
-.collapsible-1 {
+.form-container-1 {
     background-color: #ffc109;
     color: #ffffff;
 }
 
-.collapsible-2 {
+.form-container-2 {
     background-color: #027cff;
     color: #ffffff;
 }
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .collapsible:hover {
+.active, .form-container:hover {
     opacity: 75%;
 }
 
-/* Style the collapsible content. Note: hidden by default */
+/* Style the form-container content. Note: hidden by default */
 .content {
     padding: 0 18px;
-    display: none;
+    display: block;
     overflow: hidden;
     width: 95%;
     border-style: solid;

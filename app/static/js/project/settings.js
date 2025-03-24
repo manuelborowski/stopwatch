@@ -1,6 +1,6 @@
 import {busy_indication_off, busy_indication_on, fetch_get, fetch_post, fetch_update} from "../common/common.js";
 import {base_init} from "../base.js";
-import {create_form, populate_form} from "../common/forms.js";
+import {create_form, populate_form} from "../common/BForms.js";
 
 const meta = await fetch_get("settings.meta")
 
@@ -27,48 +27,47 @@ const __handle_save = () => {
 const template =
     [
         {
-            label: "Templates", save: true, rows: [
-                {label: "Gebruikers", name: "user-datatables-template", type: "textarea"},
+            type: "container", label: "Templates", save: true, default_collapsed: true, rows: [
+                {label: "Gebruikers", name: "user-datatables-template", type: "textarea", save: true},
                 {label: "Personen", name: "person-datatables-template", type: "textarea"},
+                {label: "Categorieen", name: "category-datatables-template", type: "textarea"},
             ]
         },
         {
-            label: "Modules", rows: [
+            type: "container", label: "Modules", default_collapsed: true, rows: [
                 {
-                    label: "Algemeen", save: true, rows: [
+                    type: "container", label: "Algemeen", save: true, default_collapsed: true, rows: [
                         [{label: "Nieuwe gebruikers mogen via Smartschool aanmelden?", name: "generic-new-via-smartschool", type: "check"}],
                         [{label: "Nieuwe gebruikers, standaard niveau", name: "generic-new-via-smartschool-default-level", type: "select"}],
                     ]
                 },
                 {
-                    label: "Cron", save: true, rows: [
-                        [{label: "Cron template", name: "cron-scheduler-template", type: "input"}],
+                    type: "container", label: "Cron", save: true, default_collapsed: true, rows: [
+                        [{label: "Cron template", name: "cron-scheduler-template", type: "input", save: true}],
                         [{label: "Start cron cyclus?", id: "display-button-start-cron-cycle", type: "check", save: false},
-                            {label: "Start", id: "button-start-cron-cycle", type: "button", save: false}],
+                            {label: "Start", id: "button-start-cron-cycle", type: "button", class: "btn btn-success"}],
                         {id: "cron-enable-modules", type: "div"},
 
                     ]
-                }
+                },
+                {
+                    type: "container", label: "Afvink types", save: true, default_collapsed: true, rows: [
+                        {label: "YAML", name: "tickoff-types", type: "textarea"},
+                    ]
+                },
             ]
         }
     ]
 
 const __create_html_page = () => {
-    const __populate_setting = async () => {
+    const __populate_settings = async () => {
         const settings = await fetch_get("settings.setting");
         if (settings && settings.data) {
             populate_form(settings.data, meta);
         }
     }
 
-    const __init_collapsible_containers = () => {
-        document.querySelectorAll(".collapsible").forEach(c => {
-            c.addEventListener("click", e => {
-                e.target.classList.toggle("active");
-                const content = e.target.nextElementSibling;
-                content.style.display = content.style.display === "block" ? "none" : "block";
-            });
-        });
+    const __init_start_cron_button = () => {
         // Start cron cycle manually
         const cron_start_button = document.getElementById("button-start-cron-cycle");
         cron_start_button.hidden = true;
@@ -88,8 +87,8 @@ const __create_html_page = () => {
     for (const module of meta.cron_table) cron_modules_template.push({label: module.label, name: module.id, type: "check", class: "cron-modules"})
     create_form(document.getElementById("cron-enable-modules"), cron_modules_template)
     populate_form(meta.cron_enable_modules);
-    __init_collapsible_containers();
-    __populate_setting();
+    __init_start_cron_button();
+    __populate_settings();
 
 }
 

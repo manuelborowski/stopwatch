@@ -87,7 +87,7 @@ def delete_multiple(model, ids=[], objs=[]):
 
 
 # filters is list of tupples: [(key, operator, value), ...]
-def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count=False, active=True, start=None, stop=None):
+def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count=False, active=True, start=None, stop=None, distinct=False):
     try:
         tablename = model.__tablename__
         entities = [text(f'{tablename}.{f}') for f in fields]
@@ -95,6 +95,8 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
             q = model.query.with_entities(*entities)
             if not filters: # hack.  If no filter is defined, the query errors with 'unknown table'
                 q = q.filter(getattr(model, "id") > 0)
+            if distinct:
+                return q.distinct().all()
         else:
             q = model.query
         if type(filters) is not list: filters = [filters]

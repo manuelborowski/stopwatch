@@ -88,39 +88,15 @@ def set_setting(name, value, user=None):
 default_configuration_settings = {
     'generic-new-via-smartschool-default-level': (1, Settings.SETTING_TYPE.E_INT),
     'generic-new-via-smartschool': (True, Settings.SETTING_TYPE.E_BOOL),
-    'generic-ss-send-to': ('', Settings.SETTING_TYPE.E_STRING),
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'person-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
-
-    'ss-student-message-template': ('', Settings.SETTING_TYPE.E_STRING),
+    'category-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
 
-    'api-keys': ([], Settings.SETTING_TYPE.E_YAML),
-
-    'email-task-interval': (10, Settings.SETTING_TYPE.E_INT),
-    'emails-per-minute': (30, Settings.SETTING_TYPE.E_INT),
-    'email-send-max-retries': (2, Settings.SETTING_TYPE.E_INT),
-    'email-base-url': ('localhost:5000', Settings.SETTING_TYPE.E_STRING),
-    'email-enable-send-email': (False, Settings.SETTING_TYPE.E_BOOL),
-
-    'popup-new-update-user': ({}, Settings.SETTING_TYPE.E_JSON),
-    'popup-new-update-incident': ({}, Settings.SETTING_TYPE.E_JSON),
-
-    'lis-badge-rfid': ({}, Settings.SETTING_TYPE.E_JSON),
-    'lis-locations': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-state': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-incident-types': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-categories': ({}, Settings.SETTING_TYPE.E_YAML),
-    'lis-home-locations': ({}, Settings.SETTING_TYPE.E_YAML),
-
-    'logging-inform-emails': ('', Settings.SETTING_TYPE.E_STRING),
-
-    'm4s_bearer_token': ('', Settings.SETTING_TYPE.E_STRING),
-    'm4s_bearer_expires_in': ('', Settings.SETTING_TYPE.E_STRING),
-
+    "tickoff-types": ({}, Settings.SETTING_TYPE.E_YAML),
 
 }
 

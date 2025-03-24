@@ -1,21 +1,26 @@
 import {datatables_init, datatable_reload_table} from "../datatables/dt.js";
 import {fetch_post, fetch_get, fetch_update, fetch_delete} from "../common/common.js";
-import {create_form, populate_form, data_from_form} from "../common/forms.js";
+import {create_form, populate_form, data_from_form} from "../common/BForms.js";
 
 const meta = await fetch_get("user.meta");
 
 const template =
     [
         {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
-        {type: "input", label: "Gebruikersnaam", name: "username"},
-        {type: "input", label: "Achternaam", name: "last_name"},
-        {type: "input", label: "Voornaam", name: "first_name"},
-        {type: "input", label: "Email", name: "email"},
-        {type: "select", label: "Niveau", name: "level", typecast: "integer"},
-        {type: "select", label: "Type", name: "user_type"},
-        {type: "check", label: "Nieuw wachtwoord?", id: "new-password-check"},
-        {type: "input", label: "Paswoord", id: "new-password", name: "password"},
-        {type: "input", label: "Bevestig paswoord", id: "new-password-confirm"},]
+        {
+            format: "vertical-center", rows: [
+                {type: "input", label: "Gebruikersnaam", name: "username"},
+                {type: "input", label: "Achternaam", name: "last_name"},
+                {type: "input", label: "Voornaam", name: "first_name"},
+                {type: "input", label: "Email", name: "email"},
+                {type: "select", label: "Niveau", name: "level", typecast: "integer"},
+                {type: "select", label: "Type", name: "user_type"},
+                {type: "check", label: "Nieuw wachtwoord?", id: "new-password-check"},
+                {type: "input", label: "Paswoord", id: "new-password", name: "password"},
+                {type: "input", label: "Bevestig paswoord", id: "new-password-confirm"},
+            ]
+        }
+    ]
 
 const __user_add_or_update = async (ids, add = true) => {
     const users = add ? null : await fetch_get("user.user", {filters: `id$=$${ids[0]}`})

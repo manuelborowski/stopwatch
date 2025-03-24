@@ -16,6 +16,7 @@ click==8.1.7
 colorama==0.4.6
 cryptography==44.0.0
 Deprecated==1.2.15
+et_xmlfile==2.0.0
 Flask==3.1.0
 Flask-APScheduler==1.13.1
 Flask-Cors==5.0.0
@@ -50,9 +51,12 @@ msal==1.31.1
 msal-extensions==1.2.0
 msgraph-core==0.1.2
 multidict==6.1.0
+numpy==2.2.4
+openpyxl==3.1.5
 opentelemetry-api==1.29.0
 opentelemetry-sdk==1.29.0
 opentelemetry-semantic-conventions==0.50b0
+pandas==2.2.3
 pillow==11.1.0
 platformdirs==4.3.6
 portalocker==2.10.1

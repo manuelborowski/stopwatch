@@ -18,14 +18,6 @@ class Person(db.Model, SerializerMixin):
     informatnummer = db.Column(db.String(256), default='')
     username = db.Column(db.String(256), default='')
 
-    @property
-    def person_id(self):
-        return self.leerlingnummer
-
-def get_columns():
-    return [p for p in dir(Person) if not p.startswith('_')]
-
-
 def commit():
     return app.data.models.commit()
 
