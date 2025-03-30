@@ -19,8 +19,9 @@ from functools import wraps
 # 0.5: removed formio from users page
 # 0.6: added category-functionality.  Upload category-data from xlsx
 # 0.7: updated settings
+# 0.8: updated user
 
-version = "0.7"
+version = "0.8"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

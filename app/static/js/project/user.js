@@ -1,6 +1,6 @@
 import {datatables_init, datatable_reload_table} from "../datatables/dt.js";
 import {fetch_post, fetch_get, fetch_update, fetch_delete} from "../common/common.js";
-import {create_form, populate_form, data_from_form} from "../common/BForms.js";
+import {BForms} from "../common/BForms.js";
 
 const meta = await fetch_get("user.meta");
 
@@ -22,25 +22,27 @@ const template =
         }
     ]
 
+
 const __user_add_or_update = async (ids, add = true) => {
     const users = add ? null : await fetch_get("user.user", {filters: `id$=$${ids[0]}`})
-    const form = document.createElement("form");
-    create_form(form, template);
+    const bform = new BForms(template);
 
     const title = add ? "Nieuwe gebruiker" : "Gebruiker aanpassen";
     bootbox.dialog({
         title,
-        message: form,
+        message: bform.form,
         buttons: {
             confirm: {
                 label: "Bewaar",
                 className: "btn-primary",
                 callback: async () => {
-                    const form_data = data_from_form(form, template);
+                    const form_data = bform.get_data();
                     if (add)
                         await fetch_post("user.user", form_data);
                     else
                         await fetch_update("user.user", form_data);
+                    datatable_reload_table();
+
                 }
             },
             cancel: {
@@ -50,14 +52,14 @@ const __user_add_or_update = async (ids, add = true) => {
         },
         onShown: async () => {
             if (add)
-                populate_form({level: meta.default.level, user_type: meta.default.user_type}, meta, form);
+                bform.populate({level: meta.default.level, user_type: meta.default.user_type}, meta);
             else
-                populate_form(users[0], meta, form);
-            form.querySelector("#new-password-check").addEventListener("click", e => {
-                form.querySelector("#new-password").closest("div").hidden = !e.target.checked;
-                form.querySelector("#new-password-confirm").closest("div").hidden = !e.target.checked;
+                bform.populate(users[0], meta);
+            bform.element("new-password-check").addEventListener("click", e => {
+                bform.element("new-password").closest("div").hidden = !e.target.checked;
+                bform.element("new-password-confirm").closest("div").hidden = !e.target.checked;
             })
-            form.querySelector("#new-password-check").dispatchEvent(new Event("click"));
+            bform.element("new-password-check").dispatchEvent(new Event("click"));
         },
     });
 }

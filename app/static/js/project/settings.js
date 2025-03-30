@@ -59,7 +59,6 @@ const __handle_save = () => {
 }
 
 const __create_html_page = async () => {
-
     document.querySelector(".container-form").appendChild(bform.form);
     let cron_modules_template = []
     for (const module of meta.cron_table) cron_modules_template.push({label: module.label, name: module.id, type: "check", class: "cron-modules"})
