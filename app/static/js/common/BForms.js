@@ -46,6 +46,9 @@ export class BForms {
         this.add(this.form, template)
     }
 
+    // add a template to the form
+    // parent: html element to which the rendered template is attachted to
+    // template: structure defining the html elemeents of the form
     add = (parent, template) => {
         let container_level = 0;
         let format = null;
@@ -221,6 +224,9 @@ export class BForms {
         }
     }
 
+    // Get the value of all html elements with a "name" attribute
+    // All checkboxes are present with a true or false value
+    // If required (depending on the template) a value can be typecasted.
     get_data = () => {
         const form_data = Object.fromEntries(new FormData(this.form));
         // checkboxes are present only when selected and have the value "on" => convert

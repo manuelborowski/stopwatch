@@ -18,8 +18,9 @@ from functools import wraps
 # 0.4: removed old settings code and replaced with new (without formio)
 # 0.5: removed formio from users page
 # 0.6: added category-functionality.  Upload category-data from xlsx
+# 0.7: updated settings
 
-version = "0.6"
+version = "0.7"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -31,6 +32,7 @@ class MyLogFilter(logging.Filter):
     def filter(self, record):
         record.username = current_user.username if current_user and current_user.is_active else 'NONE'
         return True
+log.addFilter(MyLogFilter())
 LOG_FILENAME = os.path.join(sys.path[0], f'log/tickoff.txt')
 log_level = getattr(logging, 'INFO')
 log.setLevel(log_level)
