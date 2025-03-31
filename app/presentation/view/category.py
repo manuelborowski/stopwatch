@@ -6,9 +6,10 @@ from app import data as dl, application as al
 from app.presentation.view import datatable_get_data, fetch_return_error
 import json, sys
 
-#logging on file level
+# logging on file level
 import logging
 from app import MyLogFilter, top_log_handle, app
+
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 bp_category = Blueprint('category', __name__)
@@ -16,6 +17,8 @@ bp_category = Blueprint('category', __name__)
 @bp_category.route('/categoryshow', methods=['GET', 'POST'])
 @login_required
 def show():
+    type = request.args.get("type", "italiereis")
+    config.set_type(type)
     return render_template("category.html", table_config=config.create_table_config())
 
 # invoked when the client requests data from the database
@@ -35,7 +38,7 @@ def category():
         category = request.args.get("category")
         ret = al.category.delete(type, category)
         pass
-    else: # GET
+    else:  # GET
         pass
     return json.dumps(ret)
 
@@ -55,7 +58,6 @@ def meta():
         "default": {"type": default_type},
     })
 
-
 class Config(DatatableConfig):
     def pre_sql_query(self):
         return dl.category.pre_sql_query()
@@ -69,5 +71,15 @@ class Config(DatatableConfig):
     def format_data(self, l, total_count, filtered_count):
         return al.category.format_data(l, total_count, filtered_count)
 
-config = Config("category", "categorieen")
+    @property
+    def template(self):
+        base = dl.settings.get_datatables_config(self.view)
+        type = dl.settings.get_configuration_setting("tickoff-types")[self.type]
+        for field in type["import"]:
+            base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes"})
+        return base
 
+    def set_type(self, type):
+        self.type = type
+
+config = Config("category", "categorieen")

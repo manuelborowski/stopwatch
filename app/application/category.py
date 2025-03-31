@@ -87,7 +87,8 @@ def delete(type, category):
 def format_data(db_list, total_count=None, filtered_count=None):
     out = []
     for i in db_list:
-        em = i.to_dict()
-        em.update({"row_action": i.id, "DT_RowId": i.id})
+        em = i[0].to_dict()
+        em.update(i[1].to_dict())
+        em.update({"row_action": i[0].id, "DT_RowId": i[0].id})
         out.append(em)
     return total_count, filtered_count, out

@@ -117,6 +117,35 @@ const button_menu_items = [
     },
 ]
 
+const filter_menu_items = [
+    {
+        type: 'select',
+        id: 'filter-type',
+        label: 'Type',
+        persistent: true
+    },
+    {
+        type: 'select',
+        id: 'filter-label',
+        label: 'Label',
+        dynamic: true
+    },
+]
+
 $(document).ready(function () {
-    datatables_init({button_menu_items});
+    const url_args = new URLSearchParams(window.location.search);
+    const type = url_args.get("type") || meta.default.type;
+    for (const item of filter_menu_items) {
+        if (item.id === "filter-type") {
+            item.options = meta.option.type;
+            item.default = meta.option.type[0].value;
+        } else if (item.id === "filter-label") {
+            item.options = meta.category[type].map(i => ({value: i, label: i}));
+            item.default = meta.category[type][0];
+        }
+    }
+    datatables_init({button_menu_items, filter_menu_items});
+    document.getElementById("filter-type").addEventListener("change", e => {
+        window.location.href = Flask.url_for("category.show", {type: e.target.value});
+    });
 });

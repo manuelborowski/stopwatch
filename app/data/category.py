@@ -1,6 +1,6 @@
-import sys, json
+import sys
 import app.data.models
-from app import log, db
+from app import db, data as dl
 from sqlalchemy_serializer import SerializerMixin
 
 
@@ -51,9 +51,14 @@ def get(filters=[]):
 
 ############ obj overview list #########
 def pre_sql_query():
-    return db.session.query(Category)
+    return db.session.query(Category, dl.person.Person).join(dl.person.Person, Category.person_id == dl.person.Person.id)
 
 def pre_sql_filter(query, filter):
+    for f in filter:
+        if f['id'] == 'filter-type':
+            query = query.filter(Category.type == f['value'])
+        if f['id'] == 'filter-label':
+            query = query.filter(Category.label == f['value'])
     return query
 
 def pre_sql_search(search_string):

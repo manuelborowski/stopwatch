@@ -79,8 +79,9 @@ export class FilterMenu {
             let value = null;
             if (f.type === "select") value = document.querySelector(`#${f.id} option:checked`).value;
             if (f.type === "checkbox") value = document.querySelector(`#${f.id}`).checked;
-            store.push({id: f.id, type: f.type, value: f.persistent ? value : f.default});
             this.filters.push({id: f.id, type: f.type, value});
+            if ("dynamic" in f && f.dynamic) continue; // Filter options are not fixed and cannot be stored
+            store.push({id: f.id, type: f.type, value: f.persistent ? value : f.default});
         }
         localStorage.setItem(`Filter-${this.id}`, JSON.stringify(store));
     }

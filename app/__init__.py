@@ -20,8 +20,9 @@ from functools import wraps
 # 0.6: added category-functionality.  Upload category-data from xlsx
 # 0.7: updated settings
 # 0.8: updated user
+# 0.9: table columns can change depending on a condition (type). Category, added filters.  Filters, added dynamic attribute, i.e. options can change depening on a condition.
 
-version = "0.8"
+version = "0.9"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
