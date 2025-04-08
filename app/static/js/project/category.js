@@ -1,11 +1,12 @@
-import {datatables_init} from "../datatables/dt.js";
+import {datatable_row_data_from_id, datatables_init, datatable_reload_table} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update, fetch_delete} from "../common/common.js";
 import {BForms} from "../common/BForms.js";
 import {AlertPopup} from "../common/popup.js";
+import {badge_raw2hex} from "../common/rfid.js";
 
 let meta = await fetch_get("category.meta");
 
-const template =
+const upload_template =
     [
         {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
         {type: "select", label: "Type", id: "type-select", name: "type"},
@@ -33,9 +34,9 @@ const template =
     ]
 
 const __upload_tickoff_file = async () => {
-    const bform = new BForms(template);
+    const bform = new BForms(upload_template);
     const dialog = bootbox.dialog({
-        title: "Gegevens opladen",
+        title: "Nieuw thema: gegevens opladen",
         message: bform.form,
         buttons: {
             cancel: {
@@ -58,7 +59,7 @@ const __upload_tickoff_file = async () => {
                 const form_data = new FormData(bform.form);
                 form_data.append("stage", 1);
                 form_data.append("header_present", bform.element("header-present").checked);
-                const info = await fetch_post("category.category", form_data, true);
+                const info = await fetch_post("category.upload", form_data, true);
                 if ("status" in info) {
                     new AlertPopup(info.status, info.msg);
                     return false
@@ -70,6 +71,7 @@ const __upload_tickoff_file = async () => {
                 const type = meta.type[bform.element("type-select").value];
                 let column_template = [];
                 let data = {};
+                info.data.column.unshift("NVT")
                 for (const field of type.import) {
                     column_template.push([{type: "select", label: field, name: field, class: "column-select"}, {type: "input", label: "v.b.", id: field}]);
                     meta.option[field] = info.data.column.map(c => ({value: c, label: c}))
@@ -95,7 +97,7 @@ const __upload_tickoff_file = async () => {
                     form_data.stage = 2;
                     form_data.filename = form_data.tickoff_file.name;
                     delete form_data.tickoff_file;
-                    const ret = await fetch_update("category.category", form_data);
+                    const ret = await fetch_update("category.upload", form_data);
                     // Show stage 3, i.e. the file is processed and non found items are listed
                     bform.show("phase3-group");
                     const list = bform.element("entries-not-found");
@@ -135,22 +137,121 @@ const __upload_tickoff_file = async () => {
                         delete form_data.tickoff_file;
                         if (form_data.category === "") {
                             form_data.category = form_data.category_select;
-                            await fetch_delete("category.category", {category: form_data.category, type: form_data.type});
+                            await fetch_delete("category.upload", {category: form_data.category, type: form_data.type});
                         }
-                        await fetch_update("category.category", form_data);
+                        await fetch_update("category.upload", form_data);
+                        datatable_reload_table();
                     });
                 });
             })
         },
     });
+}
+
+const update_person_template =
+    [
+        {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
+        {tag: "link", href: "https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css", rel: "stylesheet"},
+        {tag: "script", src: "https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"},
+        {type: "select", label: "Selecteer", id: "person-select", name: "person", style: "width:90%;"},
+    ]
+
+const __update_person = async ids => {
+    const bform = new BForms(update_person_template);
+    const row = datatable_row_data_from_id(ids[0]);
+
+    bootbox.dialog({
+        title: `Huidig: ${row.naam}`,
+        message: bform.form,
+        buttons: {
+            confirm: {
+                label: "Bewaar",
+                className: "btn-primary",
+                callback: async () => {
+                    const person_select = $("#person-select");
+                    const persons = await fetch_get("person.person", {filters: `id$=$${person_select.select2("data")[0].id}`})
+                    if (persons.length > 0) {
+                        const person = persons[0];
+                        await fetch_update("category.category", {id: ids[0], naam: person.naam, voornaam: person.voornaam, klas: person.klas, klasgroep: person.klasgroep, rfid: person.rfid})
+                        datatable_reload_table();
+                    }
+
+                }
+            },
+            cancel: {
+                label: "Annuleer", className: "btn-secondary", callback: async () => {
+                }
+            },
+        },
+        onShown: async () => {
+            const person_select = $("#person-select");
+            const persons = await fetch_get("person.person");
+            if (persons.length > 0) {
+                if (person_select.hasClass("select2-hidden-accessible")) await person_select.empty().select2('destroy').trigger("change")
+                const person_options = persons.map(p => ({id: p.id, text: `${p.naam} ${p.voornaam} ${p.klasgroep}`}));
+                let select2_config = {data: person_options, width: "resolve", dropdownParent: bform.form};
+                await person_select.select2(select2_config);
+            }
+        },
+    });
+}
+
+const update_rfid_template =
+    [
+        {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
+        {type: "input", label: "Huidige badge", id: "old-rfid-input"},
+        {type: "input", label: "Nieuwe badge", id: "new-rfid-input"},
+    ]
+
+const __update_rfid = async ids => {
+    const categories = await fetch_get("category.category", {filters: `id$=$${ids[0]}`});
+    const category = categories[0];
+    const bform = new BForms(update_rfid_template);
+
+    bootbox.dialog({
+        title: `Scan de badge aub`,
+        message: bform.form,
+        buttons: {
+            confirm: {
+                label: "Bewaar",
+                className: "btn-primary",
+                callback: async () => {
+                    await fetch_update("category.category", {id: ids[0], rfid: bform.element("new-rfid-input").value})
+                    datatable_reload_table();
+                }
+            },
+            cancel: {
+                label: "Annuleer", className: "btn-secondary", callback: async () => {
+                }
+            },
+        },
+        onShown: async () => {
+            const old_rfid_input = bform.element("old-rfid-input");
+            const new_rfid_input = bform.element("new-rfid-input");
+            old_rfid_input.value = category.rfid;
+
+            new_rfid_input.focus();
+            new_rfid_input.addEventListener("keyup", e => {
+                e.preventDefault();
+                if (e.key === "Enter") {
+                    const [valid_code, code] = badge_raw2hex(e.target.value);
+                    if (valid_code) {
+                        new_rfid_input.value = code;
+                    }
+                }
+            })
+
+        },
+    });
 
 }
+
 
 const button_menu_items = [
     {
         type: 'button',
         id: 'import-category',
-        label: 'Gegevens opladen',
+        label: 'Nieuw thema opladen',
         cb: () => __upload_tickoff_file()
     },
 ]
@@ -170,6 +271,13 @@ const filter_menu_items = [
     },
 ]
 
+const context_menu_items = [
+
+    {type: "item", label: 'Badgecode aanpassen', iconscout: 'wifi', cb: ids => __update_rfid(ids)},
+    {type: "item", label: 'Persoon aanpassen', iconscout: 'user-circle', cb: ids => __update_person(ids)},
+]
+
+
 $(document).ready(function () {
     const url_args = new URLSearchParams(window.location.search);
     const type = url_args.get("type") || meta.default.type;
@@ -182,7 +290,7 @@ $(document).ready(function () {
             item.default = meta.category[type] ? meta.category[type][0] : "";
         }
     }
-    datatables_init({button_menu_items, filter_menu_items});
+    datatables_init({button_menu_items, filter_menu_items, context_menu_items});
     document.getElementById("filter-type").addEventListener("change", e => {
         window.location.href = Flask.url_for("category.show", {type: e.target.value});
     });

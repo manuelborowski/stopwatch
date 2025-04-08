@@ -41,7 +41,7 @@ def upload2(parameters):
         def __create_item(person, line):
             item = {"naam": person.naam, "voornaam": person.voornaam, "klas": person.klas, "klasgroep": person.klasgroep, "rfid": person.rfid}
             for field, alias in type["alias"].items():
-                item[alias] = line[parameters[field]]
+                item[alias] = line[parameters[field]] if parameters[field] != "NVT" else ""
             return item
 
         stage = parameters["stage"]
@@ -103,7 +103,7 @@ def upload2(parameters):
             [nf.update({"type": parameters["type"], "label": parameters["category"]}) for nf in not_found]
             dl.category.add_m(not_found)
             log.info(f'{sys._getframe().f_code.co_name}: uploaded {len(parameters["found"])} persons, not found: {len(not_found)}')
-        return {"status": "ok", "msg": "Categorie is bewaard"}
+        return {"status": "ok", "msg": "Thema is bewaard"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {parameters}, {e}')
         return {"status": "error", "msg": str(e)}
@@ -118,6 +118,16 @@ def get():
             else:
                 categories[s[1]] = [s[0]]
         return categories
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+def update(parameters):
+    try:
+        category = dl.category.get(("id", "=", parameters["id"]))
+        del parameters["id"]
+        dl.category.update(category, parameters)
+        return {"status": "ok", "msg": "Persoon is aangepast"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}

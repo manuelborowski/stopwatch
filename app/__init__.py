@@ -22,8 +22,9 @@ from functools import wraps
 # 0.8: updated user
 # 0.9: table columns can change depending on a condition (type). Category, added filters.  Filters, added dynamic attribute, i.e. options can change depening on a condition.
 # 0.10: upload excel file is ok.
+# 0.11: add context menu to update rfid or person.  Added in-table-edit of fields
 
-version = "0.10"
+version = "0.11"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -111,9 +112,10 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, category
+from app.presentation.view import auth, api, user, settings, category, person
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
 app.register_blueprint(category.bp_category)
+app.register_blueprint(person.bp_person)

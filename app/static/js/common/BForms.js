@@ -59,8 +59,10 @@ export class BForms {
                 if ("id" in element) tag.id = element.id;
                 if ("class" in element) tag.classList.add(...element.class.split(" "));
                 if ("href" in element) tag.href = element.href;
+                if ("src" in element) tag.src = element.src;
                 if ("rel" in element) tag.rel = element.rel;
                 if ("innerHTML" in element) tag.innerHTML = element.innerHTML;
+                if ("style" in element) tag.style = element.style;
                 if ("tagtype" in element) tag.type = element.tagtype;
                 if ("hidden" in element) {
                     if ("type" in element)

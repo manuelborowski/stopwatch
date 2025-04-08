@@ -30,6 +30,17 @@ def category():
     ret = {}
     if request.method == "UPDATE":
         data = json.loads(request.data)
+        ret = al.category.update(data)
+    if request.method == "GET":
+        ret = al.models.get(dl.category.Category, request.args)
+    return json.dumps(ret)
+
+@bp_category.route('/category/upload', methods=["POST", "UPDATE", "DELETE", "GET"])
+@login_required
+def upload():
+    ret = {}
+    if request.method == "UPDATE":
+        data = json.loads(request.data)
         ret = al.category.upload2(data)
     elif request.method == "POST":
         ret = al.category.upload1(request.files, request.form)
@@ -58,6 +69,13 @@ def meta():
         "default": {"type": default_type},
     })
 
+def value_update(type, data):
+    category = dl.category.get(("id", "=", data["id"]))
+    dl.category.update(category, {data["column"]: data["value"]})
+
+# invoked when a single cell in the table is updated
+al.socketio.subscribe_on_type("category-cell-update", value_update)
+
 class Config(DatatableConfig):
     def pre_sql_query(self):
         return dl.category.pre_sql_query()
@@ -77,7 +95,7 @@ class Config(DatatableConfig):
         type = dl.settings.get_configuration_setting("tickoff-types")[self.type]
         fields = [k2 for k1 in type["import"] for k2 in (type["combine"][k1] if k1 in type["combine"] else [k1])]
         for field in fields:
-            base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes"})
+            base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes", "celledit": {"type": "text-confirmkey"}})
         return base
 
     def set_type(self, type):
