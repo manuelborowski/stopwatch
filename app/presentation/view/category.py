@@ -75,7 +75,8 @@ class Config(DatatableConfig):
     def template(self):
         base = dl.settings.get_datatables_config(self.view)
         type = dl.settings.get_configuration_setting("tickoff-types")[self.type]
-        for field in type["import"]:
+        fields = [k2 for k1 in type["import"] for k2 in (type["combine"][k1] if k1 in type["combine"] else [k1])]
+        for field in fields:
             base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes"})
         return base
 

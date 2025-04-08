@@ -21,8 +21,9 @@ from functools import wraps
 # 0.7: updated settings
 # 0.8: updated user
 # 0.9: table columns can change depending on a condition (type). Category, added filters.  Filters, added dynamic attribute, i.e. options can change depening on a condition.
+# 0.10: upload excel file is ok.
 
-version = "0.9"
+version = "0.10"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

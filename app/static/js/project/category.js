@@ -11,20 +11,23 @@ const template =
         {type: "select", label: "Type", id: "type-select", name: "type"},
         [
             {type: "check", label: "Hoofding aanwezig?", id: "header-present", attribute: {checked: true}},
-            {type: "button", label: "Excel bestand opladen", id: "upload-tickoff-file-button", class: "btn btn-success",},
+            {type: "button", label: "(1) Bestand opladen", id: "upload-tickoff-file-button", class: "btn btn-success",},
         ],
-        {tag: "p", innerHTML: "<b>Bestand:</b> ", id: "tickoff-file-name", hidden: true},
         {tag: "input", tagtype: "file", hidden: true, name: "tickoff_file", id: "tickoff-file-input", attribute: {accept: ".xls,.xlsx"}},
         {
-            group: "select-columns", hidden: true, rows: [
+            group: "phase2-group", hidden: true, rows: [
+                {tag: "p", innerHTML: "<b>Bestand:</b> ", id: "tickoff-file-name", hidden: true},
                 {tag: "p", class: "select-columns", innerHTML: "Voor elk veld, selecteer kolom in de excel:"},
                 {tag: "div", class: "select-columns"},
+                {type: "button", label: "(2) Bestand verwerken", id: "process-data-button", class: "btn btn-success",},
             ]
         },
         {
-            group: "select-category", hidden: true, rows: [
-                {type: "input", label: "Nieuwe categorie", id: "category-input", name: "category"},
-                {type: "select", label: "Of bestaande categorie", id: "category-select", name: "category_select"},
+            group: "phase3-group", hidden: true, rows: [
+                {type: "input", label: "Nieuw thema", id: "category-input", name: "category"},
+                {type: "select", label: "Of bestaand thema", id: "category-select", name: "category_select"},
+                {tag: "p", innerHTML: "<b>Niet gevonden:</b> ", id: "entries-not-found"},
+                {type: "button", label: "(3) Bestand opslaan", id: "save-data-button", class: "btn btn-success",},
             ]
         },
     ]
@@ -35,21 +38,6 @@ const __upload_tickoff_file = async () => {
         title: "Gegevens opladen",
         message: bform.form,
         buttons: {
-            confirm: {
-                label: "Bewaar",
-                className: "btn-primary",
-                callback: async () => {
-                    const form_data = bform.get_data();
-                    form_data["stage"] = 2;
-                    form_data["filename"] = form_data.tickoff_file.name;
-                    delete form_data.tickoff_file;
-                    if (form_data.category === "") {
-                        form_data.category = form_data.category_select;
-                        await fetch_delete("category.category", {category: form_data.category, type: form_data.type});
-                    }
-                    await fetch_update("category.category", form_data);
-                }
-            },
             cancel: {
                 label: "Annuleer", className: "btn-secondary", callback: async () => {
                 }
@@ -75,10 +63,10 @@ const __upload_tickoff_file = async () => {
                     new AlertPopup(info.status, info.msg);
                     return false
                 }
+                // Prepare form for seconde phase, show columns to select key, show existing categories
                 const file_name_field = bform.element("tickoff-file-name");
                 file_name_field.hidden = false;
                 file_name_field.innerHTML += info.data.filename;
-
                 const type = meta.type[bform.element("type-select").value];
                 let column_template = [];
                 let data = {};
@@ -87,21 +75,71 @@ const __upload_tickoff_file = async () => {
                     meta.option[field] = info.data.column.map(c => ({value: c, label: c}))
                     data[field] = info.data.column[0];
                 }
-                bform.show("select-columns");
+                bform.show("phase2-group");
                 bform.add(bform.form.querySelector("div.select-columns"), column_template);
                 bform.populate(data, meta);
                 bform.form.querySelectorAll(".column-select").forEach(c => {
                     c.addEventListener("change", e => bform.element(e.target.name).value = info.data.data[e.target.value]);
                     c.dispatchEvent(new Event("change"));
                 });
-                bform.show("select-category");
                 bform.element("type-select").addEventListener("change", e => {
                     const data = {category_select: ""};
-                    const options = [{value: "none", label: ""}].concat(meta.category[e.target.value].map(c => ({label: c, value: c})));
+                    const options = [{value: "none", label: ""}].concat(meta.category[e.target.value] ? meta.category[e.target.value].map(c => ({label: c, value: c})) : []);
                     bform.populate(data, {option: {category_select: options}});
                 });
                 bform.element("type-select").dispatchEvent(new Event("change"));
-
+                // process data button is pushed, i.e. with the key (from the columns) process the file, list not find items and list them
+                bform.element("process-data-button").addEventListener("click", async e => {
+                    e.preventDefault();
+                    const form_data = bform.get_data();
+                    form_data.stage = 2;
+                    form_data.filename = form_data.tickoff_file.name;
+                    delete form_data.tickoff_file;
+                    const ret = await fetch_update("category.category", form_data);
+                    // Show stage 3, i.e. the file is processed and non found items are listed
+                    bform.show("phase3-group");
+                    const list = bform.element("entries-not-found");
+                    let id2person = {};
+                    let id2pd = {};
+                    if (ret && ret.tbc.length > 0) {
+                        list.innerHTML = "<b>Niet gevonden:</b>";
+                        let id = 0;
+                        ret.tbc.forEach(e => {
+                            list.innerHTML += `<br><input type="checkbox" data-person-id=${id} checked>&nbsp;${e.pd.key_fields.map(i => e.pd.data[i]).join(" ")} -> ${e.person.key_fields.map(i => e.person.data[i]).join(" ")}`;
+                            id2person[id] = e.person.data;
+                            id2pd[id] = e.pd.data;
+                            id++;
+                        });
+                    } else {
+                        list.innerHTML = "<b>Geen fouten gevonden</b>";
+                    }
+                    // save button is pushed, the file is processed again and stored in the database.
+                    bform.element("save-data-button").addEventListener("click", async e => {
+                        e.preventDefault();
+                        // No category selected or filled in
+                        if (bform.element("category-input").value === "" && bform.element("category-select").value === "none") {
+                            new AlertPopup("error", "Gelieve een categorie te selecteren of een nieuwe in te typen aub.");
+                            return
+                        }
+                        const form_data = bform.get_data();
+                        form_data.stage = 3;
+                        form_data.not_found = []
+                        Array.from(document.querySelectorAll("[data-person-id]")).forEach(c => {
+                            if (c.checked)
+                                ret.found.push(id2person[c.dataset.personId])
+                            else
+                                form_data.not_found.push(id2pd[c.dataset.personId])
+                        });
+                        form_data.found = ret.found;
+                        form_data.filename = form_data.tickoff_file.name;
+                        delete form_data.tickoff_file;
+                        if (form_data.category === "") {
+                            form_data.category = form_data.category_select;
+                            await fetch_delete("category.category", {category: form_data.category, type: form_data.type});
+                        }
+                        await fetch_update("category.category", form_data);
+                    });
+                });
             })
         },
     });
@@ -127,7 +165,7 @@ const filter_menu_items = [
     {
         type: 'select',
         id: 'filter-label',
-        label: 'Label',
+        label: 'Thema',
         dynamic: true
     },
 ]
@@ -140,8 +178,8 @@ $(document).ready(function () {
             item.options = meta.option.type;
             item.default = meta.option.type[0].value;
         } else if (item.id === "filter-label") {
-            item.options = meta.category[type].map(i => ({value: i, label: i}));
-            item.default = meta.category[type][0];
+            item.options = meta.category[type] ? meta.category[type].map(i => ({value: i, label: i})) : [{value: "", label: ""}];
+            item.default = meta.category[type] ? meta.category[type][0] : "";
         }
     }
     datatables_init({button_menu_items, filter_menu_items});

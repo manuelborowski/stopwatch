@@ -11,9 +11,14 @@ class Category(db.Model, SerializerMixin):
     datetime_format = '%Y/%m/%d %H:%M'
 
     id = db.Column(db.Integer(), primary_key=True)
-    person_id = db.Column(db.Integer())
     type = db.Column(db.String(256), default='')
     label = db.Column(db.String(256), default='')
+    roepnaam = db.Column(db.String(256), default='')
+    voornaam = db.Column(db.String(256), default='')
+    naam = db.Column(db.String(256), default='')
+    klas = db.Column(db.String(256), default='')
+    klasgroep = db.Column(db.String(256), default='')
+    rfid = db.Column(db.String(256))
     field1 = db.Column(db.String(256), default='')
     field2 = db.Column(db.String(256), default='')
     field3 = db.Column(db.String(256), default='')
@@ -51,7 +56,7 @@ def get(filters=[]):
 
 ############ obj overview list #########
 def pre_sql_query():
-    return db.session.query(Category, dl.person.Person).join(dl.person.Person, Category.person_id == dl.person.Person.id)
+    return db.session.query(Category)
 
 def pre_sql_filter(query, filter):
     for f in filter:

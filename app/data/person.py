@@ -13,8 +13,10 @@ class Person(db.Model, SerializerMixin):
     id = db.Column(db.Integer(), primary_key=True)
     voornaam = db.Column(db.String(256), default='')
     naam = db.Column(db.String(256), default='')
+    roepnaam = db.Column(db.String(256), default='')
     rfid = db.Column(db.String(256))
     klas = db.Column(db.String(256), default='')
+    klasgroep = db.Column(db.String(256), default='')
     informatnummer = db.Column(db.String(256), default='')
     username = db.Column(db.String(256), default='')
 

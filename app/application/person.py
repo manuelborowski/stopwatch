@@ -48,6 +48,15 @@ def person_cron_load_from_sdh(opaque=None, **kwargs):
         nbr_updated = 0
         new_persons = []
         sdh_key = app.config["SDH_API_KEY"]
+        # get the klassen and klasgroepen
+        klas2klasgroep = {}
+        res = requests.get(app.config["SDH_GET_KLAS_URL"], headers={'x-api-key': sdh_key})
+        if res.status_code == 200:
+            sdh_klassen = res.json()
+            if sdh_klassen['status']:
+                log.info(f'{sys._getframe().f_code.co_name}, retrieved {len(sdh_klassen["data"])} klassen from SDH')
+                klas2klasgroep = {k["klascode"]: k["klasgroepcode"] for k in sdh_klassen["data"]}
+
         # check for new, updated or deleted students
         sdh_student_url = app.config["SDH_GET_STUDENT_URL"]
         res = requests.get(sdh_student_url, headers={'x-api-key': sdh_key})
@@ -62,10 +71,12 @@ def person_cron_load_from_sdh(opaque=None, **kwargs):
                         # check for changed rfid or classgroup
                         db_student = db_informatnummer_to_student[sdh_student["leerlingnummer"]]
                         update = {}
-                        klascode = sdh_student["klascode"]
-                        klas = klascode if klascode == "OKAN" or int(klascode[0]) > 1 and sdh_student["instellingsnummer"] == "30569" or len(klascode) == 2 else klascode[:2]
+                        klas = sdh_student["klascode"]
+                        klasgroep = klas2klasgroep[klas]
                         if db_student.rfid != sdh_student["rfid"]:
                             update["rfid"] = sdh_student["rfid"]
+                        if db_student.klasgroep != klasgroep:
+                            update["klasgroep"] = klasgroep
                         if db_student.klas != klas:
                             update["klas"] = klas
                         if update:
@@ -75,10 +86,8 @@ def person_cron_load_from_sdh(opaque=None, **kwargs):
                             nbr_updated += 1
                         del(db_informatnummer_to_student[sdh_student["leerlingnummer"]])
                     else:
-                        klascode = sdh_student["klascode"]
-                        klas = klascode if klascode == "OKAN" or int(klascode[0]) > 1 and sdh_student["instellingsnummer"] == "030569" or len(klascode) == 2 else klascode[:2]
-                        new_student = {"informatnummer": sdh_student["leerlingnummer"], "klas": klas,
-                                       "naam": sdh_student["naam"], "voornaam": sdh_student["voornaam"], "rfid": sdh_student["rfid"], "username": sdh_student["username"]}
+                        new_student = {"informatnummer": sdh_student["leerlingnummer"], "klas": sdh_student["klascode"], "klasgroep": klas2klasgroep[sdh_student["klascode"]],
+                                       "roepnaam": sdh_student["roepnaam"], "naam": sdh_student["naam"], "voornaam": sdh_student["voornaam"], "rfid": sdh_student["rfid"], "username": sdh_student["username"]}
                         new_persons.append(new_student)
                         log.info(f'{sys._getframe().f_code.co_name}, New student {sdh_student["leerlingnummer"]}')
                 deleted_persons = [v for (k, v) in db_informatnummer_to_student.items()]

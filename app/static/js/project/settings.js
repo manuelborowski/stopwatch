@@ -7,7 +7,7 @@ const template =
     [
         {
             type: "container", label: "Templates", save: true, default_collapsed: true, rows: [
-                {label: "Gebruikers", name: "user-datatables-template", type: "textarea", save: true},
+                {label: "Gebruikers", name: "user-datatables-template", type: "textarea"},
                 {label: "Personen", name: "person-datatables-template", type: "textarea"},
                 {label: "Categorieen", name: "category-datatables-template", type: "textarea"},
             ]
@@ -22,7 +22,7 @@ const template =
                 },
                 {
                     type: "container", label: "Cron", save: true, default_collapsed: true, rows: [
-                        [{label: "Cron template", name: "cron-scheduler-template", type: "input", save: true}],
+                        [{label: "Cron template", name: "cron-scheduler-template", type: "input"}],
                         [{label: "Start cron cyclus?", id: "display-button-start-cron-cycle", type: "check", save: false},
                             {label: "Start", id: "button-start-cron-cycle", type: "button", class: "btn btn-success"}],
                         {id: "cron-enable-modules", type: "div"},

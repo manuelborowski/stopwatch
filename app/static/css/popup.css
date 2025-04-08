@@ -56,3 +56,6 @@
     padding-right: 20px;
 }
 
+.modal {
+    overflow: auto !important;
+}
