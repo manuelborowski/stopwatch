@@ -29,3 +29,6 @@
   background: #f2f2f2;
 }
 
+.context-menu-placeholder > ul > li > span {
+  margin-left: 8px;
+}

@@ -23,8 +23,9 @@ from functools import wraps
 # 0.9: table columns can change depending on a condition (type). Category, added filters.  Filters, added dynamic attribute, i.e. options can change depening on a condition.
 # 0.10: upload excel file is ok.
 # 0.11: add context menu to update rfid or person.  Added in-table-edit of fields
+# 0.12: renamed some topics.  Add or delete persons
 
-version = "0.11"
+version = "0.12"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

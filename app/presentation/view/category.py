@@ -28,11 +28,17 @@ al.socketio.subscribe_on_type("category-datatable-data", lambda type, data: data
 @login_required
 def category():
     ret = {}
+    if request.method == "POST":
+        data = json.loads(request.data)
+        ret = al.category.add(data)
     if request.method == "UPDATE":
         data = json.loads(request.data)
         ret = al.category.update(data)
     if request.method == "GET":
         ret = al.models.get(dl.category.Category, request.args)
+    elif request.method == "DELETE":
+        ret = al.category.delete(request.args["ids"].split(","))
+
     return json.dumps(ret)
 
 @bp_category.route('/category/upload', methods=["POST", "UPDATE", "DELETE", "GET"])
@@ -47,7 +53,7 @@ def upload():
     elif request.method == "DELETE":
         type = request.args.get("type")
         category = request.args.get("category")
-        ret = al.category.delete(type, category)
+        ret = al.category.delete_type_category(type, category)
         pass
     else:  # GET
         pass

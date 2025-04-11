@@ -1,7 +1,7 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
-    ["category.show", "Thema", 1],
+    ["category.show", "Evenement", 1],
     ["user.show", "Gebruikers", 5],
     ["settings.show", "Instellingen", 5],
 ]

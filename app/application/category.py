@@ -103,7 +103,7 @@ def upload2(parameters):
             [nf.update({"type": parameters["type"], "label": parameters["category"]}) for nf in not_found]
             dl.category.add_m(not_found)
             log.info(f'{sys._getframe().f_code.co_name}: uploaded {len(parameters["found"])} persons, not found: {len(not_found)}')
-        return {"status": "ok", "msg": "Thema is bewaard"}
+        return {"status": "ok", "msg": "Evenement is bewaard"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {parameters}, {e}')
         return {"status": "error", "msg": str(e)}
@@ -127,18 +127,37 @@ def update(parameters):
         category = dl.category.get(("id", "=", parameters["id"]))
         del parameters["id"]
         dl.category.update(category, parameters)
-        return {"status": "ok", "msg": "Persoon is aangepast"}
+        return {"status": "ok", "msg": "Deeelnemer is aangepast"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
-def delete(type, category):
+def add(parameters):
+    try:
+        dl.category.add(parameters)
+        return {"status": "ok", "msg": "Deeelnemer is toegevoegd"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+def delete_type_category(type, category):
     try:
         categories = dl.category.get_m([("type", "=", type), ("label", "=", category)])
         dl.category.delete_m(objs=categories)
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
+
+def delete(ids):
+    try:
+        dl.models.delete_multiple(dl.category.Category, ids)
+        return {"status": "ok", "msg": "Deelnemers zijn verwijderd"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+
+
 
 ############ user overview list #########
 def format_data(db_list, total_count=None, filtered_count=None):

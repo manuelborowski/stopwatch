@@ -25,8 +25,8 @@ const upload_template =
         },
         {
             group: "phase3-group", hidden: true, rows: [
-                {type: "input", label: "Nieuw thema", id: "category-input", name: "category"},
-                {type: "select", label: "Of bestaand thema", id: "category-select", name: "category_select"},
+                {type: "input", label: "Nieuw evenement", id: "category-input", name: "category"},
+                {type: "select", label: "Of bestaand evenement", id: "category-select", name: "category_select"},
                 {tag: "p", innerHTML: "<b>Niet gevonden:</b> ", id: "entries-not-found"},
                 {type: "button", label: "(3) Bestand opslaan", id: "save-data-button", class: "btn btn-success",},
             ]
@@ -36,7 +36,7 @@ const upload_template =
 const __upload_tickoff_file = async () => {
     const bform = new BForms(upload_template);
     const dialog = bootbox.dialog({
-        title: "Nieuw thema: gegevens opladen",
+        title: "Nieuw evenement: deelnemers inladen",
         message: bform.form,
         buttons: {
             cancel: {
@@ -153,15 +153,19 @@ const update_person_template =
         {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
         {tag: "link", href: "https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css", rel: "stylesheet"},
         {tag: "script", src: "https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"},
-        {type: "select", label: "Selecteer", id: "person-select", name: "person", style: "width:90%;"},
+        {type: "select", label: "Nieuwe deelnemer", id: "person-select", name: "person", style: "width:90%;"},
     ]
 
 const __update_person = async ids => {
+    const new_person = ids === null;
     const bform = new BForms(update_person_template);
-    const row = datatable_row_data_from_id(ids[0]);
-
+    let title = "Nieuwe deelnemer";
+    if (!new_person) {
+        const row = datatable_row_data_from_id(ids[0]);
+        title = `Huidige deelnemer: ${row.naam} ${row.voornaam}`;
+    }
     bootbox.dialog({
-        title: `Huidig: ${row.naam}`,
+        title,
         message: bform.form,
         buttons: {
             confirm: {
@@ -172,7 +176,13 @@ const __update_person = async ids => {
                     const persons = await fetch_get("person.person", {filters: `id$=$${person_select.select2("data")[0].id}`})
                     if (persons.length > 0) {
                         const person = persons[0];
-                        await fetch_update("category.category", {id: ids[0], naam: person.naam, voornaam: person.voornaam, klas: person.klas, klasgroep: person.klasgroep, rfid: person.rfid})
+                        if (new_person) {
+                            const type = document.getElementById("filter-type").value;
+                            const label = document.getElementById("filter-label").value;
+                            await fetch_post("category.category", {naam: person.naam, voornaam: person.voornaam, klas: person.klas, klasgroep: person.klasgroep, rfid: person.rfid, type, label})
+                        } else {
+                            await fetch_update("category.category", {id: ids[0], naam: person.naam, voornaam: person.voornaam, klas: person.klas, klasgroep: person.klasgroep, rfid: person.rfid})
+                        }
                         datatable_reload_table();
                     }
 
@@ -251,7 +261,7 @@ const button_menu_items = [
     {
         type: 'button',
         id: 'import-category',
-        label: 'Nieuw thema opladen',
+        label: 'Deelnemers inladen',
         cb: () => __upload_tickoff_file()
     },
 ]
@@ -266,15 +276,25 @@ const filter_menu_items = [
     {
         type: 'select',
         id: 'filter-label',
-        label: 'Thema',
+        label: 'Evenement',
         dynamic: true
     },
 ]
 
-const context_menu_items = [
+const __person_delete = async (ids) => {
+    bootbox.confirm("Wilt u deze deelnemer(s) verwijderen?", async result => {
+        if (result) {
+            await fetch_delete("category.category", {ids})
+            datatable_reload_table();
+        }
+    });
+}
 
+const context_menu_items = [
     {type: "item", label: 'Badgecode aanpassen', iconscout: 'wifi', cb: ids => __update_rfid(ids)},
-    {type: "item", label: 'Persoon aanpassen', iconscout: 'user-circle', cb: ids => __update_person(ids)},
+    {type: "item", label: 'Deelnemer aanpassen', iconscout: 'pen', cb: ids => __update_person(ids)},
+    {type: "item", label: 'Nieuwe deelnemer', iconscout: 'plus-circle', cb: ids => __update_person(null)},
+    {type: "item", label: 'Deelnemer(s) verwijderen', iconscout: 'trash-alt', cb: __person_delete},
 ]
 
 
