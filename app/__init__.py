@@ -24,8 +24,9 @@ from functools import wraps
 # 0.10: upload excel file is ok.
 # 0.11: add context menu to update rfid or person.  Added in-table-edit of fields
 # 0.12: renamed some topics.  Add or delete persons
+# 0.13: reworked menu in base.js, it is possible to specify additional arguments for a menu item.  Value can be stored in localStorage
 
-version = "0.12"
+version = "0.13"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

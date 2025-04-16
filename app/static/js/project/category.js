@@ -3,6 +3,7 @@ import {fetch_get, fetch_post, fetch_update, fetch_delete} from "../common/commo
 import {BForms} from "../common/BForms.js";
 import {AlertPopup} from "../common/popup.js";
 import {badge_raw2hex} from "../common/rfid.js";
+import {argument_set} from "../base.js";
 
 let meta = await fetch_get("category.meta");
 
@@ -312,6 +313,7 @@ $(document).ready(function () {
     }
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});
     document.getElementById("filter-type").addEventListener("change", e => {
+        argument_set("type", e.target.value);
         window.location.href = Flask.url_for("category.show", {type: e.target.value});
     });
 });

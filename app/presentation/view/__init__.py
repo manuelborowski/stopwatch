@@ -1,5 +1,7 @@
 __all__ = ["api", "auth", "user"]
 
+from app import data as dl
+
 import json
 from flask_login import current_user
 from flask import session
@@ -13,8 +15,9 @@ log.addFilter(MyLogFilter())
 
 @app.context_processor
 def inject_defaults():
+    default_type = list(dl.settings.get_configuration_setting("tickoff-types").keys())[0]
     time_out = app.config["TOKEN_LOGIN_TO"] if "token-login" in session and session["token-login"] else 0 # 0 is no timeout
-    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user, logout={"to": time_out})
+    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user, logout={"to": time_out}, default_type=default_type)
 
 def send_alert_to_client(status, msg):
     al.socketio.send_to_client({"type": "alert-popup", "data": {"data": msg, "status": status}})

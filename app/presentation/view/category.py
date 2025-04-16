@@ -17,7 +17,8 @@ bp_category = Blueprint('category', __name__)
 @bp_category.route('/categoryshow', methods=['GET', 'POST'])
 @login_required
 def show():
-    type = request.args.get("type", "italiereis")
+    default_type = list(dl.settings.get_configuration_setting("tickoff-types").keys())[0]
+    type = request.args.get("type", default_type)
     config.set_type(type)
     return render_template("category.html", table_config=config.create_table_config())
 

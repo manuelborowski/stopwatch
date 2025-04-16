@@ -77,6 +77,7 @@
         const current_user = {level: {{(current_user.level or null)|tojson}}, username: {{(current_user.username or null)|tojson }}};
         const stand_alone = {{ (stand_alone or False)|tojson }};
         const default_view = {{ (default_view or False)|tojson }};
+        const default_type = {{ (default_type or "")|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
         const logout = {{ (logout or null)|tojson}};
         let view_data = {{ (view_data or {})|tojson }};
