@@ -10,7 +10,6 @@ let meta = await fetch_get("category.meta");
 const upload_template =
     [
         {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
-        {type: "select", label: "Type", id: "type-select", name: "type"},
         [
             {type: "check", label: "Hoofding aanwezig?", id: "header-present", attribute: {checked: true}},
             {type: "button", label: "(1) Bestand opladen", id: "upload-tickoff-file-button", class: "btn btn-success",},
@@ -34,7 +33,7 @@ const upload_template =
         },
     ]
 
-const __upload_tickoff_file = async () => {
+const __upload_tickoff_file = async (type) => {
     const bform = new BForms(upload_template);
     const dialog = bootbox.dialog({
         title: "Nieuw evenement: deelnemers inladen",
@@ -69,11 +68,10 @@ const __upload_tickoff_file = async () => {
                 const file_name_field = bform.element("tickoff-file-name");
                 file_name_field.hidden = false;
                 file_name_field.innerHTML += info.data.filename;
-                const type = meta.type[bform.element("type-select").value];
                 let column_template = [];
                 let data = {};
                 info.data.column.unshift("NVT")
-                for (const field of type.import) {
+                for (const field of meta.type[type].import) {
                     column_template.push([{type: "select", label: field, name: field, class: "column-select"}, {type: "input", label: "v.b.", id: field}]);
                     meta.option[field] = info.data.column.map(c => ({value: c, label: c}))
                     data[field] = info.data.column[0];
@@ -85,17 +83,15 @@ const __upload_tickoff_file = async () => {
                     c.addEventListener("change", e => bform.element(e.target.name).value = info.data.data[e.target.value]);
                     c.dispatchEvent(new Event("change"));
                 });
-                bform.element("type-select").addEventListener("change", e => {
-                    const data = {category_select: ""};
-                    const options = [{value: "none", label: ""}].concat(meta.category[e.target.value] ? meta.category[e.target.value].map(c => ({label: c, value: c})) : []);
-                    bform.populate(data, {option: {category_select: options}});
-                });
-                bform.element("type-select").dispatchEvent(new Event("change"));
+                const data2 = {category_select: ""};
+                const options = [{value: "none", label: ""}].concat(meta.category[type] ? meta.category[type].map(c => ({label: c, value: c})) : []);
+                bform.populate(data2, {option: {category_select: options}});
                 // process data button is pushed, i.e. with the key (from the columns) process the file, list not find items and list them
                 bform.element("process-data-button").addEventListener("click", async e => {
                     e.preventDefault();
                     const form_data = bform.get_data();
                     form_data.stage = 2;
+                    form_data.type = type;
                     form_data.filename = form_data.tickoff_file.name;
                     delete form_data.tickoff_file;
                     const ret = await fetch_update("category.upload", form_data);
@@ -104,27 +100,32 @@ const __upload_tickoff_file = async () => {
                     const list = bform.element("entries-not-found");
                     let id2person = {};
                     let id2pd = {};
-                    if (ret && ret.tbc.length > 0) {
-                        list.innerHTML = "<b>Niet gevonden:</b>";
-                        let id = 0;
-                        ret.tbc.forEach(e => {
-                            list.innerHTML += `<br><input type="checkbox" data-person-id=${id} checked>&nbsp;${e.pd.key_fields.map(i => e.pd.data[i]).join(" ")} -> ${e.person.key_fields.map(i => e.person.data[i]).join(" ")}`;
-                            id2person[id] = e.person.data;
-                            id2pd[id] = e.pd.data;
-                            id++;
-                        });
-                    } else {
-                        list.innerHTML = "<b>Geen fouten gevonden</b>";
+                    if (ret) {
+                        if (ret.tbc.length === 0 && ret.found.length === 0) {
+                            list.innerHTML = "<b>Fout, geen deelnemer gevonden</b>";
+
+                        } else if (ret.tbc.length > 0) {
+                            list.innerHTML = "<b>Niet gevonden:</b>";
+                            let id = 0;
+                            ret.tbc.forEach(e => {
+                                list.innerHTML += `<br><input type="checkbox" data-person-id=${id} checked>&nbsp;${e.pd.key_fields.map(i => e.pd.data[i]).join(" ")} -> ${e.person.key_fields.map(i => e.person.data[i]).join(" ")}`;
+                                id2person[id] = e.person.data;
+                                id2pd[id] = e.pd.data;
+                                id++;
+                            });
+                        } else {
+                            list.innerHTML = "<b>Geen fouten gevonden</b>";
+                        }
                     }
                     // save button is pushed, the file is processed again and stored in the database.
                     bform.element("save-data-button").addEventListener("click", async e => {
                         e.preventDefault();
                         // No category selected or filled in
-                        if (bform.element("category-input").value === "" && bform.element("category-select").value === "none") {
-                            new AlertPopup("error", "Gelieve een categorie te selecteren of een nieuwe in te typen aub.");
+                        const form_data = bform.get_data();
+                        if (form_data.category === "" && form_data.category_select === "none") {
+                            new AlertPopup("error", "Gelieve een evenement te selecteren of een nieuwe in te typen aub.");
                             return
                         }
-                        const form_data = bform.get_data();
                         form_data.stage = 3;
                         form_data.not_found = []
                         Array.from(document.querySelectorAll("[data-person-id]")).forEach(c => {
@@ -136,12 +137,19 @@ const __upload_tickoff_file = async () => {
                         form_data.found = ret.found;
                         form_data.filename = form_data.tickoff_file.name;
                         delete form_data.tickoff_file;
+                        form_data.type = type;
                         if (form_data.category === "") {
                             form_data.category = form_data.category_select;
-                            await fetch_delete("category.upload", {category: form_data.category, type: form_data.type});
+                            await fetch_delete("category.upload", {category: form_data.category, type});
                         }
                         await fetch_update("category.upload", form_data);
-                        datatable_reload_table();
+                        const category_options = document.getElementById("filter-label");
+                        const option = document.createElement("option");
+                        option.text = form_data.category;
+                        option.value = form_data.category;
+                        category_options.add(option, null);
+                        category_options.value = form_data.category;
+                        category_options.dispatchEvent(new Event("change"));
                     });
                 });
             })
@@ -263,7 +271,7 @@ const button_menu_items = [
         type: 'button',
         id: 'import-category',
         label: 'Deelnemers inladen',
-        cb: () => __upload_tickoff_file()
+        cb: () => __upload_tickoff_file(document.getElementById("filter-type").value)
     },
 ]
 
@@ -278,7 +286,8 @@ const filter_menu_items = [
         type: 'select',
         id: 'filter-label',
         label: 'Evenement',
-        dynamic: true
+        persistent: true,
+        depends: "filter-type"
     },
 ]
 
@@ -305,10 +314,10 @@ $(document).ready(function () {
     for (const item of filter_menu_items) {
         if (item.id === "filter-type") {
             item.options = meta.option.type;
-            item.default = meta.option.type[0].value;
+            item.default = type;
         } else if (item.id === "filter-label") {
-            item.options = meta.category[type] ? meta.category[type].map(i => ({value: i, label: i})) : [{value: "", label: ""}];
-            item.default = meta.category[type] ? meta.category[type][0] : "";
+            item.options = meta.category[type] ? meta.category[type].map(i => ({value: i, label: i})) : [{value: " ", label: " "}];
+            item.default = meta.category[type] ? meta.category[type][0] : " ";
         }
     }
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});

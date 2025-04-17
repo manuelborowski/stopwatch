@@ -1,15 +1,15 @@
 export class FilterMenu {
     constructor(placeholder, menu, changed_cb, id) {
         this.id = id;
-        this.menu = menu;
-        this.filters = [];
+        this.menu_cache = Object.assign({}, ...menu.map(m => ({[m.id]: m})));
+        this.filter_cache = {};
 
         const __add_label = (placeholder, item) => {
-                const label = document.createElement("label");
-                placeholder.appendChild(label);
-                label.classList.add("control-label")
-                label.setAttribute("for", item.id);
-                label.innerHTML = item.label;
+            const label = document.createElement("label");
+            placeholder.appendChild(label);
+            label.classList.add("control-label")
+            label.setAttribute("for", item.id);
+            label.innerHTML = item.label;
         }
 
         if (menu.length > 0) {
@@ -21,8 +21,8 @@ export class FilterMenu {
                     const select = document.createElement("select");
                     form_group.appendChild(select);
                     select.classList.add("filter-form-control", "table-filter");
-                    select.addEventListener("change", () => {
-                        this.store_settings();
+                    select.addEventListener("change", e => {
+                        this.store_set(e.target);
                         changed_cb();
                     })
                     select.id = item.id;
@@ -40,8 +40,8 @@ export class FilterMenu {
                     checkbox.type = "checkbox";
                     checkbox.id = item.id;
                     checkbox.classList.add("filter-form-control", "table-filter");
-                    checkbox.addEventListener("click", () => {
-                        this.store_settings();
+                    checkbox.addEventListener("click", e => {
+                        this.store_set(e.target);
                         changed_cb();
                     });
                 } else if (item.type === "button") {
@@ -65,32 +65,63 @@ export class FilterMenu {
                 let url = location.href.split("?")[0]; // remove trailing arguments
                 location.replace(url);
             });
-            this.load_settings();
-            this.store_settings();
+            this.store_init();
             placeholder.style.display = "flex";
         }
     }
 
-    //All filters are stored, even the non-persistent.  In the latter case, the default value is stored iso actual value
-    store_settings() {
-        let store = [];
-        this.filters = [];
-        for (const f of this.menu) {
-            let value = null;
-            if (f.type === "select") value = document.querySelector(`#${f.id} option:checked`).value;
-            if (f.type === "checkbox") value = document.querySelector(`#${f.id}`).checked;
-            this.filters.push({id: f.id, type: f.type, value});
-            if ("dynamic" in f && f.dynamic) continue; // Filter options are not fixed and cannot be stored
-            store.push({id: f.id, type: f.type, value: f.persistent ? value : f.default});
-        }
-        localStorage.setItem(`Filter-${this.id}`, JSON.stringify(store));
+    get filters() {
+        return Object.entries(this.filter_cache).map(k => (Object.assign({id: k[0]}, k[1])))
     }
 
-    load_settings() {
-        const store = JSON.parse(localStorage.getItem(`Filter-${this.id}`));
-        if (store === null || store === []) return false
-        for(const f of store) document.querySelector(`#${f.id}`).value = f.value;
-        return true;
+    // A filter can be:
+    // persistent: the current value is stored in localStore
+    // not-persistent: the default value is stored in localStore
+    // dynamic: not stored in localStore
+    // depends: multiple, current, values are stored in localStore.  The current value stored depends on the value of another filter (depends)
+    store_init() {
+        let set_store_content = {};
+        this.filter_cache = {};
+
+        const __build_store_structure = (first_pass = true) => {
+            for (const [id, item] of Object.entries(this.menu_cache)) {
+                if (first_pass === ("depends" in item)) continue;
+                let value = null;
+                if (item.type === "select") value = document.getElementById(id).value;
+                else if (item.type === "checkbox") value = document.getElementById(id).checked;
+                this.filter_cache[id] = {type: item.type, value};
+                if ("dynamic" in item && item.dynamic) continue; // Filter options are not fixed and cannot be stored
+                value = item.persistent ? value : item.default;
+                set_store_content[id] = first_pass ? {type: item.type, value} : {type: item.type, depends: {id: item.depends, value: {[this.filter_cache[item.depends].value]: value}}};
+            }
+        }
+
+        const get_store_content = JSON.parse(localStorage.getItem(`Filter-${this.id}`));
+        if (get_store_content) {
+            for (const [key, data] of Object.entries(get_store_content)) {
+                if ("depends" in data) {
+                    if (get_store_content[data.depends.id].value in data.depends.value) document.getElementById(key).value = data.depends.value[get_store_content[data.depends.id].value];
+                } else {
+                    document.getElementById(key).value = data.value;
+                }
+            }
+        }
+        // Two passes are required: first pass, consider the non-depends filters only.  Second pass, consider the depends filters only (the value depends on a non-depends filter).
+        __build_store_structure(true);
+        __build_store_structure(false);
+        if (!get_store_content) localStorage.setItem(`Filter-${this.id}`, JSON.stringify(set_store_content));
+    }
+
+    store_set(target = null) {
+        const store_content = JSON.parse(localStorage.getItem(`Filter-${this.id}`));
+        const item = store_content[target.id];
+        if ("depends" in item) {
+            item.depends.value[store_content[item.depends.id].value] = target.value;
+        } else {
+            item.value = target.value;
+        }
+        localStorage.setItem(`Filter-${this.id}`, JSON.stringify(store_content));
+        this.filter_cache[target.id].value = target.value;
     }
 
 

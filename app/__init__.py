@@ -25,8 +25,9 @@ from functools import wraps
 # 0.11: add context menu to update rfid or person.  Added in-table-edit of fields
 # 0.12: renamed some topics.  Add or delete persons
 # 0.13: reworked menu in base.js, it is possible to specify additional arguments for a menu item.  Value can be stored in localStorage
+# 0.14: updated loghandler so that it can handle utf-8.  When uploading a file, the type is set to the filter-value.  Reworked filter-menu to include filters that depend on other filters.
 
-version = "0.13"
+version = "0.14"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -42,8 +43,8 @@ log.addFilter(MyLogFilter())
 LOG_FILENAME = os.path.join(sys.path[0], f'log/tickoff.txt')
 log_level = getattr(logging, 'INFO')
 log.setLevel(log_level)
-log_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024 * 1024, backupCount=20)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(username)s - %(message)s')
+log_handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=1024 * 1024, backupCount=20, encoding="utf-8")
+log_formatter = logging.Formatter(u'%(asctime)s - %(levelname)s - %(username)s - %(message)s')
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
