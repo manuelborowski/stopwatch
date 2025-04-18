@@ -26,8 +26,9 @@ from functools import wraps
 # 0.12: renamed some topics.  Add or delete persons
 # 0.13: reworked menu in base.js, it is possible to specify additional arguments for a menu item.  Value can be stored in localStorage
 # 0.14: updated loghandler so that it can handle utf-8.  When uploading a file, the type is set to the filter-value.  Reworked filter-menu to include filters that depend on other filters.
+# 0.15: added tickoff (session) tree.  Updated filter-menu, added "invalidate" and "skip" attributes
 
-version = "0.14"
+version = "0.15"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -115,10 +116,11 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, category, person
+from app.presentation.view import auth, api, user, settings, category, person, tickoff
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
 app.register_blueprint(category.bp_category)
 app.register_blueprint(person.bp_person)
+app.register_blueprint(tickoff.bp_tickoff)

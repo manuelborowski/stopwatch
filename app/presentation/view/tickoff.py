@@ -12,26 +12,26 @@ from app import MyLogFilter, top_log_handle, app
 
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
-bp_category = Blueprint('category', __name__)
+bp_tickoff = Blueprint('tickoff', __name__)
 
-@bp_category.route('/categoryshow', methods=['GET', 'POST'])
+@bp_tickoff.route('/tickoffshow', methods=['GET', 'POST'])
 @login_required
 def show():
     default_type = list(dl.settings.get_configuration_setting("tickoff-types").keys())[0]
     type = request.args.get("type", default_type)
     config.set_type(type)
-    return render_template("category.html", table_config=config.create_table_config())
+    return render_template("tickoff.html", table_config=config.create_table_config())
 
 # invoked when the client requests data from the database
-al.socketio.subscribe_on_type("category-datatable-data", lambda type, data: datatable_get_data(config, data))
+al.socketio.subscribe_on_type("tickoff-datatable-data", lambda type, data: datatable_get_data(config, data))
 
-@bp_category.route('/category', methods=["POST", "UPDATE", "DELETE", "GET"])
+@bp_tickoff.route('/tickoff', methods=["POST", "UPDATE", "DELETE", "GET"])
 @login_required
-def category():
+def tickoff():
     ret = {}
     if request.method == "POST":
         data = json.loads(request.data)
-        ret = al.category.add(data)
+        ret = al.tickoff.add(data)
     if request.method == "UPDATE":
         data = json.loads(request.data)
         ret = al.category.update(data)
@@ -42,25 +42,14 @@ def category():
 
     return json.dumps(ret)
 
-@bp_category.route('/category/upload', methods=["POST", "UPDATE", "DELETE", "GET"])
-@login_required
-def upload():
-    ret = {}
-    if request.method == "UPDATE":
-        data = json.loads(request.data)
-        ret = al.category.upload2(data)
-    elif request.method == "POST":
-        ret = al.category.upload1(request.files, request.form)
-    elif request.method == "DELETE":
-        type = request.args.get("type")
-        category = request.args.get("category")
-        ret = al.category.delete_type_category(type, category)
-        pass
-    else:  # GET
-        pass
-    return json.dumps(ret)
+def value_update(type, data):
+    category = dl.category.get(("id", "=", data["id"]))
+    dl.category.update(category, {data["column"]: data["value"]})
 
-@bp_category.route('/category/meta', methods=['GET'])
+# invoked when a single cell in the table is updated
+al.socketio.subscribe_on_type("tickoff-cell-update", value_update)
+
+@bp_tickoff.route('/tickoff/meta', methods=['GET'])
 @login_required
 def meta():
     types = dl.settings.get_configuration_setting("tickoff-types")
@@ -75,22 +64,15 @@ def meta():
         "default": {"type": default_type},
     })
 
-def value_update(type, data):
-    category = dl.category.get(("id", "=", data["id"]))
-    dl.category.update(category, {data["column"]: data["value"]})
-
-# invoked when a single cell in the table is updated
-al.socketio.subscribe_on_type("category-cell-update", value_update)
-
 class Config(DatatableConfig):
     def pre_sql_query(self):
-        return dl.category.pre_sql_query()
+        return dl.tickoff.pre_sql_query()
 
     def pre_sql_filter(self, q, filters):
-        return dl.category.pre_sql_filter(q, filters)
+        return dl.tickoff.pre_sql_filter(q, filters)
 
     def pre_sql_search(self, search):
-        return dl.category.pre_sql_search(search)
+        return dl.tickoff.pre_sql_search(search)
 
     @property
     def template(self):
@@ -104,4 +86,4 @@ class Config(DatatableConfig):
     def set_type(self, type):
         self.type = type
 
-config = Config("category", "categorieen")
+config = Config("tickoff", "afvinken")

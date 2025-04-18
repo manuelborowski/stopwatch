@@ -79,6 +79,8 @@ export class FilterMenu {
     // not-persistent: the default value is stored in localStore
     // dynamic: not stored in localStore
     // depends: multiple, current, values are stored in localStore.  The current value stored depends on the value of another filter (depends)
+    // invalidate/skip: when a filter with the invalidate attribute is changed, the filters, listed in the attributed, get a "skip" flag.  When the page is reloaded, filters with the "skip" flag
+    //    are skipped (default value is used).  When a filter with a skip flag is changed, the skip flag is removed.
     store_init() {
         let set_store_content = {};
         this.filter_cache = {};
@@ -91,14 +93,17 @@ export class FilterMenu {
                 else if (item.type === "checkbox") value = document.getElementById(id).checked;
                 this.filter_cache[id] = {type: item.type, value};
                 if ("dynamic" in item && item.dynamic) continue; // Filter options are not fixed and cannot be stored
-                value = item.persistent ? value : item.default;
-                set_store_content[id] = first_pass ? {type: item.type, value} : {type: item.type, depends: {id: item.depends, value: {[this.filter_cache[item.depends].value]: value}}};
+                let store_content = first_pass ? {value} : {depends: {id: item.depends, value: {[this.filter_cache[item.depends].value]: value}}};
+                if ("invalidate" in item) store_content.invalidate = item.invalidate;
+                Object.assign(store_content, {persistent: item.persistent, type: item.type})
+                set_store_content[id] = store_content;
             }
         }
 
         const get_store_content = JSON.parse(localStorage.getItem(`Filter-${this.id}`));
         if (get_store_content) {
             for (const [key, data] of Object.entries(get_store_content)) {
+                if ("skip" in data || !data.persistent) continue;
                 if ("depends" in data) {
                     if (get_store_content[data.depends.id].value in data.depends.value) document.getElementById(key).value = data.depends.value[get_store_content[data.depends.id].value];
                 } else {
@@ -120,9 +125,11 @@ export class FilterMenu {
         } else {
             item.value = target.value;
         }
+        //Filters with the "skip" flag are skipped when the page is loaded (i.e. the default filter value is used).  The flag is removed when said filter is changed.
+        if ("invalidate" in item) for (const filter of item.invalidate) store_content[filter].skip = true;
+        if ("skip" in item) delete item.skip;
         localStorage.setItem(`Filter-${this.id}`, JSON.stringify(store_content));
         this.filter_cache[target.id].value = target.value;
+        if ("cb" in this.menu_cache[target.id]) this.menu_cache[target.id].cb(target.value);
     }
-
-
 }

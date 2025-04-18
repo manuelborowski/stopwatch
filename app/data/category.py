@@ -1,6 +1,6 @@
 import sys
 import app.data.models
-from app import db, data as dl
+from app import db
 from sqlalchemy_serializer import SerializerMixin
 
 
@@ -68,4 +68,12 @@ def pre_sql_filter(query, filter):
 
 def pre_sql_search(search_string):
     search_constraints = []
+    search_constraints.append(Category.naam.like(search_string))
+    search_constraints.append(Category.roepnaam.like(search_string))
+    search_constraints.append(Category.voornaam.like(search_string))
+    search_constraints.append(Category.klas.like(search_string))
+    search_constraints.append(Category.klasgroep.like(search_string))
+    search_constraints.append(Category.field1.like(search_string))
+    search_constraints.append(Category.field2.like(search_string))
+    search_constraints.append(Category.field3.like(search_string))
     return search_constraints

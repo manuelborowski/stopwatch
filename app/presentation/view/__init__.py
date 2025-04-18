@@ -1,4 +1,4 @@
-__all__ = ["api", "auth", "user"]
+__all__ = ["api", "auth", "user", "tickoff"]
 
 from app import data as dl
 

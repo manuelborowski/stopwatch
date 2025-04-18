@@ -2,8 +2,7 @@ from flask import render_template, Blueprint, request
 from flask_login import login_required
 
 from app import admin_required, data as dl, application as al
-from app.presentation.view import send_alert_to_client
-from app.presentation.view import datatable_get_data, fetch_return_error
+from app.presentation.view import fetch_return_error
 from app.application import cron_table
 import json, sys
 

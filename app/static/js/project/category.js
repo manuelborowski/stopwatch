@@ -226,7 +226,6 @@ const __update_rfid = async ids => {
     const categories = await fetch_get("category.category", {filters: `id$=$${ids[0]}`});
     const category = categories[0];
     const bform = new BForms(update_rfid_template);
-
     bootbox.dialog({
         title: `Scan de badge aub`,
         message: bform.form,
@@ -262,7 +261,13 @@ const __update_rfid = async ids => {
 
         },
     });
+}
 
+const __new_session = async (type, category) => {
+    bootbox.prompt("Geef een label voor de nieuwe sessie", async label => {
+        console.log(type, category, label);
+        await fetch_post("tickoff.tickoff", {type, category, label});
+    });
 }
 
 
@@ -273,21 +278,33 @@ const button_menu_items = [
         label: 'Deelnemers inladen',
         cb: () => __upload_tickoff_file(document.getElementById("filter-type").value)
     },
+    {
+        type: 'button',
+        id: 'new-session',
+        label: 'Nieuwe sessie',
+        cb: () => __new_session(document.getElementById("filter-type").value, document.getElementById("filter-label").value)
+    },
 ]
+
+const __reload_page = (value) => {
+    argument_set("type", value);
+    window.location.href = Flask.url_for("category.show", {type: value});
+}
 
 const filter_menu_items = [
     {
         type: 'select',
         id: 'filter-type',
         label: 'Type',
-        persistent: true
+        persistent: false,
+        invalidate: ["filter-label"],
+        cb: __reload_page
     },
     {
         type: 'select',
         id: 'filter-label',
         label: 'Evenement',
         persistent: true,
-        depends: "filter-type"
     },
 ]
 
@@ -321,8 +338,4 @@ $(document).ready(function () {
         }
     }
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});
-    document.getElementById("filter-type").addEventListener("change", e => {
-        argument_set("type", e.target.value);
-        window.location.href = Flask.url_for("category.show", {type: e.target.value});
-    });
 });

@@ -92,6 +92,7 @@ default_configuration_settings = {
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'person-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'category-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'tickoff-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
     'cron-enable-modules': ({}, Settings.SETTING_TYPE.E_JSON),
