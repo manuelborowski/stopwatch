@@ -27,8 +27,9 @@ from functools import wraps
 # 0.13: reworked menu in base.js, it is possible to specify additional arguments for a menu item.  Value can be stored in localStorage
 # 0.14: updated loghandler so that it can handle utf-8.  When uploading a file, the type is set to the filter-value.  Reworked filter-menu to include filters that depend on other filters.
 # 0.15: added tickoff (session) tree.  Updated filter-menu, added "invalidate" and "skip" attributes
+# 0.16: major rework in filters.  A filter's option can depend on another filter's value.
 
-version = "0.15"
+version = "0.16"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

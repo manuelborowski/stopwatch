@@ -14,14 +14,17 @@ log.addFilter(MyLogFilter())
 
 def get():
     try:
-        category_sets = dl.models.get_multiple(dl.category.Category, fields=["label", "type"], distinct=True)
-        categories = {}
-        for s in category_sets:
-            if s[1] in categories:
-                categories[s[1]].append(s[0])
+        tickoff_sets = dl.models.get_multiple(dl.tickoff.Tickoff, fields=["label", "category", "type"], distinct=True)
+        tickoffs = {}
+        for s in tickoff_sets:
+            if s[2] in tickoffs:
+                if s[1] in tickoffs[s[2]]:
+                    tickoffs[s[2]][s[1]].append(s[0])
+                else:
+                    tickoffs[s[2]][s[1]] = [s[0]]
             else:
-                categories[s[1]] = [s[0]]
-        return categories
+                tickoffs[s[2]] = {s[1]: [s[0]]}
+        return tickoffs
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
@@ -40,6 +43,7 @@ def add(parameters):
     try:
         categories = dl.category.get_m([("type", "=", parameters["type"]), ("label", "=", parameters["category"])])
         tickoffs = [c.to_dict() for c in categories]
+        [t.pop("id") for t in tickoffs]
         [t.update({"category": t["label"], "label": parameters["label"]}) for t in tickoffs]
         dl.tickoff.add_m(tickoffs)
         return {"status": "ok", "msg": "Nieuwe sessie is toegevoegd"}

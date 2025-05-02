@@ -67,9 +67,9 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
 
-    const context_menu = new ContextMenu(document.querySelector("#datatable"), context_menu_items);
-    context_menu.subscribe_get_ids(mouse_get_ids);
-    const filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, datatable_reload_table, ctx.table_config.view);
+    ctx.context_menu = new ContextMenu(document.querySelector("#datatable"), context_menu_items);
+    ctx.context_menu.subscribe_get_ids(mouse_get_ids);
+    ctx.filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, datatable_reload_table, ctx.table_config.view);
 
     // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
@@ -146,7 +146,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         stateDuration: 0,
         ajax: function (data, cb, settings) {
             busy_indication_on();
-            let filters = filter_menu.filters;
+            let filters = ctx.filter_menu.filters;
             if ("filters" in view_data) filters = filters.concat(view_data.filters);
             socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {filters}));
             __datatable_data_cb = cb;
@@ -318,5 +318,6 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         $(".chbx_all").prop('checked', this.checked);
     });
     base_init({button_menu_items});
+    return ctx
 }
 

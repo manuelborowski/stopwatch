@@ -296,14 +296,14 @@ const filter_menu_items = [
         type: 'select',
         id: 'filter-type',
         label: 'Type',
-        persistent: false,
-        invalidate: ["filter-label"],
+        trigger: ["filter-label"],
         cb: __reload_page
     },
     {
         type: 'select',
         id: 'filter-label',
         label: 'Evenement',
+        source: {id: "filter-type"},
         persistent: true,
     },
 ]
@@ -333,8 +333,9 @@ $(document).ready(function () {
             item.options = meta.option.type;
             item.default = type;
         } else if (item.id === "filter-label") {
-            item.options = meta.category[type] ? meta.category[type].map(i => ({value: i, label: i})) : [{value: " ", label: " "}];
-            item.default = meta.category[type] ? meta.category[type][0] : " ";
+            let source_options = {};
+            for (const type of Object.entries(meta.category)) source_options[type[0]] = type[1].map(e => ({value: e, label: e}))
+            item.source["options"] = source_options;
         }
     }
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});

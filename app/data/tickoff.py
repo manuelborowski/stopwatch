@@ -64,8 +64,10 @@ def pre_sql_filter(query, filter):
     for f in filter:
         if f['id'] == 'filter-type':
             query = query.filter(Tickoff.type == f['value'])
-        if f['id'] == 'filter-label':
+        if f['id'] == 'filter-category':
             query = query.filter(Tickoff.category == f['value'])
+        if f['id'] == 'filter-tickoff':
+            query = query.filter(Tickoff.label == f['value'])
     return query
 
 def pre_sql_search(search_string):

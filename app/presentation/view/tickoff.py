@@ -55,12 +55,14 @@ def meta():
     types = dl.settings.get_configuration_setting("tickoff-types")
     type_options = [{"label": v["label"], "value": k} for k, v in types.items()]
     default_type = type_options[0]["value"]
+
+    tickoffs = al.tickoff.get()
+
     categories = al.category.get()
     category_options = [{"label": c, "value": c} for c in categories[default_type]] if categories else []
     return json.dumps({
-        "option": {"type": type_options, "category": category_options},
         "type": types,
-        "category": categories,
+        "tickoff": tickoffs,
         "default": {"type": default_type},
     })
 
