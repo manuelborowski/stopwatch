@@ -1,16 +1,24 @@
+import {socketio} from "../common/socketio.js";
 import {datatable_row_data_from_id, datatables_init, datatable_reload_table} from "../datatables/dt.js";
 import {fetch_get, fetch_post, fetch_update, fetch_delete} from "../common/common.js";
-import {BForms} from "../common/BForms.js";
-import {AlertPopup} from "../common/popup.js";
-import {badge_raw2hex} from "../common/rfid.js";
 import {argument_set} from "../base.js";
+import {AlertPopup} from "../common/popup.js";
 
 let meta = await fetch_get("tickoff.meta");
-let dt = null;
+let current_location = null;
 
 const __reload_page = (value) => {
     argument_set("type", value);
     window.location.href = Flask.url_for("tickoff.show", {type: value});
+}
+
+const __filter_changed = (id, value) => {
+    socketio.unsubscribe_from_room(current_location);
+    let [type, category, tickoff] = current_location.split("++");
+    if (id === "category") category = value;
+    if (id === "tickoff") tickoff = value;
+    current_location = `${type}++${category}++${tickoff}`;
+    socketio.subscribe_to_room(current_location);
 }
 
 const filter_menu_items = [
@@ -28,6 +36,7 @@ const filter_menu_items = [
         source: {id: ["filter-type"]},
         trigger: ["filter-tickoff"],
         persistent: true,
+        cb: (value) => __filter_changed("category", value)
     },
     {
         type: 'select',
@@ -35,6 +44,7 @@ const filter_menu_items = [
         label: 'Sessie',
         source: {id: ["filter-type", "filter-category"]},
         persistent: true,
+        cb: (value) => __filter_changed("tickoff", value)
     },
 
 ]
@@ -77,6 +87,14 @@ const button_menu_items = [
     },
 ]
 
+const __new_tick = (id, data) => {
+    if (data.status) {
+        datatable_reload_table();
+    } else {
+        new AlertPopup("error", data.msg);
+    }
+}
+
 $(document).ready(function () {
     const url_args = new URLSearchParams(window.location.search);
     const type = url_args.get("type") || meta.default.type;
@@ -99,4 +117,9 @@ $(document).ready(function () {
         }
     }
     datatables_init({filter_menu_items, context_menu_items, button_menu_items});
+    const category = document.getElementById("filter-category").value;
+    const tickoff = document.getElementById("filter-tickoff").value;
+    current_location = `${type}++${category}++${tickoff}`;
+    socketio.subscribe_to_room(current_location);
+    socketio.subscribe_on_receive("update-list-of-registrations", __new_tick);
 });

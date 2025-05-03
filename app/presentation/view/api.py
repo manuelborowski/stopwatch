@@ -57,20 +57,25 @@ def level_5(func):
         return api_core(5, func, *args, **kwargs)
     return wrapper
 
-@bp_api.route('/api/retour', methods=['POST'])
+@bp_api.route('/api/registration/add', methods=['POST'])
 @level_1
-def retour():
-    try:
-        din = json.loads(request.data)
-        log.info(din)
-        dout = {"info": f'{din["naam"]}+{din["voornaam"]}+{din["klas"]}+{din["laptop"]}+{din["telefoon"]}+{din["email"]}',
-                "category": "return",
-                "incident_type": din["naar"],
-                "location": din["locatie"],
-                "incident_state": "prepared",
-                }
-        ret = al.incident.add(dout)
-        return("ok")
-    except Exception as e:
-        log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return "Deze velden zijn verplicht: naam, voornaam, klas, laptop, telefoon, email"
+def registration_add(*args, **kwargs):
+    client_ip = kwargs['remote_ip'] if 'remote_ip' in kwargs else None
+    data = json.loads(request.data)
+    code = data["badge_code"] if "badge_code" in data else None
+    leerlingnummer = data["leerlingnummer"] if "leerlingnummer" in data else None
+    location = data["location_key"]
+    timestamp = data["timestamp"] if "timestamp" in data else None
+    ret = al.tickoff.api_registration_add(location, timestamp, leerlingnummer, code)
+    for item in ret:
+        if item["to"] == "ip" and client_ip:
+            al.socketio.send_to_room(item, client_ip)
+        elif item["to"] == "location":
+            al.socketio.send_to_room(item, location)
+        elif item["to"] == "broadcast":
+            al.socketio.broadcast_message(item)
+        else:
+            log.error(f'{sys._getframe().f_code.co_name}: No valid "to" parameter: {item["to"]}')
+            return json.dumps({"status": False, "data": f'No valid "to" parameter: {item["to"]}'})
+    return json.dumps({"status": True})
+

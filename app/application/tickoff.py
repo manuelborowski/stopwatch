@@ -69,6 +69,19 @@ def delete(parameters):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
+def api_registration_add(location, timestamp, leerlingnummer, code):
+    try:
+        [type, category, tickoff] = location.split("++")
+        db_tickoff = dl.tickoff.get([("type", "=", type), ("category", "=", category), ("label", "=", tickoff),  ("rfid", "=", code)])
+        if db_tickoff:
+            timestamp = timestamp.replace("T", " ")
+            db_tickoff = dl.tickoff.update(db_tickoff, {"timestamp": timestamp})
+            return[{"to": "location", 'type': 'update-list-of-registrations', "data": {"status": True, "id": db_tickoff.id, "timestamp": timestamp}}]
+        return[{"to": "location", 'type': 'update-list-of-registrations', "data": {"status": False, "msg": f"Deelnemer met badge {code} niet gevonden"}}]
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
 
 
 

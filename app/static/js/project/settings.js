@@ -35,6 +35,11 @@ const template =
                         {label: "YAML", name: "tickoff-types", type: "textarea"},
                     ]
                 },
+                {
+                    type: "container", label: "API keys", save: true, default_collapsed: true, rows: [
+                        {label: "YAML", name: "api-keys", type: "textarea"},
+                    ]
+                },
             ]
         }
     ]

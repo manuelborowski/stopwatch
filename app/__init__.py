@@ -11,7 +11,6 @@ from functools import wraps
 
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
-
 # 0.1 copy from laptop-incident-systeem v0.84
 # 0.2: removed files not needed.  Get staff and students from SDH
 # 0.3: small bugfixes.  Reworked settings page to remove formio.
@@ -29,8 +28,9 @@ from functools import wraps
 # 0.15: added tickoff (session) tree.  Updated filter-menu, added "invalidate" and "skip" attributes
 # 0.16: major rework in filters.  A filter's option can depend on another filter's value.
 # 0.18: models, update_single, make it possible to add datetime as string in quasi iso format.  Added functionality to add a registration, delete a session
+# 0.19: extended api to receive registrations from external source.
 
-version = "0.18"
+version = "0.19"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
