@@ -13,19 +13,6 @@ const __reload_page = (value) => {
     window.location.href = Flask.url_for("tickoff.show", {type: value});
 }
 
-const __filter_category_cb = (category_id) => {
-    const type_id = document.getElementById("filter-type").value;
-    if (type_id in meta.tickoff && category_id in meta.tickoff[type_id]) {
-        const tickoffs = meta.tickoff[type_id][category_id];
-        const tickoff_options = tickoffs.map(t => ({label: t, value: t}));
-        dt.filter_menu.filter_update({id: "filter-tickoff", options: tickoff_options, default: tickoff_options[0].value});
-    } else {
-        dt.filter_menu.filter_update({id: "filter-tickoff", options: [{label: " ", value: " "}], default: " "});
-
-    }
-}
-
-
 const filter_menu_items = [
     {
         type: 'select',
@@ -52,6 +39,44 @@ const filter_menu_items = [
 
 ]
 
+const __new_registration = async ids => {
+    const row = datatable_row_data_from_id(ids[0]);
+    bootbox.confirm(`Nieuwe registratie voor ${row.naam} ${row.voornaam}?`, async result => {
+        if (result) {
+            const now = new Date();
+            const iso_now = now.toJSON().substring(0, 19).replace(/T../, ` ${now.getHours()}`);
+            await fetch_update("tickoff.tickoff", {timestamp: iso_now, id: ids[0]});
+            datatable_reload_table();
+        }
+    });
+}
+
+const context_menu_items = [
+    {type: "item", label: 'Nieuwe registratie', iconscout: 'wifi', cb: ids => __new_registration(ids)},
+]
+
+const __delete_tickoff = () => {
+    bootbox.confirm(`Wilt u deze sessie verwijderen?`, async result => {
+        if (result) {
+            const type = document.getElementById("filter-type").value;
+            const category = document.getElementById("filter-category").value;
+            const tickoff = document.getElementById("filter-tickoff").value;
+            await fetch_delete("tickoff.tickoff", {type, category, tickoff});
+            datatable_reload_table();
+        }
+    });
+
+}
+
+const button_menu_items = [
+    {
+        type: 'button',
+        id: 'delete-tickoff',
+        label: 'Verwijder sessie',
+        cb: () => __delete_tickoff(),
+    },
+]
+
 $(document).ready(function () {
     const url_args = new URLSearchParams(window.location.search);
     const type = url_args.get("type") || meta.default.type;
@@ -73,5 +98,5 @@ $(document).ready(function () {
             item.source["options"] = source_options;
         }
     }
-    datatables_init({filter_menu_items});
+    datatables_init({filter_menu_items, context_menu_items, button_menu_items});
 });

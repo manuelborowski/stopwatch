@@ -8,7 +8,7 @@ class Tickoff(db.Model, SerializerMixin):
     __tablename__ = 'tickoffs'
 
     date_format = '%Y/%m/%d'
-    datetime_format = '%Y/%m/%d %H:%M'
+    datetime_format = '%Y-%m-%d %H:%M:%S'
 
     id = db.Column(db.Integer(), primary_key=True)
     type = db.Column(db.String(256), default='')
@@ -30,19 +30,19 @@ def commit():
 
 
 def add(data={}, commit=True):
-    return app.data.models.add_single(Tickoff, data, commit, timestamp=True)
+    return app.data.models.add_single(Tickoff, data, commit)
 
 
 def add_m(data=[]):
-    return app.data.models.add_multiple(Tickoff, data, timestamp=True)
+    return app.data.models.add_multiple(Tickoff, data)
 
 
 def update(obj, data={}, commit=True):
-    return app.data.models.update_single(Tickoff, obj, data, commit, timestamp=True)
+    return app.data.models.update_single(Tickoff, obj, data, commit)
 
 
 def update_m(data=[]):
-    return app.data.models.update_multiple(Tickoff, data, timestamp=True)
+    return app.data.models.update_multiple(Tickoff, data)
 
 
 def delete_m(ids=[], objs=[]):

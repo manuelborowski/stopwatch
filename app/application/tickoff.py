@@ -31,10 +31,10 @@ def get():
 
 def update(parameters):
     try:
-        category = dl.category.get(("id", "=", parameters["id"]))
+        tickoff = dl.tickoff.get(("id", "=", parameters["id"]))
         del parameters["id"]
-        dl.category.update(category, parameters)
-        return {"status": "ok", "msg": "Deeelnemer is aangepast"}
+        dl.tickoff.update(tickoff, parameters)
+        return {"status": "ok", "msg": "Registratie toegevoegd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
@@ -59,10 +59,12 @@ def delete_type_category(type, category):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
 
-def delete(ids):
+def delete(parameters):
     try:
-        dl.models.delete_multiple(dl.category.Category, ids)
-        return {"status": "ok", "msg": "Deelnemers zijn verwijderd"}
+        tickoffs = dl.tickoff.get_m([("type", "=", parameters["type"]), ("category", "=", parameters["category"]), ("label", "=", parameters["tickoff"]), ])
+        ids = [t.id for t in tickoffs]
+        dl.models.delete_multiple(dl.tickoff.Tickoff, ids)
+        return {"status": "ok", "msg": "Sessie is verwijderd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}

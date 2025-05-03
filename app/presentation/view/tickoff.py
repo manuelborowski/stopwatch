@@ -32,14 +32,12 @@ def tickoff():
     if request.method == "POST":
         data = json.loads(request.data)
         ret = al.tickoff.add(data)
-    if request.method == "UPDATE":
+    elif request.method == "UPDATE":
         data = json.loads(request.data)
-        ret = al.category.update(data)
-    if request.method == "GET":
-        ret = al.models.get(dl.category.Category, request.args)
+        ret = al.tickoff.update(data)
     elif request.method == "DELETE":
-        ret = al.category.delete(request.args["ids"].split(","))
-
+        data = dict(request.args)
+        ret = al.tickoff.delete(data)
     return json.dumps(ret)
 
 def value_update(type, data):
@@ -81,7 +79,7 @@ class Config(DatatableConfig):
         type = dl.settings.get_configuration_setting("tickoff-types")[self.type]
         fields = [k2 for k1 in type["import"] for k2 in (type["combine"][k1] if k1 in type["combine"] else [k1])]
         for field in fields:
-            base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes", "celledit": {"type": "text-confirmkey"}})
+            base.append({"name": field.capitalize(), "data": type["alias"][field] if field in type["alias"] else field, "orderable": True, "visible": "yes"})
         return base
 
     def set_type(self, type):

@@ -28,8 +28,9 @@ from functools import wraps
 # 0.14: updated loghandler so that it can handle utf-8.  When uploading a file, the type is set to the filter-value.  Reworked filter-menu to include filters that depend on other filters.
 # 0.15: added tickoff (session) tree.  Updated filter-menu, added "invalidate" and "skip" attributes
 # 0.16: major rework in filters.  A filter's option can depend on another filter's value.
+# 0.18: models, update_single, make it possible to add datetime as string in quasi iso format.  Added functionality to add a registration, delete a session
 
-version = "0.16"
+version = "0.18"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

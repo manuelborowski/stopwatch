@@ -9,7 +9,6 @@ def commit():
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
 
-
 def add_single(model, data={}, commit=True, timestamp=False):
     try:
         obj = model()
@@ -28,7 +27,6 @@ def add_single(model, data={}, commit=True, timestamp=False):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-
 def add_multiple(model, data=[], timestamp=False):
     try:
         for d in data:
@@ -39,13 +37,16 @@ def add_multiple(model, data=[], timestamp=False):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-
 def update_single(model, obj, data={}, commit=True, timestamp=False):
     try:
         for k, v in data.items():
             if hasattr(obj, k):
-                if getattr(model, k).expression.type.python_type == type(v) or isinstance(getattr(model, k).expression.type, db.Date) and v == None:
-                        setattr(obj, k, v.strip() if isinstance(v, str) else v)
+                expression_type = getattr(model, k).expression.type
+                if expression_type.python_type == type(v) or (isinstance(expression_type, db.Date) or isinstance(expression_type, db.DateTime)) and v == None:
+                    setattr(obj, k, v.strip() if isinstance(v, str) else v)
+                if isinstance(expression_type, db.DateTime) and type(v) == str:
+                    value = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                    setattr(obj, k, value)
         if timestamp:
             obj.timestamp = datetime.datetime.now()
         if commit:
@@ -56,19 +57,17 @@ def update_single(model, obj, data={}, commit=True, timestamp=False):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-
-def update_multiple(model, data = [], timestamp=False):
+def update_multiple(model, data=[], timestamp=False):
     try:
         for d in data:
             item = d["item"]
-            del(d["item"])
+            del (d["item"])
             update_single(model, item, d, commit=False, timestamp=timestamp)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
-
 
 def delete_multiple(model, ids=[], objs=[]):
     try:
@@ -85,7 +84,6 @@ def delete_multiple(model, ids=[], objs=[]):
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
     return None
 
-
 # filters is list of tupples: [(key, operator, value), ...]
 def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count=False, active=True, start=None, stop=None, distinct=False):
     try:
@@ -93,7 +91,7 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
         entities = [text(f'{tablename}.{f}') for f in fields]
         if entities:
             q = model.query.with_entities(*entities)
-            if not filters: # hack.  If no filter is defined, the query errors with 'unknown table'
+            if not filters:  # hack.  If no filter is defined, the query errors with 'unknown table'
                 q = q.filter(getattr(model, "id") > 0)
             if distinct:
                 return q.distinct().all()
@@ -139,7 +137,6 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         raise e
-
 
 def get_first_single(model, filters=[], order_by=None):
     try:
