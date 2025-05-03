@@ -108,10 +108,16 @@ export class FilterMenu {
     build_option_list(ids, init = false) {
         for (const id of ids) {
             const item = this.menu_cache[id];
-            const source_value = this.filter_cache[item.source.id];
-            let options = item.source.options[source_value];
-            options = options.length === 0 ? [{label: " ", value: " "}] : options;
-            const default_value = init ? this.filter_cache[id] : options[0].value;
+            let options = item.source.options;
+            for (const source_id of item.source.id) {
+                const source_value = this.filter_cache[source_id];
+                options = options[source_value];
+            }
+            if (options === undefined || options.length ===0) continue
+            // Use the stored (cached) value only if it has a valid value (is in the options list), else use the first option as default
+            const cache_value = this.filter_cache[id];
+            let default_value = options[0].value;
+            if (init && options.filter(o => o.value === cache_value).length > 0) default_value = cache_value;
             const filter_element = document.getElementById(id);
             filter_element.innerText = "";
             for (const o of options) filter_element.add(new Option(o.label, o.value, o.value === default_value, o.value === default_value));

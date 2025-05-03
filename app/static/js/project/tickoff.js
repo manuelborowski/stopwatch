@@ -8,7 +8,7 @@ import {argument_set} from "../base.js";
 let meta = await fetch_get("tickoff.meta");
 let dt = null;
 
-const __filter_type_cb = (value) => {
+const __reload_page = (value) => {
     argument_set("type", value);
     window.location.href = Flask.url_for("tickoff.show", {type: value});
 }
@@ -31,46 +31,47 @@ const filter_menu_items = [
         type: 'select',
         id: 'filter-type',
         label: 'Type',
-        persistent: false,
-        invalidate: ["filter-category", "filter-tickoff"],
-        cb: __filter_type_cb
+        trigger: ["filter-category"],
+        cb: __reload_page
     },
     {
         type: 'select',
         id: 'filter-category',
         label: 'Evenement',
+        source: {id: ["filter-type"]},
+        trigger: ["filter-tickoff"],
         persistent: true,
-        cb: __filter_category_cb
     },
     {
         type: 'select',
         id: 'filter-tickoff',
         label: 'Sessie',
-        options: [{value: " ", label: " "}],
-        default: " ",
+        source: {id: ["filter-type", "filter-category"]},
         persistent: true,
     },
 
 ]
 
 $(document).ready(function () {
-    dt = datatables_init();
-    const stored_values = dt.filter_menu.store_get();
     const url_args = new URLSearchParams(window.location.search);
     const type = url_args.get("type") || meta.default.type;
-    const categories = meta.tickoff[type] ? Object.entries(meta.tickoff[type]).map(c => c[0]) : null;
-    const tickoffs = categories && meta.tickoff[type][categories[0]] ? meta.tickoff[type][categories[0]] : null;
     for (const item of filter_menu_items) {
         if (item.id === "filter-type") {
-            item.options = Object.entries(meta.type).map(([k, v]) => ({label: v.label, value: k}));
+            item.options = meta.option.type;
             item.default = type;
         } else if (item.id === "filter-category") {
-            item.options = categories ? categories.map(i => ({value: i, label: i})) : [{value: " ", label: " "}];
-            item.default = item.options[0];
+            let source_options = {};
+            for (const type of Object.entries(meta.tickoff)) {
+                source_options[type[0]] = Object.entries(type[1]).map(e => ({value: e[0], label: e[0]}))
+            }
+            item.source["options"] = source_options;
         } else if (item.id === "filter-tickoff") {
-            item.options = tickoffs ? tickoffs.map(i => ({value: i, label: i})) : [{value: " ", label: " "}];
-            item.default = item.options[0];
+            let source_options = JSON.parse(JSON.stringify(meta.tickoff));
+            for (const type of Object.entries(source_options))
+                for (const category of Object.entries(type[1]))
+                    source_options[type[0]][category[0]] = category[1].map(e => ({value: e, label: e}))
+            item.source["options"] = source_options;
         }
     }
-    // __set_tickoff_filter(document.getElementById("filter-category").value);
+    datatables_init({filter_menu_items});
 });

@@ -303,7 +303,7 @@ const filter_menu_items = [
         type: 'select',
         id: 'filter-label',
         label: 'Evenement',
-        source: {id: "filter-type"},
+        source: {id: ["filter-type"]},
         persistent: true,
     },
 ]
