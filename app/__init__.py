@@ -29,8 +29,9 @@ from functools import wraps
 # 0.16: major rework in filters.  A filter's option can depend on another filter's value.
 # 0.18: models, update_single, make it possible to add datetime as string in quasi iso format.  Added functionality to add a registration, delete a session
 # 0.19: extended api to receive registrations from external source.
+# 0.20: add rfidusb.  Update rfid by making a reservation and then scan the badge.
 
-version = "0.19"
+version = "0.20"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

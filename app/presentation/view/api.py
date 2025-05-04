@@ -22,6 +22,7 @@ def api_core(api_level, func, *args, **kwargs):
                 log.info(f"API access by '{key_info["label"]}', from {remote_ip}, URI {request.url}")
                 try:
                     login_user(user_api)
+                    kwargs["remote_ip"] = remote_ip
                     ret = func(*args, **kwargs)
                     logout_user()
                     return ret
@@ -62,9 +63,9 @@ def level_5(func):
 def registration_add(*args, **kwargs):
     client_ip = kwargs['remote_ip'] if 'remote_ip' in kwargs else None
     data = json.loads(request.data)
-    code = data["badge_code"] if "badge_code" in data else None
+    code = data["badge_code"].upper() if "badge_code" in data else None
     leerlingnummer = data["leerlingnummer"] if "leerlingnummer" in data else None
-    location = data["location_key"]
+    location = data["location_key"].replace("--SLASH--", "/")
     timestamp = data["timestamp"] if "timestamp" in data else None
     ret = al.tickoff.api_registration_add(location, timestamp, leerlingnummer, code)
     for item in ret:

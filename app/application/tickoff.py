@@ -1,7 +1,7 @@
-import sys
+import sys, datetime
 from thefuzz import process
 
-from app import data as dl
+from app import data as dl, app, application as al
 import pandas as pd
 from flask import request
 
@@ -43,8 +43,9 @@ def add(parameters):
     try:
         categories = dl.category.get_m([("type", "=", parameters["type"]), ("label", "=", parameters["category"])])
         tickoffs = [c.to_dict() for c in categories]
-        [t.pop("id") for t in tickoffs]
-        [t.update({"category": t["label"], "label": parameters["label"]}) for t in tickoffs]
+        for t in tickoffs:
+            t.update({"category_id": t["id"], "category": t["label"], "label": parameters["label"]})
+            del t["id"]
         dl.tickoff.add_m(tickoffs)
         return {"status": "ok", "msg": "Nieuwe sessie is toegevoegd"}
     except Exception as e:
@@ -71,6 +72,17 @@ def delete(parameters):
 
 def api_registration_add(location, timestamp, leerlingnummer, code):
     try:
+        # if a reservation is present in app.config, this registration is intended to update the rfid code of a person
+        if "reservation" in app.config:
+            reservation = app.config["reservation"]
+            del app.config["reservation"]
+            if (datetime.datetime.now() - reservation["timeout"]) > datetime.timedelta(seconds=10):
+                return [{"to": "ip", "type": "alert-popup", "data": {"status": "error", "msg": f"Langer dan 10 seconden gewacht, probeer opnieuw"}}]
+            ret = al.category.update({"id": reservation["id"], "rfid": code})
+            if ret["status"] == "error":
+                return [{"to": "ip", "type": "alert-popup", "data": {"status": "error", "msg": ret["msg"]}}]
+            return [{"to": "ip", "type": "alert-popup", "data": {"status": "ok", "msg": f"Badge is aangepast"}}]
+
         [type, category, tickoff] = location.split("++")
         db_tickoff = dl.tickoff.get([("type", "=", type), ("category", "=", category), ("label", "=", tickoff),  ("rfid", "=", code)])
         if db_tickoff:

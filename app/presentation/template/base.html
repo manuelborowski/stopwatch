@@ -80,7 +80,11 @@
         const default_type = {{ (default_type or "")|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
         const logout = {{ (logout or null)|tojson}};
+        const rfidusb_url = "{{ rfidusb_url }}";
+        const rfidusb_br_url = "{{ rfidusb_br_url }}";
+        const rfidusb_br_key = "{{ rfidusb_br_key }}";
         let view_data = {{ (view_data or {})|tojson }};
+        const remote_ip = {{ (remote_ip or "")|tojson }};
     </script>
 
     <script type="module">

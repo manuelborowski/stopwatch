@@ -11,6 +11,7 @@ class Tickoff(db.Model, SerializerMixin):
     datetime_format = '%Y-%m-%d %H:%M:%S'
 
     id = db.Column(db.Integer(), primary_key=True)
+    category_id = db.Column(db.Integer())
     type = db.Column(db.String(256), default='')
     category = db.Column(db.String(256), default='')
     label = db.Column(db.String(256), default='')

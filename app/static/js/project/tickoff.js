@@ -3,6 +3,7 @@ import {datatable_row_data_from_id, datatables_init, datatable_reload_table} fro
 import {fetch_get, fetch_post, fetch_update, fetch_delete} from "../common/common.js";
 import {argument_set} from "../base.js";
 import {AlertPopup} from "../common/popup.js";
+import {Rfid} from "../common/rfidusb.js";
 
 let meta = await fetch_get("tickoff.meta");
 let current_location = null;
@@ -19,6 +20,7 @@ const __filter_changed = (id, value) => {
     if (id === "tickoff") tickoff = value;
     current_location = `${type}++${category}++${tickoff}`;
     socketio.subscribe_to_room(current_location);
+    Rfid.set_location(current_location)
 }
 
 const filter_menu_items = [
@@ -95,6 +97,10 @@ const __new_tick = (id, data) => {
     }
 }
 
+const __rfid_status_changed = () => {
+
+}
+
 $(document).ready(function () {
     const url_args = new URLSearchParams(window.location.search);
     const type = url_args.get("type") || meta.default.type;
@@ -122,4 +128,8 @@ $(document).ready(function () {
     current_location = `${type}++${category}++${tickoff}`;
     socketio.subscribe_to_room(current_location);
     socketio.subscribe_on_receive("update-list-of-registrations", __new_tick);
+    Rfid.init();
+    Rfid.subscribe_state_change_cb(__rfid_status_changed);
+    Rfid.set_managed_state(true);
+    Rfid.set_location(current_location)
 });

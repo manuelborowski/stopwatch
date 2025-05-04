@@ -39,7 +39,6 @@ def category():
         ret = al.models.get(dl.category.Category, request.args)
     elif request.method == "DELETE":
         ret = al.category.delete(request.args["ids"].split(","))
-
     return json.dumps(ret)
 
 @bp_category.route('/category/upload', methods=["POST", "UPDATE", "DELETE", "GET"])

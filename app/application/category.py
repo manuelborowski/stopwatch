@@ -1,7 +1,7 @@
-import sys
+import sys, datetime
 from thefuzz import process
 
-from app import data as dl
+from app import app, data as dl
 import pandas as pd
 from flask import request
 
@@ -124,10 +124,24 @@ def get():
 
 def update(parameters):
     try:
+        if "reservation" in parameters:
+            app.config["reservation"] = {"id": parameters["id"], "timeout": datetime.datetime.now()}
+            return {}
+
         category = dl.category.get(("id", "=", parameters["id"]))
+        if "rfid" in parameters:
+            categories = dl.category.get_m(("rfid", "=", parameters["rfid"]))
+            if len(categories) > 1:
+                return {"status": "error", "msg": f"Fout, code {parameters['rfid']} bestaat reeds al voor meerdere personen!"}
+            if len(categories) == 1 and str(categories[0].id) != parameters["id"]:
+                return {"status": "error", "msg": f"Fout, code {parameters['rfid']} bestaat reeds voor {categories[0].naam} {categories[0].voornaam} "}
+
+
+            tickoffs = dl.tickoff.get_m(("category_id", "=", category.id))
+            for t in tickoffs: t.rfid = parameters["rfid"]
         del parameters["id"]
         dl.category.update(category, parameters)
-        return {"status": "ok", "msg": "Deeelnemer is aangepast"}
+        return {"status": "ok", "msg": "Deelnemer is aangepast"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}

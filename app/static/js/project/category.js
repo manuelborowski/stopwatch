@@ -4,6 +4,7 @@ import {BForms} from "../common/BForms.js";
 import {AlertPopup} from "../common/popup.js";
 import {badge_raw2hex} from "../common/rfid.js";
 import {argument_set} from "../base.js";
+import {socketio} from "../common/socketio.js";
 
 let meta = await fetch_get("category.meta");
 
@@ -215,51 +216,12 @@ const __update_person = async ids => {
     });
 }
 
-const update_rfid_template =
-    [
-        {tag: "link", href: "static/css/form.css", rel: "stylesheet"},
-        {type: "input", label: "Huidige badge", id: "old-rfid-input"},
-        {type: "input", label: "Nieuwe badge", id: "new-rfid-input"},
-    ]
-
-const __update_rfid = async ids => {
-    const categories = await fetch_get("category.category", {filters: `id$=$${ids[0]}`});
-    const category = categories[0];
-    const bform = new BForms(update_rfid_template);
-    bootbox.dialog({
-        title: `Scan de badge aub`,
-        message: bform.form,
-        buttons: {
-            confirm: {
-                label: "Bewaar",
-                className: "btn-primary",
-                callback: async () => {
-                    await fetch_update("category.category", {id: ids[0], rfid: bform.element("new-rfid-input").value})
-                    datatable_reload_table();
-                }
-            },
-            cancel: {
-                label: "Annuleer", className: "btn-secondary", callback: async () => {
-                }
-            },
-        },
-        onShown: async () => {
-            const old_rfid_input = bform.element("old-rfid-input");
-            const new_rfid_input = bform.element("new-rfid-input");
-            old_rfid_input.value = category.rfid;
-
-            new_rfid_input.focus();
-            new_rfid_input.addEventListener("keyup", e => {
-                e.preventDefault();
-                if (e.key === "Enter") {
-                    const [valid_code, code] = badge_raw2hex(e.target.value);
-                    if (valid_code) {
-                        new_rfid_input.value = code;
-                    }
-                }
-            })
-
-        },
+const __reserve_rfid = async (ids) => {
+    const person = datatable_row_data_from_id(ids[0]);
+    bootbox.confirm(`Nieuwe RFID voor: ${person.naam} ${person.voornaam}<br>Druk op ok en u heeft 10 seconden om de badge te registreren`, async result => {
+        if (result) {
+            await fetch_update("category.category", {id: ids[0], reservation: true})
+        }
     });
 }
 
@@ -269,7 +231,6 @@ const __new_session = async (type, category) => {
         await fetch_post("tickoff.tickoff", {type, category, label});
     });
 }
-
 
 const button_menu_items = [
     {
@@ -284,6 +245,22 @@ const button_menu_items = [
         label: 'Nieuwe sessie',
         cb: () => __new_session(document.getElementById("filter-type").value, document.getElementById("filter-label").value)
     },
+]
+
+const __person_delete = async (ids) => {
+    bootbox.confirm("Wilt u deze deelnemer(s) verwijderen?", async result => {
+        if (result) {
+            await fetch_delete("category.category", {ids})
+            datatable_reload_table();
+        }
+    });
+}
+
+const context_menu_items = [
+    {type: "item", label: 'Badgecode aanpassen', iconscout: 'wifi', cb: ids => __reserve_rfid(ids)},
+    {type: "item", label: 'Deelnemer aanpassen', iconscout: 'pen', cb: ids => __update_person(ids)},
+    {type: "item", label: 'Nieuwe deelnemer', iconscout: 'plus-circle', cb: ids => __update_person(null)},
+    {type: "item", label: 'Deelnemer(s) verwijderen', iconscout: 'trash-alt', cb: __person_delete},
 ]
 
 const __reload_page = (value) => {
@@ -308,22 +285,10 @@ const filter_menu_items = [
     },
 ]
 
-const __person_delete = async (ids) => {
-    bootbox.confirm("Wilt u deze deelnemer(s) verwijderen?", async result => {
-        if (result) {
-            await fetch_delete("category.category", {ids})
-            datatable_reload_table();
-        }
-    });
+const __alert = (id, data) => {
+    new AlertPopup(data.status, data.msg);
+    datatable_reload_table();
 }
-
-const context_menu_items = [
-    {type: "item", label: 'Badgecode aanpassen', iconscout: 'wifi', cb: ids => __update_rfid(ids)},
-    {type: "item", label: 'Deelnemer aanpassen', iconscout: 'pen', cb: ids => __update_person(ids)},
-    {type: "item", label: 'Nieuwe deelnemer', iconscout: 'plus-circle', cb: ids => __update_person(null)},
-    {type: "item", label: 'Deelnemer(s) verwijderen', iconscout: 'trash-alt', cb: __person_delete},
-]
-
 
 $(document).ready(function () {
     const url_args = new URLSearchParams(window.location.search);
@@ -339,4 +304,6 @@ $(document).ready(function () {
         }
     }
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});
+    socketio.subscribe_to_room(remote_ip);
+    socketio.subscribe_on_receive("alert-popup", __alert);
 });
