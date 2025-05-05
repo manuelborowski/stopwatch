@@ -14,8 +14,12 @@ def add_single(model, data={}, commit=True, timestamp=False):
         obj = model()
         for k, v in data.items():
             if hasattr(obj, k):
-                if getattr(model, k).expression.type.python_type == type(v):
+                expression_type = getattr(model, k).expression.type
+                if expression_type.python_type == type(v) or (isinstance(expression_type, db.Date) or isinstance(expression_type, db.DateTime)) and v == None:
                     setattr(obj, k, v.strip() if isinstance(v, str) else v)
+                if isinstance(expression_type, db.DateTime) and type(v) == str:
+                    value = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                    setattr(obj, k, value)
         if timestamp:
             obj.timestamp = datetime.datetime.now()
         db.session.add(obj)

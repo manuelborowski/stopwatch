@@ -78,12 +78,13 @@ def meta():
 @bp_category.route('/category/sync', methods=['POST'])
 @login_required
 def sync():
+    ret = {}
     if request.method == "POST":
         parameters = json.loads(request.data)
         ret = al.category.sync_to_server(parameters)
-
         # reload students and staff
-        # al.person.person_cron_load_from_sdh()
+        al.person.person_cron_load_from_sdh()
+    return json.dumps(ret)
 
 
 def value_update(type, data):

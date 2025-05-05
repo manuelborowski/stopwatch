@@ -202,7 +202,7 @@ def sync_to_server(parameters):
         tickoffs = dl.tickoff.get_m([("type", "=", type), ("category", "=", category)])
         tickoffs = [t.to_dict() for t in tickoffs]
         if tickoffs:
-            url = app.config["SYNC_URL"]
+            url = f'{app.config["SYNC_URL"]}/api/sync'
             key = app.config["SYNC_KEY"]
 
             # sync_from_client({"type": type, "category": category, "data": tickoffs})
@@ -218,9 +218,6 @@ def sync_to_server(parameters):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
-
-
-
 
 ############ user overview list #########
 def format_data(db_list, total_count=None, filtered_count=None):
