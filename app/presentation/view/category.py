@@ -72,7 +72,19 @@ def meta():
         "type": types,
         "category": categories,
         "default": {"type": default_type},
+        "stand_alone_terminal": app.config["STAND_ALONE_TERMINAL"] if "STAND_ALONE_TERMINAL" in app.config else False
     })
+
+@bp_category.route('/category/sync', methods=['POST'])
+@login_required
+def sync():
+    if request.method == "POST":
+        parameters = json.loads(request.data)
+        ret = al.category.sync_to_server(parameters)
+
+        # reload students and staff
+        # al.person.person_cron_load_from_sdh()
+
 
 def value_update(type, data):
     category = dl.category.get(("id", "=", data["id"]))

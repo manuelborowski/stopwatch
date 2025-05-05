@@ -227,8 +227,15 @@ const __reserve_rfid = async (ids) => {
 
 const __new_session = async (type, category) => {
     bootbox.prompt("Geef een label voor de nieuwe sessie", async label => {
-        console.log(type, category, label);
         await fetch_post("tickoff.tickoff", {type, category, label});
+    });
+}
+
+const __sync_to_server = async (type, category) => {
+    bootbox.confirm("Wilt u dit evenenement synchronizeren met de server?", async result => {
+        if (result) {
+            await fetch_post("category.sync", {type, category});
+        }
     });
 }
 
@@ -303,6 +310,12 @@ $(document).ready(function () {
             item.source["options"] = source_options;
         }
     }
+    if (meta.stand_alone_terminal) button_menu_items.push({
+        type: 'button',
+        id: 'sync-sessions',
+        label: 'Synchroniseer event en sessies',
+        cb: () => __sync_to_server(document.getElementById("filter-type").value, document.getElementById("filter-label").value)
+    })
     datatables_init({button_menu_items, filter_menu_items, context_menu_items});
     socketio.subscribe_to_room(remote_ip);
     socketio.subscribe_on_receive("alert-popup", __alert);

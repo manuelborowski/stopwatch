@@ -80,3 +80,10 @@ def registration_add(*args, **kwargs):
             return json.dumps({"status": False, "data": f'No valid "to" parameter: {item["to"]}'})
     return json.dumps({"status": True})
 
+@bp_api.route('/api/sync', methods=['POST'])
+@level_1
+def sync(*args, **kwargs):
+    data = json.loads(request.data)
+    ret = al.category.sync_from_client(data)
+    return json.dumps(ret)
+

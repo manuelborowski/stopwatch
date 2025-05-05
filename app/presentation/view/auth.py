@@ -14,6 +14,16 @@ bp_auth = Blueprint('auth', __name__, )
 @bp_auth.route('/', methods=["GET", 'POST'])
 def login():
     try:
+        # local server, auto login
+        if "AUTO_LOGIN" in app.config and app.config["AUTO_LOGIN"]:
+            if "AUTO_USER" in app.config:
+                user = dl.user.get(('username', "=", app.config["AUTO_USER"]))
+                login_user(user)
+                log.info(u'user {} logged in'.format(user.username))
+                user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+                if not user:
+                    log.error('Could not save timestamp')
+                return redirect(url_for('tickoff.show'))
         message = None
         if request.method == "POST":
             user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison

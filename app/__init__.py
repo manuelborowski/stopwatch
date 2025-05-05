@@ -32,8 +32,9 @@ from functools import wraps
 # 0.20: add rfidusb.  Update rfid by making a reservation and then scan the badge.
 # 0.21: update logo
 # 0.22: after login, go to session page
+# 0.23: sync client to server
 
-version = "0.22"
+version = "0.23"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

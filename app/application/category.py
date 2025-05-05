@@ -1,9 +1,8 @@
-import sys, datetime
+import sys, datetime, requests
 from thefuzz import process
 
 from app import app, data as dl
 import pandas as pd
-from flask import request
 
 # logging on file level
 import logging
@@ -166,6 +165,56 @@ def delete(ids):
     try:
         dl.models.delete_multiple(dl.category.Category, ids)
         return {"status": "ok", "msg": "Deelnemers zijn verwijderd"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+def sync_from_client(parameters):
+    try:
+        type = parameters["type"]
+        category = parameters["category"]
+        dl.tickoff.commit()
+        tickoffs = dl.tickoff.get_m([("type", "=", type), ("category", "=", category)])
+        tickoff_cache = {f"{t.type}{t.category}{t.label}{t.naam}{t.voornaam}{t.klasgroep}": t for t in tickoffs}
+        new_tickoffs = []
+        nbr_new = 0
+        nbr_updated = 0
+        for tickoff in parameters["data"]:
+            key = f'{tickoff["type"]}{tickoff["category"]}{tickoff["label"]}{tickoff["naam"]}{tickoff["voornaam"]}{tickoff["klasgroep"]}'
+            if key in tickoff_cache:
+                tickoff_cache[key].timestamp = None if tickoff["timestamp"] is None else datetime.datetime.strptime(tickoff["timestamp"], "%Y-%m-%d %H:%M:%S")
+                nbr_updated += 1
+            else:
+                new_tickoffs.append(tickoff)
+                nbr_new += 1
+        dl.tickoff.add_m(new_tickoffs)
+        dl.tickoff.commit()
+        log.info(f'{sys._getframe().f_code.co_name}: {nbr_new} new rows, {nbr_updated} updated rows')
+        return {"status": "ok", "msg": f"{nbr_new} nieuwe rijen, {nbr_updated} aangepast"}
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return {"status": "error", "msg": str(e)}
+
+def sync_to_server(parameters):
+    try:
+        type = parameters["type"]
+        category = parameters["category"]
+        tickoffs = dl.tickoff.get_m([("type", "=", type), ("category", "=", category)])
+        tickoffs = [t.to_dict() for t in tickoffs]
+        if tickoffs:
+            url = app.config["SYNC_URL"]
+            key = app.config["SYNC_KEY"]
+
+            # sync_from_client({"type": type, "category": category, "data": tickoffs})
+            res = requests.post(url, headers={'x-api-key': key}, json={"type": type, "category": category, "data": tickoffs})
+            if res.status_code == 200:
+                data = res.json()
+                if data["status"]:
+                    log.info(f'{sys._getframe().f_code.co_name}: synced {len(tickoffs)} entries')
+                else:
+                    log.info(f'{sys._getframe().f_code.co_name}: server returned, {data["data"]}')
+                    return {"status": "error", "msg": f"Fout, server antwoord met {data['data']}"}
+        return {"status": "ok", "msg": f"{len(tickoffs)} rijen gesynchroniseerd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
