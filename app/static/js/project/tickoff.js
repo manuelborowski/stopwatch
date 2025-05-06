@@ -97,8 +97,19 @@ const __new_tick = (id, data) => {
     }
 }
 
-const __rfid_status_changed = () => {
-
+let old_state = 0;
+const __rfid_status_changed = (state) => {
+    const rfid_state_img = document.getElementById("rfid-state-img");
+    if (state === 2) {
+        rfid_state_img.style.background = "rgb(108 230 121)"; // green
+        if (state !== old_state) {
+            Rfid.set_managed_state(true);
+            Rfid.set_location(current_location)
+            old_state = state;
+        }
+    } else {
+        rfid_state_img.style.background = "#f8c604"; // orange
+    }
 }
 
 $(document).ready(function () {

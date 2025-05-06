@@ -71,7 +71,7 @@ export class Rfid {
     static __check_state_timer = async () => {
         try {
             var timeout = 2;
-            const ret = await fetch(`${rfidusb_url}/serial_port`);
+            const ret = await fetch(`${rfidusb_url}/serial_port`, { signal: AbortSignal.timeout(2000) });
             const status = await ret.json();
             const operational_state = status.port !== "";
             if (operational_state !== Rfid.__operational_state) {
