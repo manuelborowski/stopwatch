@@ -63,8 +63,18 @@ const __new_registration = async ids => {
     });
 }
 
+const __registration_delete = async (ids) => {
+    bootbox.confirm("Wilt u deze registratie(s) verwijderen?", async result => {
+        if (result) {
+            await fetch_delete("tickoff.tickoff", {kind: "registration", ids});
+            datatable_reload_table();
+       }
+    });
+}
+
 const context_menu_items = [
     {type: "item", label: 'Nieuwe registratie', iconscout: 'wifi', cb: ids => __new_registration(ids)},
+    {type: "item", label: 'Registratie(s) verwijderen', iconscout: 'trash-alt', cb: __registration_delete},
 ]
 
 const __delete_tickoff = () => {
@@ -73,7 +83,7 @@ const __delete_tickoff = () => {
             const type = document.getElementById("filter-type").value;
             const category = document.getElementById("filter-category").value;
             const tickoff = document.getElementById("filter-tickoff").value;
-            await fetch_delete("tickoff.tickoff", {type, category, tickoff});
+            await fetch_delete("tickoff.tickoff", {kind: "session", type, category, tickoff});
             datatable_reload_table();
         }
     });

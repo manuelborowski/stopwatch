@@ -36,8 +36,9 @@ from functools import wraps
 # 0.24: bugfix sync-to-server
 # 0.25: update logo
 # 0.26: rfidusb, added timeout else it takes too long before notification.  tickoff-page, added rfid-status-change.
+# 0.27: remove registrations
 
-version = "0.26"
+version = "0.27"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

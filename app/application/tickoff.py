@@ -62,10 +62,17 @@ def delete_type_category(type, category):
 
 def delete(parameters):
     try:
-        tickoffs = dl.tickoff.get_m([("type", "=", parameters["type"]), ("category", "=", parameters["category"]), ("label", "=", parameters["tickoff"]), ])
-        ids = [t.id for t in tickoffs]
-        dl.models.delete_multiple(dl.tickoff.Tickoff, ids)
-        return {"status": "ok", "msg": "Sessie is verwijderd"}
+        if parameters["kind"] == "session":
+            tickoffs = dl.tickoff.get_m([("type", "=", parameters["type"]), ("category", "=", parameters["category"]), ("label", "=", parameters["tickoff"]), ])
+            ids = [t.id for t in tickoffs]
+            dl.models.delete_multiple(dl.tickoff.Tickoff, ids)
+            return {"status": "ok", "msg": "Sessie is verwijderd"}
+        else:
+            for id in parameters["ids"].split(","):
+                tickoff = dl.tickoff.get(("id", "=", id))
+                tickoff.timestamp = None
+            dl.tickoff.commit()
+            return {"status": "ok", "msg": "Registratie(s) verwijderd"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return {"status": "error", "msg": str(e)}
