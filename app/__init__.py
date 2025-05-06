@@ -34,8 +34,9 @@ from functools import wraps
 # 0.22: after login, go to session page
 # 0.23: sync client to server
 # 0.24: bugfix sync-to-server
+# 0.25: update logo
 
-version = "0.24"
+version = "0.25"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
