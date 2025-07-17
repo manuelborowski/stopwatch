@@ -20,13 +20,7 @@ def inject_defaults():
         remote_ip = request.headers.get("X-Forwarded-For")
     else:
         remote_ip = request.remote_addr
-    default_type = list(dl.settings.get_configuration_setting("tickoff-types").keys())[0]
-    time_out = app.config["TOKEN_LOGIN_TO"] if "token-login" in session and session["token-login"] else 0  # 0 is no timeout
-    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user, logout={"to": time_out}, default_type=default_type,
-        rfidusb_url=app.config["RFIDUSB_API_URL"], remote_ip=remote_ip,
-        rfidusb_br_url=app.config["RFIDUSB_BR_URL"] if "RFIDUSB_BR_URL" in app.config else "",
-        rfidusb_br_key=app.config["RFIDUSB_BR_KEY"] if "RFIDUSB_BR_KEY" in app.config else "",
-    )
+    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user, remote_ip=remote_ip)
 
 def send_alert_to_client(status, msg):
     al.socketio.send_to_client({"type": "alert-popup", "data": {"data": msg, "status": status}})

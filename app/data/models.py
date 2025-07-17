@@ -118,6 +118,8 @@ def get_multiple(model, filters=[], fields=[], order_by=None, first=False, count
                     q = q.filter(getattr(model, k).like(f"%{v}%"))
                 elif o == 'c=':
                     q = q.filter(func.binary(getattr(model, k)) == v)
+                elif o == 'in':
+                    q = q.filter(getattr(model, k).in_(v))
                 else:
                     q = q.filter(getattr(model, k) == v)
         if order_by:

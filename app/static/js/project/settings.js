@@ -31,8 +31,8 @@ const template =
                     ]
                 },
                 {
-                    type: "container", label: "Afvink types", save: true, default_collapsed: true, rows: [
-                        {label: "YAML", name: "tickoff-types", type: "textarea"},
+                    type: "container", label: "Kleuren", save: true, default_collapsed: true, rows: [
+                        {label: "YAML", name: "list-colors", type: "textarea"},
                     ]
                 },
                 {

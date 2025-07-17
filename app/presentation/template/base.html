@@ -14,7 +14,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
               crossorigin="anonymous">
         <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.8/css/line.css">
-        <link rel="shortcut icon" href="static/img/tickoff.webp">
+        <link rel="shortcut icon" href="static/img/stopwatch.png">
         <link href="static/css/main.css" rel="stylesheet">
         <link href="static/css/button.css" rel="stylesheet">
         <link href="static/css/filter.css" rel="stylesheet">
@@ -30,13 +30,11 @@
     <div>
         <div>
             <img src="{{ url_for('static', filename='img/warning.png') }}" alt="" height="40" style="visibility: hidden">
-            <img src="{{ url_for('static', filename='img/tickoff.webp') }}" alt="" height="40">
+            <img src="{{ url_for('static', filename='img/stopwatch.png') }}" alt="" height="40">
             {% if current_user.is_authenticated %}
                 <ul id="navbar"></ul>
             {% endif %}
         </div>
-        <img id="rfid-state-img" src="{{ url_for('static', filename='img/rfid.png') }}" alt="" height="40" style="margin-right: 20px;">
-
         <h2 style="white-space: nowrap;margin-bottom: 0">{{ current_user.username }}&nbsp;&nbsp;</h2>
         <a href="{{ url_for('auth.logout') }}">
             <button class="btn btn-success navbar-btn">Logout</button>
@@ -81,10 +79,6 @@
         const default_view = {{ (default_view or False)|tojson }};
         const default_type = {{ (default_type or "")|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
-        const logout = {{ (logout or null)|tojson}};
-        const rfidusb_url = "{{ rfidusb_url }}";
-        const rfidusb_br_url = "{{ rfidusb_br_url }}";
-        const rfidusb_br_key = "{{ rfidusb_br_key }}";
         let view_data = {{ (view_data or {})|tojson }};
         const remote_ip = {{ (remote_ip or "")|tojson }};
     </script>

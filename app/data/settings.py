@@ -99,6 +99,8 @@ default_configuration_settings = {
 
     "tickoff-types": ({}, Settings.SETTING_TYPE.E_YAML),
 
+    "list-colors": ({}, Settings.SETTING_TYPE.E_YAML),
+
     "api-keys": ({}, Settings.SETTING_TYPE.E_YAML),
 }
 

@@ -11,34 +11,10 @@ from functools import wraps
 
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
-# 0.1 copy from laptop-incident-systeem v0.84
-# 0.2: removed files not needed.  Get staff and students from SDH
-# 0.3: small bugfixes.  Reworked settings page to remove formio.
-# 0.4: removed old settings code and replaced with new (without formio)
-# 0.5: removed formio from users page
-# 0.6: added category-functionality.  Upload category-data from xlsx
-# 0.7: updated settings
-# 0.8: updated user
-# 0.9: table columns can change depending on a condition (type). Category, added filters.  Filters, added dynamic attribute, i.e. options can change depening on a condition.
-# 0.10: upload excel file is ok.
-# 0.11: add context menu to update rfid or person.  Added in-table-edit of fields
-# 0.12: renamed some topics.  Add or delete persons
-# 0.13: reworked menu in base.js, it is possible to specify additional arguments for a menu item.  Value can be stored in localStorage
-# 0.14: updated loghandler so that it can handle utf-8.  When uploading a file, the type is set to the filter-value.  Reworked filter-menu to include filters that depend on other filters.
-# 0.15: added tickoff (session) tree.  Updated filter-menu, added "invalidate" and "skip" attributes
-# 0.16: major rework in filters.  A filter's option can depend on another filter's value.
-# 0.18: models, update_single, make it possible to add datetime as string in quasi iso format.  Added functionality to add a registration, delete a session
-# 0.19: extended api to receive registrations from external source.
-# 0.20: add rfidusb.  Update rfid by making a reservation and then scan the badge.
-# 0.21: update logo
-# 0.22: after login, go to session page
-# 0.23: sync client to server
-# 0.24: bugfix sync-to-server
-# 0.25: update logo
-# 0.26: rfidusb, added timeout else it takes too long before notification.  tickoff-page, added rfid-status-change.
-# 0.27: remove registrations
+# 0.1 copy from tickoff V0.27
+# 0.2: implemented lists
 
-version = "0.27"
+version = "0.2"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -59,7 +35,7 @@ log_formatter = logging.Formatter(u'%(asctime)s - %(levelname)s - %(username)s -
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
-log.info("START Tickoff")
+log.info("START Stopwatch")
 
 from app.config import app_config
 config_name = os.getenv('FLASK_CONFIG')
@@ -126,11 +102,9 @@ def supervisor_required(func):
 
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, category, person, tickoff
+from app.presentation.view import auth, api, user, settings, list
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
-app.register_blueprint(category.bp_category)
-app.register_blueprint(person.bp_person)
-app.register_blueprint(tickoff.bp_tickoff)
+app.register_blueprint(list.bp_list)

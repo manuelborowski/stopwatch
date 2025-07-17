@@ -1,8 +1,7 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
-    { endpoint: "tickoff.show", label: "Sessies", userlevel: 1, arguments: [{argument: "type", source: "localstorage", default: default_type}] },
-    { endpoint: "category.show", label: "Evenementen", userlevel: 1, arguments: [{argument: "type", source: "localstorage", default: default_type}] },
+    { endpoint: "list.show", label: "Lijsten,", userlevel: 1, arguments: [{argument: "type", source: "localstorage", default: default_type}] },
     { endpoint: "user.show", label: "Gebruikers", userlevel: 5 },
     { endpoint: "settings.show", label: "Instellingen", userlevel: 5 },
 ];
@@ -86,49 +85,7 @@ export const base_init = ({button_menu_items = []}) => {
         }
     }
 
-    if (stand_alone) {
-        // const btn_div = document.createElement("div");
-        // btn_div.classList.add("nav-buttons");
-        // const sync_btn = document.createElement("button");
-        // sync_btn.classList.add("btn", "btn-warning");
-        // sync_btn.type = "button";
-        // sync_btn.onclick = start_sync; // Assuming start_sync is defined elsewhere
-        // sync_btn.innerHTML = "Sync";
-        // btn_div.appendChild(sync_btn);
-        // navbar_element.appendChild(btn_div);
-
-        // const upgrade_div = document.createElement("div");
-        // upgrade_div.classList.add("nav-buttons");
-        // const upgade_btn = document.createElement("button");
-        // upgade_btn.classList.add("btn", "btn-warning");
-        // upgade_btn.type = "button";
-        // upgade_btn.onclick = start_upgrade;
-        // upgade_btn.innerHTML = "Upgrade";
-        // upgrade_div.appendChild(upgade_btn);
-        // navbar_element.appendChild(upgrade_div);
-    }
-
     const button_menu = new ButtonMenu(document.querySelector(".button-menu-placeholder"), button_menu_items);
-}
-
-var logout_enabled = true;
-export const autologout_disable = () => logout_enabled = false;
-
-export const autologout_enable = () => logout_enabled = true;
-
-if (logout && logout.to > 0) {
-    var timeout_timer = null;
-    const __reset_timer = () => {
-        if (timeout_timer) clearTimeout(timeout_timer);
-        timeout_timer = setTimeout(() => {
-            if (logout_enabled) window.location.href = Flask.url_for("auth.logout")}, logout.to * 1000
-        );
-    }
-    // Reset timer on user activity
-    document.addEventListener('mousemove', __reset_timer);
-    document.addEventListener('keydown', __reset_timer);
-    document.addEventListener('click', __reset_timer);
-    __reset_timer();
 }
 
 export const argument_set = (arg, val) => {
