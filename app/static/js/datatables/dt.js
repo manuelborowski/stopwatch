@@ -160,8 +160,8 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
             bottomStart: ["pageLength", "paging"],
             bottomEnd: null
         },
-        lengthMenu: [100, 500, 1000],
-        pageLength: 500,
+        lengthMenu: [100, 500, 1000, 2000],
+        pageLength: 2000,
         // Called first. This callback is executed when a TR element is created (and all TD child elements have been inserted)
         createdRow: function (row, data, dataIndex, cells) {
             // in format_data, it is possible to tag a line with a different backgroundcolor

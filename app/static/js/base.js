@@ -2,6 +2,7 @@ import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
     { endpoint: "list.show", label: "Lijsten,", userlevel: 1, arguments: [{argument: "type", source: "localstorage", default: default_type}] },
+    { endpoint: "person.show", label: "Deelnemers", userlevel: 1 },
     { endpoint: "user.show", label: "Gebruikers", userlevel: 5 },
     { endpoint: "settings.show", label: "Instellingen", userlevel: 5 },
 ];

@@ -50,8 +50,8 @@ def datatable_get_data(table_config, parameters, paginate=True):
 
         total_count, filtered_count, formatted_data = table_config.format_data(db_data, total_count, filtered_count)
 
-        if filter:
-            filtered_count, formatted_data = table_config.post_sql_filter(formatted_data, filter, filtered_count)
+        if filters:
+            filtered_count, formatted_data = table_config.post_sql_filter(formatted_data, filters, filtered_count)
 
         if search_value:
             filtered_count, formatted_data = table_config.post_sql_search(formatted_data, search_value, filtered_count)

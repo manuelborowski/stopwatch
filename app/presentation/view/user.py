@@ -63,8 +63,8 @@ class Config(DatatableConfig):
     def pre_sql_search(self, search):
         return dl.user.pre_sql_search(search)
 
-    def format_data(self, l, total_count, filtered_count):
-        return al.user.format_data(l, total_count, filtered_count)
+    def format_data(self, db_list, total_count=None, filtered_count=None):
+        return al.user.format_data(db_list, total_count, filtered_count)
 
 config = Config("user", "Gebruikers")
 
