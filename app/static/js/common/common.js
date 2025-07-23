@@ -61,3 +61,9 @@ export function busy_indication_off() {
     for (const indicator of busy_indicator) indicator.remove();
     busy_indicator = [];
 }
+
+export const now_iso_string = () => {
+    const now = new Date();
+    const iso_now = now.toJSON().substring(0, 19).replace(/T../, ` ${now.getHours()}`);
+    return iso_now
+}

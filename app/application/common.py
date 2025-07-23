@@ -18,3 +18,4 @@ def ini2timedelta(ini_string):
         return datetime.timedelta(**{k: v for k, v in zip(init_format, [int(i) for i in ini_string.split(",")])})
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
+

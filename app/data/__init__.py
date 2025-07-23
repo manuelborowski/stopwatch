@@ -1,4 +1,4 @@
-__all__ = ["user", "models", "settings", "datatables", "person", "category", "tickoff", "list"]
+__all__ = ["user", "models", "settings", "datatables", "person", "category", "tickoff", "list", "rfid"]
 
 import app.data.user
 import app.data.models
@@ -8,6 +8,7 @@ import app.data.person
 import app.data.category
 import app.data.tickoff
 import app.data.list
+import app.data.rfid
 
 from app import login_manager
 @login_manager.user_loader

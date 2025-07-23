@@ -14,8 +14,9 @@ from functools import wraps
 # 0.1 copy from tickoff V0.27
 # 0.2: implemented lists
 # 0.3: added page "deelnemers".  Contestants are loaded from SDH.
+# 0.4: deelnemers page, add option to assign new RFID code
 
-version = "0.3"
+version = "0.4"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -64,13 +65,13 @@ def default_db_entries():
         try:
             from app.data.user import User
             from app import data as dl
-            # create admin account if not present
-            find_admin = User.query.filter(User.username == 'admin').first()
-            if not find_admin:
-                admin = User(username='admin', password='admin', level=5, user_type=User.USER_TYPE.LOCAL)
-                db.session.add(admin)
-                db.session.commit()
-
+            # create default accounts, if not present
+            for user in app.config["DEFAULT_USERS"]:
+                find_user = User.query.filter(User.username == user[0]).first()
+                if not find_user:
+                    new_user = User(username=user[0], password=user[1], level=user[2], user_type=User.USER_TYPE.LOCAL)
+                    db.session.add(new_user)
+            db.session.commit()
         except Exception as e:
             db.session.rollback()
             log.error(f'{sys._getframe().f_code.co_name}: {e}')

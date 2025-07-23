@@ -1,7 +1,7 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
-    { endpoint: "list.show", label: "Lijsten,", userlevel: 1, arguments: [{argument: "type", source: "localstorage", default: default_type}] },
+    { endpoint: "list.show", label: "Lijsten", userlevel: 1},
     { endpoint: "person.show", label: "Deelnemers", userlevel: 1 },
     { endpoint: "user.show", label: "Gebruikers", userlevel: 5 },
     { endpoint: "settings.show", label: "Instellingen", userlevel: 5 },
@@ -14,9 +14,6 @@ export const inject_menu = new_menu => {
 export const base_init = ({button_menu_items = []}) => {
     if (suppress_navbar) return;
 
-    if (default_view && menu.length > 0) { // after login, go to default (= first) page
-        document.location.href = Flask.url_for(menu[0].endpoint);
-    }
     const navbar_element = document.querySelector("#navbar");
     let dd_ctr = 0;
 

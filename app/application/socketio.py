@@ -61,3 +61,11 @@ def broadcast_message(msg):
 
 def send_to_client(msg):
     emit("send_to_client", msg, namespace="/")
+
+# makes it possible to create a room, only for the server and the client with the remote ip
+def get_remote_ip():
+    if request.headers.get("X-Forwarded-For"):
+        remote_ip = request.headers.get("X-Forwarded-For")
+    else:
+        remote_ip = request.remote_addr
+    return remote_ip

@@ -1,23 +1,24 @@
-import "https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
-
-import {AlertPopup} from "./popup.js";
-
-class Socketio {
+export class Socketio {
     receive_cbs = {}
-    timer_id = null;
-
     constructor() {
         this.socket = io();
+        this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
     }
 
-    init = () => {
+    start(on_connect_cb, opaque) {
         this.socket.on('send_to_client', (msg, cb) => {
             if (msg.type in this.receive_cbs) {
                 this.receive_cbs[msg.type](msg.type, msg.data);
             }
-            if (cb) cb();
+            if (cb)
+                cb();
         });
-        this.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup(data.status, data.data));
+
+        this.socket.on('connect', () => {
+            if (on_connect_cb) {
+                on_connect_cb(opaque);
+            }
+        });
     }
 
     send_to_server(type, data) {
@@ -29,6 +30,10 @@ class Socketio {
         this.receive_cbs[type] = receive_cb;
     }
 
+    handle_its_me_received(type, data) {
+        console.log("its-me-received: " + data);
+    }
+
     subscribe_to_room(room_code) {
         this.socket.emit('subscribe_to_room', {room: room_code});
     }
@@ -36,7 +41,7 @@ class Socketio {
     unsubscribe_from_room(room_code) {
         this.socket.emit('unsubscribe_from_room', {room: room_code});
     }
-
 }
 
 export const socketio = new Socketio();
+

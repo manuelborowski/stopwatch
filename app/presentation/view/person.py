@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
+
+import app.application.socketio
 from app import admin_required
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
@@ -39,7 +41,10 @@ def meta():
     klasgroepen = dl.person.get_klasgroepen()
     lijsten = dl.list.get_m()
     lijsten = [l.to_dict() for l in lijsten]
-    return json.dumps({"klasgroepen": klasgroepen, "lijsten": lijsten})
+    my_ip = al.socketio.get_remote_ip()
+    rfidusb = dl.rfid.get_rfidudb_configuration()
+    new_rfid_margin = app.config["NEW_RFID_MARGIN"]
+    return json.dumps({"klasgroepen": klasgroepen, "lijsten": lijsten, "my_ip": my_ip, "rfidusb": rfidusb, "new_rfid_margin": new_rfid_margin})
 
 
 class Config(DatatableConfig):

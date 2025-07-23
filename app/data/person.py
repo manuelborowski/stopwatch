@@ -20,6 +20,7 @@ class Person(db.Model, SerializerMixin):
     informatnummer = db.Column(db.String(256), default='')
     lijst_id = db.Column(db.Integer(), default=None)
     register_time = db.Column(db.DateTime, default=None)
+    new_rfid_time = db.Column(db.DateTime, default=None)
     stop_time = db.Column(db.DateTime, default=None)
     temp_badge = db.Column(db.String(256), default="")
 

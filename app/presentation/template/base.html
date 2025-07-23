@@ -75,17 +75,7 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script>
         const current_user = {level: {{(current_user.level or null)|tojson}}, username: {{(current_user.username or null)|tojson }}};
-        const stand_alone = {{ (stand_alone or False)|tojson }};
-        const default_view = {{ (default_view or False)|tojson }};
-        const default_type = {{ (default_type or "")|tojson }};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
-        let view_data = {{ (view_data or {})|tojson }};
-        const remote_ip = {{ (remote_ip or "")|tojson }};
-    </script>
-
-    <script type="module">
-        import {socketio} from "../../static/js/common/socketio.js";
-        socketio.init();
     </script>
     <script type="module" src="/static/js/base.js"></script>
 

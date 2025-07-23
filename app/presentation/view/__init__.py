@@ -16,11 +16,7 @@ log.addFilter(MyLogFilter())
 
 @app.context_processor
 def inject_defaults():
-    if request.headers.get("X-Forwarded-For"):
-        remote_ip = request.headers.get("X-Forwarded-For")
-    else:
-        remote_ip = request.remote_addr
-    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user, remote_ip=remote_ip)
+    return dict(version=f'@ 2025 MB. {version}', title=app.config['HTML_TITLE'], current_user=current_user)
 
 def send_alert_to_client(status, msg):
     al.socketio.send_to_client({"type": "alert-popup", "data": {"data": msg, "status": status}})

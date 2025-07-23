@@ -5,21 +5,71 @@ from thefuzz import process
 #logging on file level
 import logging
 from app import MyLogFilter, top_log_handle, app
+import datetime
+
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
 def update(data):
     try:
-        ids = [d["id"] for d in data]
-        persons = dl.person.get_m(("id", "in", ids))
-        person_cache = {str(p.id): p for p in persons}
-        for d in data:
-            d["item"] = person_cache[d["id"]]
-        dl.person.update_m(data)
-        return {"status": "ok", "msg": "Deelnemers aangepast"}
+        if ("lijst_id" in data):
+            persons = dl.person.get_m(("id", "in", data["ids"]))
+            for p in persons:
+                p.lijst_id = data["lijst_id"]
+            dl.person.commit()
+            if (data["lijst_id"] is None):
+                return {"status": "ok", "msg": "Deelnemers verwijderd van lijst"}
+            else:
+                return {"status": "ok", "msg": "Deelnemers toegevoegd aan lijst"}
+        elif ("new_rfid_time" in data):
+            person = dl.person.get_m(("id", "=", data["id"]))[0]
+            person.new_rfid_time = data["new_rfid_time"]
+            dl.person.commit()
+            return {"status": "ok", "msg": "Nu badgen aub"}
+        return {"status": "error", "msg": f"Onbekende operatie: {data}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": str(e)}
+
+
+# depending on the "to" parameter, return values are sent to:
+# ip: only to the client/terminal the registration came from.  Used for alerts, messages, ... due to registering
+# location: all the clients/terminals that display/are set to said location
+# broadcast: all the clients/terminals
+def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=None):
+    try:
+        if timestamp:
+            now = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+        else:
+            now = datetime.datetime.now()
+        now = now.replace(microsecond=0)
+        today = now.date()
+        if location_key == "new-rfid":
+            reservation_margin = app.config["NEW_RFID_MARGIN"]
+            minimum_reservation_time = now - datetime.timedelta(seconds=reservation_margin)
+            persons = dl.person.get_m([("new_rfid_time", ">", minimum_reservation_time)])
+            if persons:
+                person = persons[0]
+                find_rfids = dl.person.get_m([("rfid", "=", rfid), ("id", "!", person.id)])
+                if find_rfids: #rfid already in database, delete this rfid.
+                    find_rfid = find_rfids[0]
+                    log.error(f'{sys._getframe().f_code.co_name}:  Rfid, {rfid}, already in database for {find_rfid.informatnummer}, {find_rfid.naam} {find_rfid.voornaam} => deleted')
+                    find_rfid.rfid = ""
+                person.new_rfid_time = None
+                person.rfid = rfid
+                dl.person.commit()
+                log.info(f'{sys._getframe().f_code.co_name}:  Add new rfid for {person.informatnummer}, {person.naam} {person.voornaam}, {rfid}')
+                return [{"to":"ip", "type": "alert-popup", "data": f"Deelnemer {person.naam} {person.voornaam} heeft nu RFID code {rfid}"}]
+            log.info(f'{sys._getframe().f_code.co_name}:  No valid reservation for {location_key}')
+            return [{"to":"ip", "type": "alert-popup", "data": f"Nieuwe RFID niet gelukt.  Misschien te lang gewacht met scannen, probeer nogmaals"}]
+        log.info(f'{sys._getframe().f_code.co_name}:  rif/leerlingnummer {rfid}/{leerlingnummer} not found in database')
+        return [{"to": "ip", "type": "alert-popup", "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"}]
+    except Exception as e:
+        log.error(f'{sys._getframe().f_code.co_name}: {e}')
+        return [{"to": "ip", 'type': 'alert-popup', "data": f"Fout, {str(e)}"}]
+
+
+
 
 
 ######################### CRON HANDLERS ##################################
