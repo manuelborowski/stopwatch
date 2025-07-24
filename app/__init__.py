@@ -15,8 +15,9 @@ from werkzeug.routing import IntegerConverter
 # 0.3: added page "deelnemers".  Contestants are loaded from SDH.
 # 0.4: deelnemers page, add option to assign new RFID code
 # 0.5: updated user-levels.  Clean up pages/menus and associated levels.
+# 0.6: removed obsolete files
 
-version = "0.5"
+version = "0.6"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

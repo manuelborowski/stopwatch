@@ -1,4 +1,4 @@
-__all__ = ["api", "auth", "user", "tickoff"]
+__all__ = ["api", "auth", "user"]
 
 import json
 from flask_login import current_user

@@ -1,12 +1,10 @@
-__all__ = ["user", "models", "settings", "datatables", "person", "category", "tickoff", "list", "rfid"]
+__all__ = ["user", "models", "settings", "datatables", "person", "list", "rfid"]
 
 import app.data.user
 import app.data.models
 import app.data.settings
 import app.data.datatables
 import app.data.person
-import app.data.category
-import app.data.tickoff
 import app.data.list
 import app.data.rfid
 
