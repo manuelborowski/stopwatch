@@ -2,7 +2,7 @@ from app import data as dl, application as al
 import sys, requests
 from thefuzz import process
 
-#logging on file level
+# logging on file level
 import logging
 from app import MyLogFilter, top_log_handle, app
 import datetime
@@ -21,6 +21,16 @@ def update(data):
                 return {"status": "ok", "msg": "Deelnemers verwijderd van lijst"}
             else:
                 return {"status": "ok", "msg": "Deelnemers toegevoegd aan lijst"}
+        elif ("temp_badge" in data):
+            persons = dl.person.get_m(("id", "in", data["ids"]))
+            for p in persons:
+                p.temp_badge = data["temp_badge"]
+                p.rfid = data["rfid"]
+            dl.person.commit()
+            if (data["temp_badge"] is None):
+                return {"status": "ok", "msg": "Reserve badges verwijderd"}
+            else:
+                return {"status": "ok", "msg": "Reserve badges toegevoegd"}
         elif ("new_rfid_time" in data):
             person = dl.person.get_m(("id", "=", data["id"]))[0]
             person.new_rfid_time = data["new_rfid_time"]
@@ -30,7 +40,6 @@ def update(data):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": str(e)}
-
 
 # depending on the "to" parameter, return values are sent to:
 # ip: only to the client/terminal the registration came from.  Used for alerts, messages, ... due to registering
@@ -50,27 +59,29 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
             persons = dl.person.get_m([("new_rfid_time", ">", minimum_reservation_time)])
             if persons:
                 person = persons[0]
+                find_spares = dl.spare.get_m(("rfid", "=", rfid))
+                if find_spares:
+                    person.temp_badge = find_spares[0].label
                 find_rfids = dl.person.get_m([("rfid", "=", rfid), ("id", "!", person.id)])
-                if find_rfids: #rfid already in database, delete this rfid.
+                if find_rfids:  # rfid already in database, delete this rfid.
                     find_rfid = find_rfids[0]
                     log.error(f'{sys._getframe().f_code.co_name}:  Rfid, {rfid}, already in database for {find_rfid.informatnummer}, {find_rfid.naam} {find_rfid.voornaam} => deleted')
                     find_rfid.rfid = ""
+                    find_rfid.temp_badge = ""
                 person.new_rfid_time = None
                 person.rfid = rfid
                 dl.person.commit()
                 log.info(f'{sys._getframe().f_code.co_name}:  Add new rfid for {person.informatnummer}, {person.naam} {person.voornaam}, {rfid}')
-                return [{"to":"ip", "type": "alert-popup", "data": f"Deelnemer {person.naam} {person.voornaam} heeft nu RFID code {rfid}"}]
+                return [
+                    {"to": "ip", "type": "alert-popup", "data": f"Deelnemer {person.naam} {person.voornaam} heeft nu RFID code {rfid}{f'<br>En reserve badge nummer {person.temp_badge}' if person.temp_badge != '' else ''}"},
+                    {"to": "ip", "type": "update-items-in-list-of-persons", "data": {"status": True, "data": [{"id": person.id, "rfid": person.rfid, "temp_badge": person.temp_badge}]}}]
             log.info(f'{sys._getframe().f_code.co_name}:  No valid reservation for {location_key}')
-            return [{"to":"ip", "type": "alert-popup", "data": f"Nieuwe RFID niet gelukt.  Misschien te lang gewacht met scannen, probeer nogmaals"}]
+            return [{"to": "ip", "type": "alert-popup", "data": f"Nieuwe RFID niet gelukt.  Misschien te lang gewacht met scannen, probeer nogmaals"}]
         log.info(f'{sys._getframe().f_code.co_name}:  rif/leerlingnummer {rfid}/{leerlingnummer} not found in database')
         return [{"to": "ip", "type": "alert-popup", "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"}]
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
         return [{"to": "ip", 'type': 'alert-popup', "data": f"Fout, {str(e)}"}]
-
-
-
-
 
 ######################### CRON HANDLERS ##################################
 def person_cron_load_from_sdh(opaque=None, **kwargs):
@@ -116,10 +127,11 @@ def person_cron_load_from_sdh(opaque=None, **kwargs):
                             updated_persons.append(update)
                             log.info(f'{sys._getframe().f_code.co_name}, Update student {db_student.informatnummer}, update {update}')
                             nbr_updated += 1
-                        del(db_informatnummer_to_student[sdh_student["leerlingnummer"]])
+                        del (db_informatnummer_to_student[sdh_student["leerlingnummer"]])
                     else:
                         new_student = {"informatnummer": sdh_student["leerlingnummer"], "klasgroep": klas2klasgroep[sdh_student["klascode"]], "instellingsnummer": sdh_student["instellingsnummer"],
-                                       "roepnaam": sdh_student["roepnaam"], "naam": sdh_student["naam"], "voornaam": sdh_student["voornaam"], "rfid": sdh_student["rfid"], "geslacht": sdh_student["geslacht"]}
+                                       "roepnaam": sdh_student["roepnaam"], "naam": sdh_student["naam"], "voornaam": sdh_student["voornaam"], "rfid": sdh_student["rfid"], "geslacht": sdh_student[
+                                "geslacht"]}
                         new_persons.append(new_student)
                         log.info(f'{sys._getframe().f_code.co_name}, New student {sdh_student["leerlingnummer"]}')
                 deleted_persons = [v for (k, v) in db_informatnummer_to_student.items()]
@@ -159,10 +171,10 @@ def person_cron_load_from_sdh(opaque=None, **kwargs):
                             updated_persons.append(update)
                             log.info(f'{sys._getframe().f_code.co_name}, Update staff {db_staff.informatnummer}, update {update}')
                             nbr_updated += 1
-                        del(db_informatnummer_to_staff[sdh_staff["informat_id"]])
+                        del (db_informatnummer_to_staff[sdh_staff["informat_id"]])
                     else:
                         new_staff = {"informatnummer": sdh_staff["informat_id"], "klasgroep": "Leerkracht", "roepnaam": sdh_staff["voornaam"],
-                                       "naam": sdh_staff["naam"], "voornaam": sdh_staff["voornaam"], "rfid": sdh_staff["rfid"], "geslacht": sdh_staff["geslacht"]}
+                                     "naam": sdh_staff["naam"], "voornaam": sdh_staff["voornaam"], "rfid": sdh_staff["rfid"], "geslacht": sdh_staff["geslacht"]}
                         new_persons.append(new_staff)
                         log.info(f'{sys._getframe().f_code.co_name}, New staff {sdh_staff["informat_id"]}')
                 deleted_persons = [v for (k, v) in db_informatnummer_to_staff.items()]

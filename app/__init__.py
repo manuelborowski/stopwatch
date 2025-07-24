@@ -17,8 +17,9 @@ from werkzeug.routing import IntegerConverter
 # 0.5: updated user-levels.  Clean up pages/menus and associated levels.
 # 0.6: removed obsolete files
 # 0.7: add spare badges
+# 0.8: hand out or revoke spare badges
 
-version = "0.7"
+version = "0.8"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

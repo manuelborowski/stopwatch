@@ -7,6 +7,7 @@ export class AlertPopup {
             if (this.timer_id !== null) clearTimeout(timer.timer_id);
             this.timer_id = setTimeout(() => this.dialog.modal("hide"), delay);
             this.dialog = bootbox.dialog({
+                size: "large",
                 backdrop: true,
                 message: msg,
                 closeButton: false,

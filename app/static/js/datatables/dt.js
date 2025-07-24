@@ -52,7 +52,7 @@ export const datatable_row_data_from_target = target => {
     return ctx.table.row(target.target.closest("tr")).data();
 }
 
-export function update_cell(row_id, column_name, value) {
+export function datatable_update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
     let column_idx = datatable_column2index[column_name];
     ctx.table.cell(row_idx, column_idx).data(value);
