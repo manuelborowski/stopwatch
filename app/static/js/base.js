@@ -3,6 +3,7 @@ import {ButtonMenu} from "./common/button_menu.js";
 var menu = [
     { endpoint: "person.show", label: "Deelnemers", userlevel: 1 },
     { endpoint: "list.show", label: "Lijsten", userlevel: 2},
+    { endpoint: "spare.show", label: "Reserve badges", userlevel: 2},
     { endpoint: "user.show", label: "Gebruikers", userlevel: 5 },
     { endpoint: "settings.show", label: "Instellingen", userlevel: 5 },
 ];

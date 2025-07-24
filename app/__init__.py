@@ -16,8 +16,9 @@ from werkzeug.routing import IntegerConverter
 # 0.4: deelnemers page, add option to assign new RFID code
 # 0.5: updated user-levels.  Clean up pages/menus and associated levels.
 # 0.6: removed obsolete files
+# 0.7: add spare badges
 
-version = "0.6"
+version = "0.7"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -85,10 +86,11 @@ ap_scheduler.init_app(app)
 ap_scheduler.start()
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, list, person
+from app.presentation.view import auth, api, user, settings, list, person, spare
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
 app.register_blueprint(settings.bp_settings)
 app.register_blueprint(list.bp_list)
 app.register_blueprint(person.bp_person)
+app.register_blueprint(spare.bp_spare)
