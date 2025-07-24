@@ -5,7 +5,7 @@ export class Socketio {
         this.subscribe_on_receive("its-me-received", this.handle_its_me_received)
     }
 
-    start(on_connect_cb, opaque) {
+    start(on_connect_cb=null, opaque=null) {
         this.socket.on('send_to_client', (msg, cb) => {
             if (msg.type in this.receive_cbs) {
                 this.receive_cbs[msg.type](msg.type, msg.data);

@@ -1,5 +1,5 @@
 import logging.handlers, os, sys
-from flask import Flask, abort
+from flask import Flask
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -7,7 +7,6 @@ from flask_jsglue import JSGlue
 from flask_migrate import Migrate
 from flask_apscheduler import APScheduler
 from werkzeug.routing import IntegerConverter
-from functools import wraps
 
 #Warning: update flask_jsglue.py: from markupsafe import Markup
 
@@ -15,8 +14,9 @@ from functools import wraps
 # 0.2: implemented lists
 # 0.3: added page "deelnemers".  Contestants are loaded from SDH.
 # 0.4: deelnemers page, add option to assign new RFID code
+# 0.5: updated user-levels.  Clean up pages/menus and associated levels.
 
-version = "0.4"
+version = "0.5"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -82,26 +82,6 @@ SCHEDULER_API_ENABLED = True
 ap_scheduler = APScheduler()
 ap_scheduler.init_app(app)
 ap_scheduler.start()
-
-# decorator to grant access to admins only
-def admin_required(func):
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if not current_user.is_at_least_admin:
-            abort(403)
-        return func(*args, **kwargs)
-    return decorated_view
-
-
-# decorator to grant access to at least supervisors
-def supervisor_required(func):
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if not current_user.is_at_least_supervisor:
-            abort(403)
-        return func(*args, **kwargs)
-    return decorated_view
-
 
 # Should be last to avoid circular import
 from app.presentation.view import auth, api, user, settings, list, person

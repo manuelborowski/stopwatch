@@ -118,9 +118,10 @@ const __reserve_student_rfid = async (ids) => {
 }
 
 const context_menu_items = [
-    {type: "item", label: 'RFID vernieuwen', iconscout: 'wifi', cb: ids => __reserve_student_rfid(ids)},
-    {type: "item", label: 'Toevoegen aan lijst', iconscout: 'plus-circle', cb: ids => __add_to_list(ids)},
-    {type: "item", label: 'Verwijderen van lijst', iconscout: 'trash-alt', cb: ids => __delete_from_list(ids)},
+    {type: "item", label: 'RFID vernieuwen', iconscout: 'wifi', cb: ids => __reserve_student_rfid(ids), level: 2},
+    {type: "divider", level: 2},
+    {type: "item", label: 'Toevoegen aan lijst', iconscout: 'plus-circle', cb: ids => __add_to_list(ids), level: 2},
+    {type: "item", label: 'Verwijderen van lijst', iconscout: 'trash-alt', cb: ids => __delete_from_list(ids), level: 2},
 ]
 
 $(document).ready(async function () {
@@ -133,7 +134,6 @@ $(document).ready(async function () {
     Rfid.set_location("new-rfid");
     Rfid.set_managed_state(true);
     // Even on the students page, it is possible to get status-popups
-    socketio.start(null, null);
     socketio.subscribe_to_room(meta.my_ip);
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
     // In case multiple tabs/browsers to this page are opened, the Rfid-location (new-rfid) is set the one that is in focus.

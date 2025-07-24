@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
-from app import admin_required
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
-from app.presentation.view import datatable_get_data, fetch_return_error
+from app.presentation.view import datatable_get_data, fetch_return_error, level_5_required
 import json, sys
 
 #logging on file level
@@ -14,7 +13,7 @@ log.addFilter(MyLogFilter())
 bp_user = Blueprint('user', __name__)
 
 @bp_user.route('/usershow', methods=['GET', 'POST'])
-@admin_required
+@level_5_required
 @login_required
 def show():
     return render_template("user.html", table_config=config.create_table_config())
@@ -23,7 +22,7 @@ def show():
 al.socketio.subscribe_on_type("user-datatable-data", lambda type, data: datatable_get_data(config, data))
 
 @bp_user.route('/user', methods=["POST", "UPDATE", "DELETE", "GET"])
-@admin_required
+@level_5_required
 @login_required
 def user():
     if request.method == "UPDATE":
@@ -40,7 +39,7 @@ def user():
     return json.dumps(ret)
 
 @bp_user.route('/user/meta', methods=['GET'])
-@admin_required
+@level_5_required
 @login_required
 def meta():
     user_level_label = dl.user.User.level_label

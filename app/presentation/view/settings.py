@@ -1,8 +1,8 @@
 from flask import render_template, Blueprint, request
 from flask_login import login_required
 
-from app import admin_required, data as dl, application as al
-from app.presentation.view import fetch_return_error
+from app import data as dl, application as al
+from app.presentation.view import fetch_return_error, level_5_required
 from app.application import cron_table
 import json, sys
 
@@ -16,7 +16,7 @@ log.addFilter(MyLogFilter())
 bp_settings = Blueprint('settings', __name__)
 
 @bp_settings.route('/settingsshow', methods=['GET'])
-@admin_required
+@level_5_required
 @login_required
 def show():
     cron_module_enable_settings = dl.settings.get_configuration_setting('cron-enable-modules')
@@ -24,7 +24,7 @@ def show():
 
 
 @bp_settings.route('/setting', methods=['GET', 'UPDATE'])
-@admin_required
+@level_5_required
 @login_required
 def setting():
     try:
@@ -40,7 +40,7 @@ def setting():
         return fetch_return_error()
 
 @bp_settings.route('/button', methods=['POST'])
-@admin_required
+@level_5_required
 @login_required
 def button():
     try:

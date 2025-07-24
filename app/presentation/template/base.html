@@ -64,8 +64,8 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/6.0.0/bootbox.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/2.1.8/js/dataTables.min.js"></script>
     <script src='https://cdn.form.io/js/5.0.0/formio.full.min.js'></script>
@@ -76,6 +76,10 @@
     <script>
         const current_user = {level: {{(current_user.level or null)|tojson}}, username: {{(current_user.username or null)|tojson }}};
         const suppress_navbar = {{ (suppress_navbar or False)|tojson}};
+    </script>
+    <script type="module">
+        import {socketio} from "../../static/js/common/socketio.js";
+        socketio.start();
     </script>
     <script type="module" src="/static/js/base.js"></script>
 

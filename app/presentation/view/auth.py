@@ -23,7 +23,7 @@ def login():
                 user = dl.user.update(user, {"last_login": datetime.datetime.now()})
                 if not user:
                     log.error('Could not save timestamp')
-                return redirect(url_for('list.show'))
+                return redirect(url_for('person.show'))
         message = None
         if request.method == "POST":
             user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
@@ -35,7 +35,7 @@ def login():
                 if not user:
                     log.error('Could not save timestamp')
                 # Ok, continue
-                return redirect(url_for('list.show'))
+                return redirect(url_for('person.show'))
             else:
                 log.error(f'{sys._getframe().f_code.co_name}: Invalid username/password')
                 message = {"status": "error", "data": "Ongeldig(e) gebruikersnaam/wachtwoord"}
@@ -97,7 +97,7 @@ def login_ss():
                     log.error('Could not save user')
                     return redirect(url_for('auth.login'))
                 # Ok, continue
-                return redirect(url_for('list.show'))
+                return redirect(url_for('person.show'))
         else:
             redirect_uri = f'{app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'
             return redirect(f'{app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')

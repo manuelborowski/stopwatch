@@ -13,6 +13,7 @@ export class ContextMenu {
         // create menu
         this.menu.innerHTML = "";
         for (const mi of menu) {
+            if ("level" in mi && mi.level > current_user.level) continue; //skip entries when level of user is too low
             const li = document.createElement("li");
             this.menu.appendChild(li);
             const span = document.createElement("span");

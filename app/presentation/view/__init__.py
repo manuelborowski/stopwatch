@@ -1,11 +1,10 @@
 __all__ = ["api", "auth", "user", "tickoff"]
 
-from app import data as dl
-
 import json
 from flask_login import current_user
-from flask import session, request
+from flask import abort
 from app import application as al, version
+from functools import wraps
 
 # logging on file level
 import logging
@@ -36,3 +35,28 @@ def fetch_return_error(msg=None):
     if not msg:
         msg = "Er ging iets fout, waarschuw ICT!"
     return json.dumps({"status": "error", "msg": msg})
+
+# apply user-level-check on routes
+def level_5_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_at_least_level_5:
+            abort(403)
+        return func(*args, **kwargs)
+    return decorated_view
+
+def level_3_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_at_least_level_3:
+            abort(403)
+        return func(*args, **kwargs)
+    return decorated_view
+
+def level_2_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_at_least_level_2:
+            abort(403)
+        return func(*args, **kwargs)
+    return decorated_view

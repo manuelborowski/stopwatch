@@ -61,11 +61,15 @@ class User(UserMixin, db.Model, SerializerMixin):
         return self.level == 1
 
     @property
-    def is_at_least_supervisor(self):
+    def is_at_least_level_2(self):
+        return self.level >= 2
+
+    @property
+    def is_at_least_level_3(self):
         return self.level >= 3
 
     @property
-    def is_at_least_admin(self):
+    def is_at_least_level_5(self):
         return self.level >= 5
 
     @property
@@ -119,7 +123,7 @@ def delete(ids=None):
 ############ user overview list #########
 def filter(query_in):
     #If the logged in user is NOT administrator, display the data of the current user only
-    if not current_user.is_at_least_admin:
+    if not current_user.is_at_least_level_5:
         return query_in.filter(User.id==current_user.id)
     return query_in
 

@@ -38,7 +38,6 @@
     {% if table_config %}
         <script>
             const table_config = {{ (table_config or []) | tojson }};
-            const current_user_is_at_least_admin = {{ current_user.is_at_least_admin | tojson }};
         </script>
         <script type="module" src="/static/js/datatables/cell_edit.js"></script>
         <script type="module" src="/static/js/datatables/dt.js"></script>

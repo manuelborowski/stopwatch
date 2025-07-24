@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from app import data as dl, application as al
+from app.presentation.view import level_2_required
 import json, datetime
 
 # logging on file level
@@ -12,11 +13,13 @@ log.addFilter(MyLogFilter())
 bp_list = Blueprint('list', __name__)
 
 @bp_list.route('/listshow', methods=['GET'])
+@level_2_required
 @login_required
 def show():
     return render_template("list.html")
 
 @bp_list.route('/list', methods=['GET', "POST", "DELETE", "UPDATE"])
+@level_2_required
 @login_required
 def list():
     ret = []
@@ -35,6 +38,7 @@ def list():
     return ret
 
 @bp_list.route('/staff', methods=["UPDATE"])
+@level_2_required
 @login_required
 def staff():
     if request.method == "UPDATE":
@@ -43,6 +47,7 @@ def staff():
     return {}
 
 @bp_list.route('/list/meta', methods=['GET'])
+@level_2_required
 def meta():
     list_colors = dl.settings.get_configuration_setting("list-colors")
     data = {

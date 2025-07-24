@@ -1,9 +1,8 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
-from app import admin_required
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
-from app.presentation.view import datatable_get_data, fetch_return_error
+from app.presentation.view import datatable_get_data
 import json, sys
 
 # logging on file level
