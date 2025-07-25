@@ -18,8 +18,9 @@ from werkzeug.routing import IntegerConverter
 # 0.6: removed obsolete files
 # 0.7: add spare badges
 # 0.8: hand out or revoke spare badges
+# 0.9: on application level, reverse the order of the data-sort.  Data filters, value must be a string.  Add no-list-option to lijst-filter
 
-version = "0.8"
+version = "0.9"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

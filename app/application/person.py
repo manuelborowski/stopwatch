@@ -205,7 +205,7 @@ def format_data(db_list, total_count=None, filtered_count=None):
     return total_count, filtered_count, out
 
 def post_sql_order(l, on, direction):
-    l.sort(reverse=direction != "desc", key=lambda x: x[on])
+    l.sort(reverse=direction == "desc", key=lambda x: x[on])
     return l
 
 def post_sql_filter(item_list, filters, count):

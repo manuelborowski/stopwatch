@@ -107,7 +107,10 @@ def pre_sql_filter(query, filters):
                 query = query.filter(Person.geslacht == f['value'])
         if f['id'] == 'lijst':
             if f['value'] != 'all':
-                query = query.filter(Person.lijst_id == f['value'])
+                if f['value'] == 'no-list':
+                    query = query.filter(Person.lijst_id == None)
+                else:
+                    query = query.filter(Person.lijst_id == f['value'])
     return query
 
 def pre_sql_search(search_string):

@@ -149,7 +149,7 @@ const __socketio_update_items = (type, msg) => {
 
 $(document).ready(async function () {
     filter_menu_items.find(filter => filter.id === "klasgroep").options = [{value: "all", label: "Alles"}].concat(meta.klasgroepen.map(k => ({value: k, label: k})));
-    filter_menu_items.find(filter => filter.id === "lijst").options = [{value: "all", label: "Alles"}].concat(meta.lijsten.map(l => ({value: l.id, label: l.name})));
+    filter_menu_items.find(filter => filter.id === "lijst").options = [{value: "all", label: "Alles"}, {value: "no-list", label: "Zonder lijst"}].concat(meta.lijsten.map(l => ({value: l.id.toString(), label: l.name})));
     datatables_init({filter_menu_items, context_menu_items});
 
     Rfid.init(meta.rfidusb);
