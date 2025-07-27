@@ -55,21 +55,40 @@ export const datatable_row_data_from_target = target => {
 export function datatable_update_cell(row_id, column_name, value) {
     let row_idx = ctx.table.row(`#${row_id}`).index();
     let column_idx = datatable_column2index[column_name];
-    ctx.table.cell(row_idx, column_idx).data(value);
+    ctx.table.cell(row_idx, column_idx).data(value).draw();
+}
+
+export function datatable_filter(column_name, value) {
+    let column_idx = datatable_column2index[column_name];
+    ctx.table.column(column_idx).search(value).draw();
+}
+
+export function datatable_row_add(row) {
+    ctx.table.row.add(row).draw();
+}
+
+export function datatable_table_add(table) {
+    ctx.table.clear().rows.add(table).draw();
 }
 
 export function datatable_reload_table() {
     ctx.table.ajax.reload();
 }
 
-export const datatables_init = ({context_menu_items=[], filter_menu_items=[], button_menu_items=[], callbacks={}}) => {
+const __filter_changed_cb = (id, value) => {
+    if (ctx.server_side) datatable_reload_table();
+}
+
+export const datatables_init = ({context_menu_items = [], filter_menu_items = [], button_menu_items = [], callbacks = {}, initial_data = []}) => {
     ctx = {table_config, reload_table: datatable_reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
 
     ctx.context_menu = new ContextMenu(document.querySelector("#datatable"), context_menu_items);
     ctx.context_menu.subscribe_get_ids(mouse_get_ids);
-    ctx.filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, datatable_reload_table, ctx.table_config.view);
+    ctx.filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, __filter_changed_cb, ctx.table_config.view);
+
+    ctx.server_side = initial_data.length === 0; // Get data from te server
 
     // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];
@@ -98,13 +117,13 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         if ("bool" in v) v.render = function (data, type, full, meta) {return data === true ? "&#10003;" : "";};
         if ("label" in v) v.render = function (data, type, full, meta) {return v.label.labels[data];}
         if ("color" in v) {
-            const render="render" in v ? v.render : null;
+            const render = "render" in v ? v.render : null;
             v.render = function (data, type, full, meta) {
                 if (render) data = render(data);
                 return `<div style="background:${v.color.colors[ctx.table.cell(meta.row, meta.col).data()]};">${data}</div>`
             }
         }
-        if ("less" in v) v.render = function (data, type, full, meta) {return data < v.less.than ? ("then" in v.less ? v.less.then : data)  : ("else" in v.less ? v.less.else : data);}
+        if ("less" in v) v.render = function (data, type, full, meta) {return data < v.less.than ? ("then" in v.less ? v.less.then : data) : ("else" in v.less ? v.less.else : data);}
         if ("display" in v) {
             v.render = function (data, typen, full, meta) {
                 let values = [];
@@ -119,7 +138,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                 var template = values[0];
                 if ("template" in v.display) {
                     template = v.display.template;
-                    for (let i=0; i < values.length; i++) template = template.replace(`%${i}%`, values[i]);
+                    for (let i = 0; i < values.length; i++) template = template.replace(`%${i}%`, values[i]);
                 }
                 if (color) {
                     return `<div style="background:${color};">${template}</div>`
@@ -134,22 +153,15 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
     // get data from server and send to datatables to render it
     let __datatable_data_cb = null;
     const data_from_server = (type, data) => {
-       busy_indication_off();
+        busy_indication_off();
         __datatable_data_cb(data);
     }
     socketio.subscribe_on_receive(`${ctx.table_config.view}-datatable-data`, data_from_server);
 
     let datatable_config = {
         autoWidth: false,
-        serverSide: true,
         stateSave: true,
         stateDuration: 0,
-        ajax: function (data, cb, settings) {
-            busy_indication_on();
-            let filters = ctx.filter_menu.filters;
-            socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {filters}));
-            __datatable_data_cb = cb;
-        },
         pagingType: "full_numbers",
         columns: ctx.table_config.template,
         language: {url: "static/datatables/dutch.json"},
@@ -188,7 +200,6 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         preDrawCallback: function (settings) {
             __calc_column_shift();
         },
-
         drawCallback: function (settings) {
             if (ctx.cell_to_color) {
                 ctx.table.cells().every(function () {
@@ -203,6 +214,19 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         initComplete: function () {
             new ColumnVisibility(document.querySelector('.column-visible-placeholder'), table_config.template, (column, visible) => ctx.table.column(column).visible(visible), table_config.view);
         },
+    }
+
+    if (ctx.server_side) {
+        datatable_config.ajax = function (data, cb, settings) {
+            busy_indication_on();
+            let filters = ctx.filter_menu.filters;
+            socketio.send_to_server(`${ctx.table_config.view}-datatable-data`, $.extend({}, data, {filters}));
+            __datatable_data_cb = cb;
+        };
+        datatable_config.serverSide = true;
+    } else {
+        datatable_config.serverSide = false;
+        datatable_config.data = initial_data;
     }
 
     if ("default_order" in table_config) {
@@ -226,7 +250,7 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
         ctx.table.draw();
     });
 
-    const update_cell_changed  =  data=>  {socketio.send_to_server(`${ctx.table_config.view}-cell-update`, data);}
+    const update_cell_changed = data => {socketio.send_to_server(`${ctx.table_config.view}-cell-update`, data);}
 
     const __cell_edit_changed_cb = ($dt_row, column_index, new_value, old_value) => {
         const value = ctx.table_config.template[column_index].celledit.value_type === 'int' ? parseInt(new_value) : new_value;
@@ -286,18 +310,17 @@ export const datatables_init = ({context_menu_items=[], filter_menu_items=[], bu
                 detail_rows_cache.splice(idx, 1);
             } else {
                 let tx_data = {"id": row.data().DT_RowId};
-                $.getJSON(Flask.url_for('reviewed.get_row_detail', {'data': JSON.stringify(tx_data)}),
-                    function (rx_data) {
-                        if (rx_data.status) {
-                            row.child(format_row_detail(rx_data.details)).show();
-                            tr.addClass('details');
-                            if (idx === -1) {
-                                detail_rows_cache.push(tr.attr('DT_RowId'));
-                            }
-                        } else {
-                            bootbox.alert('Fout: kan details niet ophalen');
+                $.getJSON(Flask.url_for('reviewed.get_row_detail', {'data': JSON.stringify(tx_data)}), function (rx_data) {
+                    if (rx_data.status) {
+                        row.child(format_row_detail(rx_data.details)).show();
+                        tr.addClass('details');
+                        if (idx === -1) {
+                            detail_rows_cache.push(tr.attr('DT_RowId'));
                         }
-                    });
+                    } else {
+                        bootbox.alert('Fout: kan details niet ophalen');
+                    }
+                });
             }
         });
     }

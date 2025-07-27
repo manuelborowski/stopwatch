@@ -1,6 +1,7 @@
 import {ButtonMenu} from "./common/button_menu.js";
 
 var menu = [
+    { endpoint: "checkin.show", label: "Aanmelden", userlevel: 2 },
     { endpoint: "person.show", label: "Deelnemers", userlevel: 1 },
     { endpoint: "list.show", label: "Lijsten", userlevel: 2},
     { endpoint: "spare.show", label: "Reserve badges", userlevel: 2},

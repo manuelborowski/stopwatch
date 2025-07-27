@@ -45,7 +45,7 @@ export class FilterMenu {
                     select.addEventListener("change", e => {
                         this.store_set_item(e.target.id, e.target.value);
                         if ("cb" in this.menu_cache[e.target.id]) this.menu_cache[e.target.id].cb(e.target.value);
-                        this.changed_cb();
+                        this.changed_cb(e.target.id, e.target.value);
                     })
                     if (!("source" in item)) {
                         const default_value = this.filter_cache[item.id];
@@ -61,7 +61,7 @@ export class FilterMenu {
                     checkbox.addEventListener("click", e => {
                         this.store_set_item(e.target.id, e.target.value);
                         if ("cb" in this.menu_cache[e.target.id]) this.menu_cache[e.target.id].cb(e.target.value);
-                        this.changed_cb();
+                        this.changed_cb(e.target.id, e.target.value);
                     });
                     this.store_set_item(item.id, default_value, true);
                 } else if (item.type === "button") {

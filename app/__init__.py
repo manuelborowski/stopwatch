@@ -19,8 +19,9 @@ from werkzeug.routing import IntegerConverter
 # 0.7: add spare badges
 # 0.8: hand out or revoke spare badges
 # 0.9: on application level, reverse the order of the data-sort.  Data filters, value must be a string.  Add no-list-option to lijst-filter
+# 0.10: add checkin page.  Reworked columns visibility, seems to be buggy when loading data locally iso ajax.  Reworked datatables, filter and column visibility to handle local data
 
-version = "0.9"
+version = "0.10"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -88,7 +89,7 @@ ap_scheduler.init_app(app)
 ap_scheduler.start()
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, list, person, spare
+from app.presentation.view import auth, api, user, settings, list, person, spare, checkin
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
@@ -96,3 +97,4 @@ app.register_blueprint(settings.bp_settings)
 app.register_blueprint(list.bp_list)
 app.register_blueprint(person.bp_person)
 app.register_blueprint(spare.bp_spare)
+app.register_blueprint(checkin.bp_checkin)

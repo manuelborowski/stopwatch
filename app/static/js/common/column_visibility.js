@@ -1,4 +1,3 @@
-
 export class ColumnVisibility {
     constructor(placeholder, column_list, visibility_changed_cb, id) {
         // Settings are locally stored
@@ -13,17 +12,12 @@ export class ColumnVisibility {
         }
         // create the buttons on top of the page
         this.settings.forEach((column, i) => {
-            if (column.visible === 'always') {
-                    this.visibility_changed_cb(i, true);
-            } else if (column.visible === 'never') {
-                    this.visibility_changed_cb(i, false);
-            } else {
+            if (!['always', "never"].includes(column.visible)) {
                 let a = document.createElement('p');
                 a.appendChild(document.createTextNode(`${column.name}`));
                 a.setAttribute("title", column.tt);
                 a.setAttribute("data-column", i);
                 a.setAttribute("class", column.visible === 'yes' ? "column-visible-a" : "column-invisible-a")
-                this.visibility_changed_cb(i, column.visible === 'yes');
                 a.addEventListener('click', e => {
                     e.preventDefault();
                     const column = e.currentTarget.dataset.column;
@@ -42,6 +36,15 @@ export class ColumnVisibility {
                 });
                 placeholder.appendChild(a);
                 placeholder.style.display = "flex";
+            }
+        });
+        this.settings.forEach((column, i) => {
+            if (column.visible === 'always') {
+                if (column.data !== "row_action") this.visibility_changed_cb(i, true); // Bug?  When using local data store (no ajax), it is not possible to change the visibility of the first column
+            } else if (column.visible === 'never') {
+                this.visibility_changed_cb(i, false);
+            } else {
+                this.visibility_changed_cb(i, column.visible === 'yes');
             }
         });
     }

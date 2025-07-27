@@ -91,6 +91,7 @@ default_configuration_settings = {
 
     'user-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'person-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
+    'checkin-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
     'spare-datatables-template': ({}, Settings.SETTING_TYPE.E_YAML),
 
     'cron-scheduler-template': ('', Settings.SETTING_TYPE.E_STRING),
