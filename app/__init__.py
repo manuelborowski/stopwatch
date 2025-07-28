@@ -20,8 +20,9 @@ from werkzeug.routing import IntegerConverter
 # 0.8: hand out or revoke spare badges
 # 0.9: on application level, reverse the order of the data-sort.  Data filters, value must be a string.  Add no-list-option to lijst-filter
 # 0.10: add checkin page.  Reworked columns visibility, seems to be buggy when loading data locally iso ajax.  Reworked datatables, filter and column visibility to handle local data
+# 0.11: columns visibility, add page load, handle invisible columns only
 
-version = "0.10"
+version = "0.11"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

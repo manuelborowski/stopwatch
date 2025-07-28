@@ -43,8 +43,8 @@ export class ColumnVisibility {
                 if (column.data !== "row_action") this.visibility_changed_cb(i, true); // Bug?  When using local data store (no ajax), it is not possible to change the visibility of the first column
             } else if (column.visible === 'never') {
                 this.visibility_changed_cb(i, false);
-            } else {
-                this.visibility_changed_cb(i, column.visible === 'yes');
+            } else if (column.visible === 'no') {
+                this.visibility_changed_cb(i, false);
             }
         });
     }
