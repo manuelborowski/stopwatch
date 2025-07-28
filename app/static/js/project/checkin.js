@@ -40,55 +40,10 @@ const filter_menu_items = [
 const __socketio_update_items = (type, msg) => {
     if (msg.status) {
         for (const item of msg.data) {
-            if ("rfid" in item) datatable_update_cell(item.id, "rfid", item.rfid);
-            if ("temp_badge" in item) datatable_update_cell(item.id, "temp_badge", item.temp_badge);
+            if ("checkin_time" in item) datatable_update_cell(item.id, "checkin_time", item.checkin_time);
         }
     }
 }
-
-const __add_row = () => {
-    datatable_row_add({
-        row_action: "3",
-        DT_RowId: "3",
-        id: "3",
-        deelschool: "sul",
-        jaar: "1",
-        graad: "1",
-        lijst: null,
-        voornaam: "vc",
-        naam: "nc",
-        roepnaam: "rc",
-        geslacht: "gc",
-        rfid: "rc",
-        klasgroep: "kc",
-        instellingsnummer: "ic",
-        informatnummer: "ic",
-        lijst_id: null,
-        register_time: "",
-        new_rfid_time: "",
-        stop_time: "",
-        temp_badge: "",
-    })
-}
-
-const __update_cell = () => {
-    datatable_update_cell(1, "roepnaam", "zzz")
-}
-
-const button_menu_items = [
-    {
-        type: 'button',
-        id: 'add-row',
-        label: 'nieuwe rij',
-        cb: () => __add_row()
-    },
-    {
-        type: 'button',
-        id: 'update-cel',
-        label: 'cell aanpassen',
-        cb: () => __update_cell()
-    },
-]
 
 $(document).ready(async function () {
     filter_menu_items.find(filter => filter.id === "klasgroep").options = [{value: "all", label: "Alles"}].concat(meta.klasgroepen.map(k => ({value: k, label: k})));
@@ -101,20 +56,21 @@ $(document).ready(async function () {
         return p
     });
     const initial_data = persons.length > 0 ? persons : [];
-    datatables_init({filter_menu_items, button_menu_items, initial_data});
+    datatables_init({filter_menu_items, initial_data});
 
     Rfid.init(meta.rfidusb);
-    Rfid.set_location("new-rfid");
+    Rfid.set_location("checkin");
     Rfid.set_managed_state(true);
 
     // Even on the checkin page, it is possible to get status-popups
     socketio.subscribe_to_room(meta.my_ip);
+    socketio.subscribe_to_room("checkin");
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
-    socketio.subscribe_on_receive("update-items-in-list-of-persons", __socketio_update_items);
+    socketio.subscribe_on_receive("update-items-in-list-of-checkins", __socketio_update_items);
 
-    // In case multiple tabs/browsers to this page are opened, the Rfid-location (new-rfid) is set the one that is in focus.
+    // In case multiple tabs/browsers to this page are opened, the Rfid-location (checkin) is set the one that is in focus.
     document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) Rfid.set_location("new-rfid");
+        if (!document.hidden) Rfid.set_location("checkin");
     });
 });
 

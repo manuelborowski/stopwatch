@@ -77,6 +77,16 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                     {"to": "ip", "type": "update-items-in-list-of-persons", "data": {"status": True, "data": [{"id": person.id, "rfid": person.rfid, "temp_badge": person.temp_badge}]}}]
             log.info(f'{sys._getframe().f_code.co_name}:  No valid reservation for {location_key}')
             return [{"to": "ip", "type": "alert-popup", "data": f"Nieuwe RFID niet gelukt.  Misschien te lang gewacht met scannen, probeer nogmaals"}]
+        elif location_key == "checkin":
+            persons = dl.person.get_m([("rfid", "=", rfid)])
+            if persons:
+                person = persons[0]
+                person.checkin_time = now
+                dl.person.commit()
+                log.info(f'{sys._getframe().f_code.co_name}:  Check in for {person.informatnummer}, {person.naam} {person.voornaam}, {now}')
+                return [{"to": "location", "type": "update-items-in-list-of-checkins", "data": {"status": True, "data": [{"id": person.id, "checkin_time": str(person.checkin_time)}]}}]
+            log.info(f'{sys._getframe().f_code.co_name}:  RFID not found {rfid}')
+            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"}]
         log.info(f'{sys._getframe().f_code.co_name}:  rif/leerlingnummer {rfid}/{leerlingnummer} not found in database')
         return [{"to": "ip", "type": "alert-popup", "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"}]
     except Exception as e:

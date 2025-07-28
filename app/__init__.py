@@ -21,8 +21,9 @@ from werkzeug.routing import IntegerConverter
 # 0.9: on application level, reverse the order of the data-sort.  Data filters, value must be a string.  Add no-list-option to lijst-filter
 # 0.10: add checkin page.  Reworked columns visibility, seems to be buggy when loading data locally iso ajax.  Reworked datatables, filter and column visibility to handle local data
 # 0.11: columns visibility, add page load, handle invisible columns only
+# 0.12: check in is ok.
 
-version = "0.11"
+version = "0.12"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
