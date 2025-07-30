@@ -10,6 +10,7 @@ const template =
                 {label: "Gebruikers", name: "user-datatables-template", type: "textarea"},
                 {label: "Personen", name: "person-datatables-template", type: "textarea"},
                 {label: "Aanmelden", name: "checkin-datatables-template", type: "textarea"},
+                {label: "Resultaten", name: "result-datatables-template", type: "textarea"},
                 {label: "Reserve badges", name: "spare-datatables-template", type: "textarea"},
             ]
         },

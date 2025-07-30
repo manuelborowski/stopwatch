@@ -22,8 +22,9 @@ from werkzeug.routing import IntegerConverter
 # 0.10: add checkin page.  Reworked columns visibility, seems to be buggy when loading data locally iso ajax.  Reworked datatables, filter and column visibility to handle local data
 # 0.11: columns visibility, add page load, handle invisible columns only
 # 0.12: check in is ok.
+# 0.13: add result page and functionality
 
-version = "0.12"
+version = "0.13"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -91,7 +92,7 @@ ap_scheduler.init_app(app)
 ap_scheduler.start()
 
 # Should be last to avoid circular import
-from app.presentation.view import auth, api, user, settings, list, person, spare, checkin
+from app.presentation.view import auth, api, user, settings, list, person, spare, checkin, result
 app.register_blueprint(auth.bp_auth)
 app.register_blueprint(api.bp_api)
 app.register_blueprint(user.bp_user)
@@ -100,3 +101,4 @@ app.register_blueprint(list.bp_list)
 app.register_blueprint(person.bp_person)
 app.register_blueprint(spare.bp_spare)
 app.register_blueprint(checkin.bp_checkin)
+app.register_blueprint(result.bp_result)

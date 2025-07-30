@@ -24,6 +24,8 @@ def __process_options(options):
                 for operator in filter_operators:
                     if operator in filter:
                         k, v = filter.split(operator)
+                        if v == "null":
+                            v = None
                         filters.append((k, operator[1:-1], v))
                         break
         start = int(options["start"]) if "start" in options else None

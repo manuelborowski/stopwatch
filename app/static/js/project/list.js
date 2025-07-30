@@ -217,8 +217,10 @@ class List {
         if (parseInt(row.dataset.id) <= -1 || row.dataset.id in this.timer_cache) return
         const time_div = row.querySelector(".div-item-time");
         const now = new Date();
+        const formatted_now = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ` +
+                  `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
         this.timer_cache[row.dataset.id] = {start: now, element: time_div};
-        await fetch_update("list.list", [{id: row.dataset.id, start_time: now.toJSON().slice(0, 10) + " " + now.toJSON().slice(11, 19)}]);
+        await fetch_update("list.list", [{id: row.dataset.id, start_time: formatted_now}]);
         localStorage.setItem("list-timers", JSON.stringify(this.timer_cache));
     }
 
@@ -226,7 +228,7 @@ class List {
         if (parseInt(row.dataset.id) <= -1 || !(row.dataset.id in this.timer_cache)) return
         this.timer_cache[row.dataset.id].element.innerHTML = "00:00:00";
         delete this.timer_cache[row.dataset.id];
-        await fetch_update("list.list", [{id: row.dataset.id, start_time: null}]);
+        await fetch_update("list.list", [{id: row.dataset.id, start_time: null, current_place: 1}]);
         localStorage.setItem("list-timers", JSON.stringify(this.timer_cache));
     }
 

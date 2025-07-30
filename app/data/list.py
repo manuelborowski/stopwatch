@@ -14,6 +14,7 @@ class List(db.Model, SerializerMixin):
     name = db.Column(db.String(256), default='')
     color = db.Column(db.String(256), default='')
     start_time = db.Column(db.DateTime)
+    current_place = db.Column(db.Integer(), default=1)
 
 def commit():
     return app.data.models.commit()

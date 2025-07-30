@@ -63,8 +63,13 @@ export function datatable_filter(column_name, value) {
     ctx.table.column(column_idx).search(value).draw();
 }
 
-export function datatable_row_add(row) {
-    ctx.table.row.add(row).draw();
+export function datatable_rows_add(rows) {
+    ctx.table.rows.add(rows).draw();
+}
+
+export function datatable_rows_delete(ids) {
+    ids.forEach(id => ctx.table.row(`#${id}`).remove());
+    ctx.table.draw(false);
 }
 
 export function datatable_table_add(table) {
@@ -79,7 +84,7 @@ const __filter_changed_cb = (id, value) => {
     if (ctx.server_side) datatable_reload_table();
 }
 
-export const datatables_init = ({context_menu_items = [], filter_menu_items = [], button_menu_items = [], callbacks = {}, initial_data = []}) => {
+export const datatables_init = ({context_menu_items = [], filter_menu_items = [], button_menu_items = [], callbacks = {}, initial_data = null}) => {
     ctx = {table_config, reload_table: datatable_reload_table}
     ctx.cell_to_color = "color_keys" in table_config ? table_config.cell_color.color_keys : null;
     ctx.suppress_cell_content = "color_keys" in table_config ? table_config.cell_color.supress_cell_content : null;
@@ -88,7 +93,7 @@ export const datatables_init = ({context_menu_items = [], filter_menu_items = []
     ctx.context_menu.subscribe_get_ids(mouse_get_ids);
     ctx.filter_menu = new FilterMenu(document.querySelector(".filter-menu-placeholder"), filter_menu_items, __filter_changed_cb, ctx.table_config.view);
 
-    ctx.server_side = initial_data.length === 0; // Get data from te server
+    ctx.server_side = initial_data === null; // Get data from te server
 
     // when columns are hidden, this array maps the real column index on the visible column index
     let column_shifter = [];

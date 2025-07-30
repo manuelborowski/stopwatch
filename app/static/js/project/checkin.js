@@ -1,5 +1,5 @@
-import {datatables_init, datatable_reload_table, datatable_row_data_from_id, datatable_update_cell, datatable_row_add, datatable_filter, datatable_table_add} from "../datatables/dt.js";
-import {fetch_get, fetch_update, now_iso_string} from "../common/common.js";
+import {datatables_init, datatable_update_cell, datatable_filter} from "../datatables/dt.js";
+import {fetch_get} from "../common/common.js";
 import {Rfid} from "../common/rfidusb.js";
 import {socketio} from "../common/socketio.js";
 import {AlertPopup} from "../common/popup.js";

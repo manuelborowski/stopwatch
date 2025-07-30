@@ -36,6 +36,16 @@ def update(data):
             person.new_rfid_time = data["new_rfid_time"]
             dl.person.commit()
             return {"status": "ok", "msg": "Nu badgen aub"}
+        elif ("result_place" in data):
+            persons = dl.person.get_m(("id", "in", data["ids"]))
+            for p in persons:
+                p.result_place = data["result_place"]
+                p.result_time = data["result_time"]
+            dl.person.commit()
+            if (data["result_place"] is None):
+                return {"status": "ok", "msg": "Uitslag(en) verwijderd"}
+            else:
+                return {"status": "ok", "msg": "Uitslag(en) toegevoegd"}
         return {"status": "error", "msg": f"Onbekende operatie: {data}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
@@ -48,11 +58,9 @@ def update(data):
 def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=None):
     try:
         if timestamp:
-            now = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+            now = datetime.datetime.strptime(timestamp + "000", "%Y-%m-%dT%H:%M:%S.%f")
         else:
             now = datetime.datetime.now()
-        now = now.replace(microsecond=0)
-        today = now.date()
         if location_key == "new-rfid":
             reservation_margin = app.config["NEW_RFID_MARGIN"]
             minimum_reservation_time = now - datetime.timedelta(seconds=reservation_margin)
@@ -85,6 +93,28 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                 dl.person.commit()
                 log.info(f'{sys._getframe().f_code.co_name}:  Check in for {person.informatnummer}, {person.naam} {person.voornaam}, {now}')
                 return [{"to": "location", "type": "update-items-in-list-of-checkins", "data": {"status": True, "data": [{"id": person.id, "checkin_time": str(person.checkin_time)}]}}]
+            log.info(f'{sys._getframe().f_code.co_name}:  RFID not found {rfid}')
+            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"}]
+        elif location_key == "result":
+            person = dl.person.get([("rfid", "=", rfid)])
+            if person:
+                if person.result_time:
+                    log.info(f'{sys._getframe().f_code.co_name}:  Already result for {person.naam} {person.voornaam}, {person.result_time}, {person.result_place}')
+                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} heeft al een uitslag"}]
+                else:
+                    list = dl.list.get(("id", "=", person.lijst_id))
+                    if list:
+                        if list.start_time:
+                            person.result_time = (now - list.start_time) / datetime.timedelta(milliseconds=1)
+                            person.result_place = list.current_place
+                            list.current_place += 1
+                            dl.person.commit()
+                            log.info(f'{sys._getframe().f_code.co_name}:  Result in for  {person.naam} {person.voornaam}, {person.result_time}, {person.result_place}')
+                            return [{"to": "location", "type": "add-items-to-list-of-results", "data": {"status": True, "data": [person.to_dict()]}}]
+                        log.info(f'{sys._getframe().f_code.co_name}:  List not started yet {list.name}')
+                        return [{"to": "ip", "type": "alert-popup", "data": f"Lijst {list.name} Is nog niet gestart!"}]
+                    log.info(f'{sys._getframe().f_code.co_name}:  Not in list yet {person.naam} {person.voornaam}')
+                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} staat nog niet op een lijst"}]
             log.info(f'{sys._getframe().f_code.co_name}:  RFID not found {rfid}')
             return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"}]
         log.info(f'{sys._getframe().f_code.co_name}:  rif/leerlingnummer {rfid}/{leerlingnummer} not found in database')

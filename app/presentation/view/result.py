@@ -9,12 +9,12 @@ import logging
 from app import MyLogFilter, top_log_handle, app
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
-bp_checkin = Blueprint('checkin', __name__)
+bp_result = Blueprint('result', __name__)
 
-@bp_checkin.route('/checkinshow', methods=['GET', 'POST'])
+@bp_result.route('/resultshow', methods=['GET', 'POST'])
 @login_required
 def show():
-    return render_template("checkin.html", table_config=config.create_table_config())
+    return render_template("result.html", table_config=config.create_table_config())
 
 class Config(DatatableConfig):
     def pre_sql_query(self):
@@ -35,5 +35,5 @@ class Config(DatatableConfig):
     def post_sql_filter(self, l, filter, count):
         return al.person.post_sql_filter(l, filter, count)
 
-config = Config("checkin", "Aanmelden")
+config = Config("result", "Uitslag")
 

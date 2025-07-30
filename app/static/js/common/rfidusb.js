@@ -15,6 +15,7 @@ export class Rfid {
         Rfid.__api_url = configuration.api_url;
         Rfid.__server_key = configuration.server_key;
         Rfid.__server_url = configuration.server_url;
+        Rfid.__resolution = "resolution" in configuration ? configuration.resolution : "second";
     }
 
     static set_managed_state = state => {
@@ -35,6 +36,11 @@ export class Rfid {
             }
             if (Rfid.__server_key !== null && state) {
                 const ret = await fetch(`${Rfid.__api_url}/api_key/${Rfid.__server_key}`, {method: 'POST'});
+                const status = await ret.json();
+                state = (status === "ok") && state;
+            }
+            if (Rfid.__resolution !== null && state) {
+                const ret = await fetch(`${Rfid.__api_url}/resolution/${Rfid.__resolution}`, {method: 'POST'});
                 const status = await ret.json();
                 state = (status === "ok") && state;
             }
