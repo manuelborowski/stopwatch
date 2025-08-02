@@ -23,8 +23,9 @@ from werkzeug.routing import IntegerConverter
 # 0.11: columns visibility, add page load, handle invisible columns only
 # 0.12: check in is ok.
 # 0.13: add result page and functionality
+# 0.14: added test-rfid
 
-version = "0.13"
+version = "0.14"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

@@ -1,6 +1,5 @@
 from app import data as dl, application as al
 import sys, requests
-from thefuzz import process
 
 # logging on file level
 import logging
