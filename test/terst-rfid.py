@@ -35,6 +35,7 @@ def send_rfids_to_server(location="result", wait=1, nbr=1):
         while idx and rfids:
             idx -= 1
             rfid = rfids.pop(0)
+            if rfid == "": continue
             timestamp = datetime.datetime.now().isoformat()[:23]
             requests.post(f"{RFIDUSB_SERVER_URL}/api/registration/add", headers={'x-api-key': RFIDUSB_SERVER_KEY}, json={"location_key": location, "badge_code": rfid, "timestamp": timestamp})
             sleep(wait)

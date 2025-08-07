@@ -24,8 +24,9 @@ from werkzeug.routing import IntegerConverter
 # 0.12: check in is ok.
 # 0.13: add result page and functionality
 # 0.14: added test-rfid
+# 0.15: result -> place is calculated dynamically in the browser and is not maintained in the database.  This allows priming a list (load the result page), adding new results and removing results.
 
-version = "0.14"
+version = "0.15"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

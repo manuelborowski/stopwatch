@@ -14,16 +14,6 @@ bp_auth = Blueprint('auth', __name__, )
 @bp_auth.route('/', methods=["GET", 'POST'])
 def login():
     try:
-        # local server, auto login
-        if "AUTO_LOGIN" in app.config and app.config["AUTO_LOGIN"]:
-            if "AUTO_USER" in app.config:
-                user = dl.user.get(('username', "=", app.config["AUTO_USER"]))
-                login_user(user)
-                log.info(u'user {} logged in'.format(user.username))
-                user = dl.user.update(user, {"last_login": datetime.datetime.now()})
-                if not user:
-                    log.error('Could not save timestamp')
-                return redirect(url_for('person.show'))
         message = None
         if request.method == "POST":
             user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
@@ -103,3 +93,18 @@ def login_ss():
             return redirect(f'{app.config["SMARTSCHOOL_OAUTH_SERVER"]}?app_uri={redirect_uri}')
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
+
+@bp_auth.route(f'/{app.config["AUTO_LOGIN_URL"] if "AUTO_LOGIN_URL" in app.config else "NA1"}', methods=['POST', 'GET'])
+def auto_login_generic():
+    # remote server, generic auto login
+    if "AUTO_LOGIN_URL" in app.config:
+        if "AUTO_USER" in app.config:
+            user = dl.user.get (('username', "c=", app.config["AUTO_USER"])) # c= : case sensitive comparison
+            login_user(user)
+            log.info(u'user {} logged in'.format(user.username))
+            user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+            if not user:
+                log.error('Could not save timestamp')
+            return redirect(url_for('person.show'))
+    return render_template('login.html', message=None)
+

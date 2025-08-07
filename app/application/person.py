@@ -6,6 +6,8 @@ import logging
 from app import MyLogFilter, top_log_handle, app
 import datetime
 
+from app.application.socketio import send_to_room
+
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
@@ -35,13 +37,13 @@ def update(data):
             person.new_rfid_time = data["new_rfid_time"]
             dl.person.commit()
             return {"status": "ok", "msg": "Nu badgen aub"}
-        elif ("result_place" in data):
+        elif ("result_time" in data):
             persons = dl.person.get_m(("id", "in", data["ids"]))
             for p in persons:
-                p.result_place = data["result_place"]
                 p.result_time = data["result_time"]
             dl.person.commit()
-            if (data["result_place"] is None):
+            send_to_room({"type": "delete-items-from-list-of-results", "data": {"status": True, "data": [p.to_dict() for p in persons]}}, "result")
+            if (data["result_time"] is None):
                 return {"status": "ok", "msg": "Uitslag(en) verwijderd"}
             else:
                 return {"status": "ok", "msg": "Uitslag(en) toegevoegd"}
@@ -98,18 +100,16 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
             person = dl.person.get([("rfid", "=", rfid)])
             if person:
                 if person.result_time:
-                    log.info(f'{sys._getframe().f_code.co_name}:  Already result for {person.naam} {person.voornaam}, {person.result_time}, {person.result_place}')
+                    log.info(f'{sys._getframe().f_code.co_name}:  Already result for {person.naam} {person.voornaam}, {person.result_time}')
                     return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} heeft al een uitslag"}]
                 else:
                     list = dl.list.get(("id", "=", person.lijst_id))
                     if list:
                         if list.start_time:
                             person.result_time = (now - list.start_time) / datetime.timedelta(milliseconds=1)
-                            person.result_place = list.current_place
-                            list.current_place += 1
                             dl.person.commit()
-                            log.info(f'{sys._getframe().f_code.co_name}:  Result in for  {person.naam} {person.voornaam}, {person.result_time}, {person.result_place}')
-                            return [{"to": "location", "type": "add-items-to-list-of-results", "data": {"status": True, "data": [person.to_dict()]}}]
+                            log.info(f'{sys._getframe().f_code.co_name}:  Result in for  {person.naam} {person.voornaam}, {person.result_time}')
+                            return [{"to": "location", "type": "add-item-to-list-of-results", "data": {"status": True, "data": person.to_dict()}}]
                         log.info(f'{sys._getframe().f_code.co_name}:  List not started yet {list.name}')
                         return [{"to": "ip", "type": "alert-popup", "data": f"Lijst {list.name} Is nog niet gestart!"}]
                     log.info(f'{sys._getframe().f_code.co_name}:  Not in list yet {person.naam} {person.voornaam}')

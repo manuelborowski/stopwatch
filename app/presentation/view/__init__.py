@@ -1,6 +1,6 @@
 __all__ = ["api", "auth", "user"]
 
-import json
+import json, sys
 from flask_login import current_user
 from flask import abort
 from app import application as al, version

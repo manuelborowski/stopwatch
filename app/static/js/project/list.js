@@ -228,7 +228,7 @@ class List {
         if (parseInt(row.dataset.id) <= -1 || !(row.dataset.id in this.timer_cache)) return
         this.timer_cache[row.dataset.id].element.innerHTML = "00:00:00";
         delete this.timer_cache[row.dataset.id];
-        await fetch_update("list.list", [{id: row.dataset.id, start_time: null, current_place: 1}]);
+        await fetch_update("list.list", [{id: row.dataset.id, start_time: null}]);
         localStorage.setItem("list-timers", JSON.stringify(this.timer_cache));
     }
 

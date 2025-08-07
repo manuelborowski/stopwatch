@@ -49,36 +49,83 @@ const __milliseconds2string = ms => {
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${padMs(milliseconds)}`;
 }
 
+// To facilitate adding and removing persons
+const person_cache = {};
+
+const __create_person_cache = persons => {
+    for (const person of persons) {
+        const list_id = person.lijst_id;
+        if (!person_cache[list_id]) {
+            person_cache[list_id] = [];
+        }
+        person_cache[list_id].push(person);
+    }
+    for (const list_id in person_cache) {
+        person_cache[list_id].sort((a, b) => a.result_time - b.result_time);
+        person_cache[list_id].forEach((p, index) => {
+            p.place = index + 1;
+            p.row_action = p.id;
+            p.DT_RowId = p.id;
+            p.lijst = p.lijst_id in lijsten_cache ? lijsten_cache[p.lijst_id].name : "NVT";
+            p.result_time = __milliseconds2string(p.result_time);
+        });
+    }
+}
+
+const __add_person_to_cache = person => {
+    const list_id = person.lijst_id;
+    if (!person_cache[list_id]) person_cache[list_id] = [];
+    person_cache[list_id].push(person);
+    person.place = person_cache[list_id].length;
+    person.row_action = person.id;
+    person.DT_RowId = person.id;
+    person.lijst = person.lijst_id in lijsten_cache ? lijsten_cache[person.lijst_id].name : "NVT";
+    person.result_time = __milliseconds2string(person.result_time);
+}
+
+const __delete_persons_from_cache = persons => {
+    const lijst_ids = [];
+    for (const person of persons) {
+        const index = person_cache[person.lijst_id].findIndex(p => person.id === p.id);
+        person_cache[person.lijst_id].splice(index, 1);
+        lijst_ids.push(person.lijst_id);
+    }
+    for (const list_id of [...new Set(lijst_ids)]) person_cache[list_id].forEach((p, index) => {
+        p.place = index + 1;
+        datatable_update_cell(p.id, "place", p.place);
+    });
+}
+
 // Called by the server when one or more items are updated in the list
 const __socketio_update_items = (type, msg) => {
     if (msg.status) {
         for (const item of msg.data) {
             if ("result_time" in item) datatable_update_cell(item.id, "result_time", __milliseconds2string(item.result_time));
-            if ("result_place" in item) datatable_update_cell(item.id, "result_place", item.result_place);
         }
     }
 }
 
-// Called by the server when one or more items are added to the list
-const __socketio_add_items = (type, msg) => {
+// Called by the server when one item is added to the list
+const __socketio_add_item = (type, msg) => {
     if (msg.status) {
-        const persons = msg.data.map(p => {
-            p.row_action = p.id;
-            p.DT_RowId = p.id;
-            p.lijst = p.lijst_id in lijsten_cache ? lijsten_cache[p.lijst_id].name : "NVT";
-            p.result_time = __milliseconds2string(p.result_time);
-            return p
-        });
-        datatable_rows_add(persons);
+        __add_person_to_cache(msg.data);
+        datatable_rows_add([msg.data]);
+    }
+}
+
+// Called by the server when items are removed from the list
+const __socketio_delete_items = (type, msg) => {
+    if (msg.status) {
+        __delete_persons_from_cache(msg.data);
+        datatable_rows_delete(msg.data.map(p => p.id));
     }
 }
 
 const __delete_result = async (ids) => {
     bootbox.confirm("Uitslag verwijderen?", async result => {
         if (result) {
-            await fetch_update("person.person", {result_place: null, result_time: null, ids});
-            datatable_rows_delete(ids);
-       }
+            await fetch_update("person.person", {result_time: null, ids});
+        }
     });
 }
 
@@ -90,13 +137,9 @@ $(document).ready(async function () {
     filter_menu_items.find(filter => filter.id === "klasgroep").options = [{value: "all", label: "Alles"}].concat(meta.klasgroepen.map(k => ({value: k, label: k})));
     filter_menu_items.find(filter => filter.id === "lijst").options = [{value: "all", label: "Alles"}].concat(meta.lijsten.map(l => ({value: l.id.toString(), label: l.name})));
     let persons = await fetch_get("person.person", {filters: "result_time$!$null"});
-    persons = persons.map(p => {
-        p.row_action = p.id;
-        p.DT_RowId = p.id;
-        p.lijst = p.lijst_id in lijsten_cache ? lijsten_cache[p.lijst_id].name : "NVT";
-        p.result_time = __milliseconds2string(p.result_time);
-        return p
-    });
+
+    __create_person_cache(persons);
+
     const initial_data = persons.length > 0 ? persons : [];
     datatables_init({filter_menu_items, initial_data, context_menu_items});
 
@@ -109,7 +152,8 @@ $(document).ready(async function () {
     socketio.subscribe_to_room("result");
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
     socketio.subscribe_on_receive("update-items-in-list-of-results", __socketio_update_items);
-    socketio.subscribe_on_receive("add-items-to-list-of-results", __socketio_add_items);
+    socketio.subscribe_on_receive("add-item-to-list-of-results", __socketio_add_item);
+    socketio.subscribe_on_receive("delete-items-from-list-of-results", __socketio_delete_items);
 
     // In case multiple tabs/browsers to this page are opened, the Rfid-location (checkin) is set the one that is in focus.
     document.addEventListener("visibilitychange", () => {

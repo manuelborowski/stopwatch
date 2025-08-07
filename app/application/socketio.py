@@ -51,14 +51,15 @@ def subscribe_on_type(type, cb):
     else:
         socketio_cbs[type] = [cb]
 
-
+# Clients that are subscribed to said room (unicast or multicast)
 def send_to_room(msg, room):
     emit('send_to_client', msg, room=room, namespace="/")
 
-
+# Standard, all clients that include base.html (-> socketio.start)
 def broadcast_message(msg):
     emit('send_to_client', msg, broadcast=True, namespace='/')
 
+# In the context of a request or socketio-call from client-to-server (unicast)
 def send_to_client(msg):
     emit("send_to_client", msg, namespace="/")
 
