@@ -42,8 +42,8 @@ def update(data):
             for p in persons:
                 p.result_time = data["result_time"]
             dl.person.commit()
-            send_to_room({"type": "delete-items-from-list-of-results", "data": {"status": True, "data": [p.to_dict() for p in persons]}}, "result")
-            if (data["result_time"] is None):
+            al.socketio.send_to_room({"type": "delete-items-from-list-of-results", "data": {"status": True, "data": [p.to_dict() for p in persons]}}, "result")
+            if data["result_time"] is None:
                 return {"status": "ok", "msg": "Uitslag(en) verwijderd"}
             else:
                 return {"status": "ok", "msg": "Uitslag(en) toegevoegd"}

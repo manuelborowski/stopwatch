@@ -8,7 +8,7 @@ class List(db.Model, SerializerMixin):
     __tablename__ = 'lists'
 
     date_format = '%Y/%m/%d'
-    datetime_format = '%Y/%m/%d %H:%M'
+    datetime_format = '%Y/%m/%d %H:%M:%S'
 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(256), default='')

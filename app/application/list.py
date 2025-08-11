@@ -1,5 +1,5 @@
 import sys
-import app.data as dl
+import app.data as dl, app.application as al
 
 # logging on file level
 import logging
@@ -15,6 +15,7 @@ def update_m(data):
         lists = dl.list.get_m(("id", "in", ids))
         for list in lists: cache[list.id]["item"] = list
         dl.list.update_m(data)
+        al.socketio.send_to_room({"type": "timer", "data": {"data": [l.to_dict() for l in lists]}}, "list")
 
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')

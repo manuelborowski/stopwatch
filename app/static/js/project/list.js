@@ -1,7 +1,7 @@
 import {base_init} from "../base.js";
 import {fetch_delete, fetch_get, fetch_post, fetch_update} from "../common/common.js";
-import {ContextMenu} from "../common/context_menu.js";
 import {AlertPopup} from "../common/popup.js";
+import {socketio} from "../common/socketio.js";
 
 let meta = await fetch_get("list.meta", {});
 let list = null;
@@ -73,7 +73,13 @@ class List {
             }
         }
         if (data.length > 0) { // use items from database
-            for (const item of data) __draw_row(item)
+            for (const item of data) {
+                __draw_row(item);
+                if (item.start_time) { // if a start_time present, show stopwatch
+                    const row = document.querySelector(`[data-id='${item.id}']`);
+                    this.timer_cache[item.id] = {element: row.querySelector(".div-item-time"), start: new Date(item.start_time)};
+                }
+            }
         } else { // empty table
             const dummy_item = {name: "", color: ""};
             for (let i = 0; i < nbr_rows; i++) {
@@ -126,16 +132,6 @@ class List {
 
             }
         ));
-
-        // read the localstorage for the timer cache
-        this.timer_cache = JSON.parse(localStorage.getItem("list-timers")) || {};
-        if (this.timer_cache) {
-            for (const [id, info] of Object.entries(this.timer_cache)) {
-                const row = document.querySelector(`[data-id='${id}']`);
-                info.element = row.querySelector(".div-item-time");
-                info.start = new Date(info.start);
-            }
-        }
     }
 
     load = async () => {
@@ -151,6 +147,9 @@ class List {
             else
                 this.draw(resp_info);
         }
+
+        socketio.subscribe_to_room("list");
+        socketio.subscribe_on_receive("timer", this.socketio_timer_update);
     }
 
     save = async () => {
@@ -213,23 +212,33 @@ class List {
         this.list_info.save_button.classList.add("blink-button");
     }
 
-    timer_start = async row => {
-        if (parseInt(row.dataset.id) <= -1 || row.dataset.id in this.timer_cache) return
-        const time_div = row.querySelector(".div-item-time");
-        const now = new Date();
-        const formatted_now = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ` +
-                  `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        this.timer_cache[row.dataset.id] = {start: now, element: time_div};
-        await fetch_update("list.list", [{id: row.dataset.id, start_time: formatted_now}]);
-        localStorage.setItem("list-timers", JSON.stringify(this.timer_cache));
+    socketio_timer_update = (type, msg) => {
+        for (const item of msg.data) {
+            if (item.start_time === null) {
+                if (item.id in this.timer_cache) {
+                    this.timer_cache[item.id].element.innerHTML = "00:00:00";
+                    delete this.timer_cache[item.id];
+                }
+            } else {
+                const row = document.querySelector(`[data-id='${item.id}']`);
+                this.timer_cache[item.id] = {element: row.querySelector(".div-item-time"), start: new Date(item.start_time)};
+            }
+        }
     }
 
+    // Send start-time to server.  This is looped back to all clients via socketio_timer_update
+    timer_start = async row => {
+        if (parseInt(row.dataset.id) <= -1 || row.dataset.id in this.timer_cache) return
+        const now = new Date();
+        const formatted_now = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ` +
+            `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        await fetch_update("list.list", [{id: row.dataset.id, start_time: formatted_now}]);
+    }
+
+    // Send timer stop to to server.  This is looped back to all clients via socketio_timer_update
     timer_stop = async row => {
         if (parseInt(row.dataset.id) <= -1 || !(row.dataset.id in this.timer_cache)) return
-        this.timer_cache[row.dataset.id].element.innerHTML = "00:00:00";
-        delete this.timer_cache[row.dataset.id];
         await fetch_update("list.list", [{id: row.dataset.id, start_time: null}]);
-        localStorage.setItem("list-timers", JSON.stringify(this.timer_cache));
     }
 
     timer_handler = () => {

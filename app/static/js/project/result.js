@@ -147,7 +147,6 @@ $(document).ready(async function () {
     Rfid.set_location("result");
     Rfid.set_managed_state(true);
 
-    // Even on the checkin page, it is possible to get status-popups
     socketio.subscribe_to_room(meta.my_ip);
     socketio.subscribe_to_room("result");
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
