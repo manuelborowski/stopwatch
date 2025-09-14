@@ -1,7 +1,8 @@
 from flask import redirect, render_template, url_for, request, Blueprint, session
 from flask_login import login_required, login_user, logout_user
 from app import app, data as dl
-import datetime, json, sys, hashlib
+from user_agents import parse
+import datetime, json, sys, qrcode, io, base64
 
 #logging on file level
 import logging
@@ -15,6 +16,19 @@ bp_auth = Blueprint('auth', __name__, )
 def login():
     try:
         message = None
+        user_agent_str = request.headers.get('User-Agent')
+        user_agent = parse(user_agent_str)
+        if user_agent.is_mobile:
+            return render_template('m/login.html')
+        url = f"{request.root_url}"
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4, )
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill="black", back_color="white")
+        img_io = io.BytesIO()
+        img.save(img_io, format="PNG")
+        img_io.seek(0)
+        img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
         if request.method == "POST":
             user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
             if user is not None and user.verify_password(request.form["password"]):
@@ -30,7 +44,7 @@ def login():
                 log.error(f'{sys._getframe().f_code.co_name}: Invalid username/password')
                 message = {"status": "error", "data": "Ongeldig(e) gebruikersnaam/wachtwoord"}
                 return render_template('login.html', message=message)
-        return render_template('login.html', message=message)
+        return render_template('login.html', message=message, qr=img_base64)
     except Exception as e:
         message = {"status": "error", "data": f"{str(e)}"}
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')
@@ -87,6 +101,10 @@ def login_ss():
                     log.error('Could not save user')
                     return redirect(url_for('auth.login'))
                 # Ok, continue
+                user_agent_str = request.headers.get('User-Agent')
+                user_agent = parse(user_agent_str)
+                if user_agent.is_mobile:
+                    return redirect(url_for('mobile.show_scan'))
                 return redirect(url_for('person.show'))
         else:
             redirect_uri = f'{app.config["SMARTSCHOOL_OUATH_REDIRECT_URI"]}/ss'

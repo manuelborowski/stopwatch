@@ -10,8 +10,8 @@ const lijsten_cache = Object.fromEntries(meta.lijsten.map(l => [l.id, l]));
 const __update_filter = (id, value) => {
     if (value === "all") datatable_filter(id, "");
     else if (id === "lijst") {
-            const label = lijsten_cache[parseInt(value)].name;
-            datatable_filter(id, label);
+        const label = lijsten_cache[parseInt(value)].name;
+        datatable_filter(id, label);
     } else if (id === "klasgroep") {
         datatable_filter(id, value);
     }
@@ -37,11 +37,9 @@ const filter_menu_items = [
 ]
 
 // Called by the server when one or more items are updated in the list
-const __socketio_update_items = (type, msg) => {
+const __socketio_update_item = (type, msg) => {
     if (msg.status) {
-        for (const item of msg.data) {
-            if ("checkin_time" in item) datatable_update_cell(item.id, "checkin_time", item.checkin_time);
-        }
+        datatable_update_cell(msg.data.id, "checkin_time", msg.data.checkin_time);
     }
 }
 
@@ -66,7 +64,7 @@ $(document).ready(async function () {
     socketio.subscribe_to_room(meta.my_ip);
     socketio.subscribe_to_room("checkin");
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
-    socketio.subscribe_on_receive("update-items-in-list-of-checkins", __socketio_update_items);
+    socketio.subscribe_on_receive("update-item-in-list-of-checkins", __socketio_update_item);
 
     // In case multiple tabs/browsers to this page are opened, the Rfid-location (checkin) is set the one that is in focus.
     document.addEventListener("visibilitychange", () => {
