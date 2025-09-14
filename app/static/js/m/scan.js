@@ -5,7 +5,7 @@ $(document).ready(async () => {
     const out = document.getElementById("log-out");
     const clear_list_button = document.getElementById("clear-list-btn");
 
-    const scan_type_options = [{label: "Selecteer een type", value: null}, {label: "TEST", value: "test"}, {label: "Inchecken", value: "checkin"}, {label: "Aankomst", value: "result"}];
+    const scan_type_options = [{label: "Selecteer een type", value: null}, {label: "TEST", value: "test"}, {label: "Aanmelden", value: "checkin"}, {label: "Aankomst", value: "result"}];
     scan_type_options.forEach(l => scan_type_select.add(new Option(l.label, l.value, false, false)));
 
     let ndef = null;

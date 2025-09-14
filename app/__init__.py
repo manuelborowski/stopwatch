@@ -27,8 +27,9 @@ from werkzeug.routing import IntegerConverter
 # 0.15: result -> place is calculated dynamically in the browser and is not maintained in the database.  This allows priming a list (load the result page), adding new results and removing results.
 # 0.16: stopwatch start/stop, use socketio to inform all clients
 # 0.17: add support for Android Smartphone
+# 0.18: small udpate
 
-version = "0.17"
+version = "0.18"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
