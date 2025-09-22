@@ -104,11 +104,11 @@ const __delete_from_list = async (ids) => {
         if (result) {
             await fetch_update("person.person", {lijst_id: null, ids});
             datatable_reload_table();
-       }
+        }
     });
 }
 
-const __reserve_student_rfid = async (ids, new_rfid=true) => {
+const __reserve_student_rfid = async (ids, new_rfid = true) => {
     let person = datatable_row_data_from_id(ids[0]);
     bootbox.confirm(`Nieuwe ${new_rfid ? "RFID" : "reserve badge"} voor: ${person.naam} ${person.voornaam}<br>Druk op ok en u heeft ${meta.new_rfid_margin} seconden om de badge te registreren`, async result => {
         if (result) {
@@ -122,7 +122,7 @@ const __delete_spare_badge = async (ids) => {
         if (result) {
             await fetch_update("person.person", {rfid: null, temp_badge: null, ids});
             datatable_reload_table();
-       }
+        }
     });
 }
 
@@ -136,16 +136,13 @@ const context_menu_items = [
     {type: "item", label: 'Reservebadge verwijderen', iconscout: 'trash-alt', cb: ids => __delete_spare_badge(ids), level: 2},
 ]
 
-// Called by the server when one or more items are updated in the list
-const __socketio_update_items = (type, msg) => {
+// Called by the server when an item is updated in the list
+const __socketio_update_item = (type, msg) => {
     if (msg.status) {
-        for (const item of msg.data) {
-            if ("rfid" in item) datatable_update_cell(item.id, "rfid", item.rfid);
-            if ("temp_badge" in item) datatable_update_cell(item.id, "temp_badge", item.temp_badge);
-        }
+        datatable_update_cell(msg.data.id, "rfid", msg.data.rfid);
+        datatable_update_cell(msg.data.id, "temp_badge", msg.data.temp_badge);
     }
 }
-
 
 $(document).ready(async function () {
     filter_menu_items.find(filter => filter.id === "klasgroep").options = [{value: "all", label: "Alles"}].concat(meta.klasgroepen.map(k => ({value: k, label: k})));
@@ -156,9 +153,9 @@ $(document).ready(async function () {
     Rfid.set_location("new-rfid");
     Rfid.set_managed_state(true);
     // Even on the students page, it is possible to get status-popups
-    socketio.subscribe_to_room(meta.my_ip);
+    socketio.subscribe_to_room("new-rfid");
     socketio.subscribe_on_receive("alert-popup", (type, data) => new AlertPopup("warning", data, 6000));
-    socketio.subscribe_on_receive("update-items-in-list-of-persons", __socketio_update_items);
+    socketio.subscribe_on_receive("update-item-in-list-of-persons", __socketio_update_item);
 
     // In case multiple tabs/browsers to this page are opened, the Rfid-location (new-rfid) is set the one that is in focus.
     document.addEventListener("visibilitychange", () => {

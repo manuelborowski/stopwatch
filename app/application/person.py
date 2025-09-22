@@ -26,7 +26,7 @@ def update(data):
         elif ("temp_badge" in data):
             persons = dl.person.get_m(("id", "in", data["ids"]))
             for p in persons:
-                p.temp_badge = data["temp_badge"]
+                p.temp_badge = "" if data["temp_badge"] is None else data["temp_badge"]
                 p.rfid = data["rfid"]
             dl.person.commit()
             if (data["temp_badge"] is None):
@@ -69,9 +69,9 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
             if person:
                 log.info(f'{sys._getframe().f_code.co_name}: test, {person.informatnummer} at {now}')
                 person.result_time = now
-                return [{"to": "mobile", "status": True, "data": person.to_dict()}]
+                return [{"to": "ip", "type": "update-item-in-list-of-tests", "data": {"status": True, "data": person.to_dict()}}]
             else:
-                return [{"to": "mobile", "status": False, "data": f"Badge met code {rfid} niet in database"}]
+                return [{"to": "ip", "type": "update-item-in-list-of-tests", "data" : {"status": False, "data": f"Badge met code {rfid} niet in database"}}]
         elif location_key == "new-rfid":
             reservation_margin = app.config["NEW_RFID_MARGIN"]
             minimum_reservation_time = now - datetime.timedelta(seconds=reservation_margin)
@@ -84,7 +84,7 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                 find_rfids = dl.person.get_m([("rfid", "=", rfid), ("id", "!", person.id)])
                 if find_rfids:  # rfid already in database, delete this rfid.
                     find_rfid = find_rfids[0]
-                    log.error(f'{sys._getframe().f_code.co_name}:  Rfid, {rfid}, already in database for {find_rfid.informatnummer}, {find_rfid.naam} {find_rfid.voornaam} => deleted')
+                    log.info(f'{sys._getframe().f_code.co_name}:  Rfid, {rfid}, already in database for {find_rfid.informatnummer}, {find_rfid.naam} {find_rfid.voornaam} => deleted')
                     find_rfid.rfid = ""
                     find_rfid.temp_badge = ""
                 person.new_rfid_time = None
@@ -93,7 +93,7 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                 log.info(f'{sys._getframe().f_code.co_name}:  Add new rfid for {person.informatnummer}, {person.naam} {person.voornaam}, {rfid}')
                 return [
                     {"to": "ip", "type": "alert-popup", "data": f"Deelnemer {person.naam} {person.voornaam} heeft nu RFID code {rfid}{f'<br>En reserve badge nummer {person.temp_badge}' if person.temp_badge != '' else ''}"},
-                    {"to": "ip", "type": "update-items-in-list-of-persons", "data": {"status": True, "data": [{"id": person.id, "rfid": person.rfid, "temp_badge": person.temp_badge}]}}]
+                    {"to": "location", "type": "update-item-in-list-of-persons", "data": {"status": True, "data": person.to_dict()}}]
             log.info(f'{sys._getframe().f_code.co_name}:  No valid reservation for {location_key}')
             return [{"to": "ip", "type": "alert-popup", "data": f"Nieuwe RFID niet gelukt.  Misschien te lang gewacht met scannen, probeer nogmaals"}]
         elif location_key == "checkin":
@@ -103,18 +103,15 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                 person.checkin_time = now
                 dl.person.commit()
                 log.info(f'{sys._getframe().f_code.co_name}:  Check in for {person.informatnummer}, {person.naam} {person.voornaam}, {now}')
-                return [{"to": "location", "type": "update-item-in-list-of-checkins", "data": {"status": True, "data": {"id": person.id, "checkin_time": str(person.checkin_time)}}},
-                        {"to": "mobile", "status": True, "data": person.to_dict()}]
+                return [{"to": "location", "type": "update-item-in-list-of-checkins", "data": {"status": True, "data": person.to_dict()}}, ]
             log.info(f'{sys._getframe().f_code.co_name}:  RFID not found {rfid}')
-            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"},
-                    {"to": "mobile", "status": False, "data": f"RFID niet gevonden ({rfid})"}]
+            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"}]
         elif location_key == "result":
             person = dl.person.get([("rfid", "=", rfid)])
             if person:
                 if person.result_time:
                     log.info(f'{sys._getframe().f_code.co_name}:  Already result for {person.naam} {person.voornaam}, {person.result_time}')
-                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} heeft al een uitslag"},
-                            {"to": "mobile", "status": False, "data": f"{person.naam} {person.voornaam} heeft al een uitslag"}]
+                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} heeft al een uitslag"}]
                 else:
                     list = dl.list.get(("id", "=", person.lijst_id))
                     if list:
@@ -122,24 +119,18 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
                             person.result_time = (now - list.start_time) / datetime.timedelta(milliseconds=1)
                             dl.person.commit()
                             log.info(f'{sys._getframe().f_code.co_name}:  Result in for  {person.naam} {person.voornaam}, {person.result_time}')
-                            return [{"to": "location", "type": "add-item-to-list-of-results", "data": {"status": True, "data": person.to_dict()}},
-                                    {"to": "mobile", "status": True, "data": person.to_dict()}]
+                            return [{"to": "location", "type": "add-item-to-list-of-results", "data": {"status": True, "data": person.to_dict()}}]
                         log.info(f'{sys._getframe().f_code.co_name}:  List not started yet {list.name}')
-                        return [{"to": "ip", "type": "alert-popup", "data": f"Lijst {list.name} Is nog niet gestart!"},
-                                {"to": "mobile", "status": False, "data": f"Lijst {list.name} Is nog niet gestart!"}]
+                        return [{"to": "ip", "type": "alert-popup", "data": f"Lijst {list.name} Is nog niet gestart!"}]
                     log.info(f'{sys._getframe().f_code.co_name}:  Not in list yet {person.naam} {person.voornaam}')
-                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} staat nog niet op een lijst"},
-                            {"to": "mobile", "status": False, "data": f"{person.naam} {person.voornaam} staat nog niet op een lijst"}]
+                    return [{"to": "ip", "type": "alert-popup", "data": f"{person.naam} {person.voornaam} staat nog niet op een lijst"}]
             log.info(f'{sys._getframe().f_code.co_name}:  RFID not found {rfid}')
-            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"},
-                    {"to": "mobile", "status": False, "data": f"RFID niet gevonden ({rfid})"}]
+            return [{"to": "ip", "type": "alert-popup", "data": f"RFID niet gevonden ({rfid})"}]
         log.info(f'{sys._getframe().f_code.co_name}:  rif/leerlingnummer {rfid}/{leerlingnummer} not found in database')
-        return [{"to": "ip", "type": "alert-popup", "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"},
-                {"to": "mobile", "status": False, "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"}]
+        return [{"to": "ip", "type": "alert-popup", "data": f"Kan student met rfid {rfid} / leerlingnummer {leerlingnummer} niet vinden in database"}]
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {e}')
-        return [{"to": "ip", 'type': 'alert-popup', "data": f"Fout, {str(e)}"},
-                {"to": "mobile", "status": False, "data": f"Fout, {str(e)}"}]
+        return [{"to": "ip", 'type': 'alert-popup', "data": f"Fout, {str(e)}"}]
 
 
 ######################### CRON HANDLERS ##################################

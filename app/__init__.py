@@ -28,8 +28,9 @@ from werkzeug.routing import IntegerConverter
 # 0.16: stopwatch start/stop, use socketio to inform all clients
 # 0.17: add support for Android Smartphone
 # 0.18: small udpate
+# 0.19: mobile, added socketio support
 
-version = "0.18"
+version = "0.19"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

@@ -23,13 +23,26 @@ def scan(*args, **kwargs):
     leerlingnummer = data["leerlingnummer"] if "leerlingnummer" in data else None
     type = data["type"]
     timestamp = data["timestamp"] if "timestamp" in data else None
+    if request.headers.get("X-Forwarded-For"):
+        client_ip = request.headers.get("X-Forwarded-For")
+    else:
+        client_ip = request.remote_addr
     ret = al.person.registration_add(type, timestamp, leerlingnummer, code)
     for item in ret:
-        if item["to"] == "mobile":
-            return json.dumps(item)
-        elif item["to"] == "location":
+        if item["to"] == "location":
             al.socketio.send_to_room(item, type)
+        elif item["to"] == "ip" and client_ip:
+            al.socketio.send_to_room(item, client_ip)
+    return json.dumps({"status": True})
 
-    return json.dumps({"to": "mobile", "data": "Onbekende fout"})
+@bp_mobile.route('/person', methods=["POST", "UPDATE", "DELETE", "GET"])
+@login_required
+def person():
+    ret = {}
+    if request.method == "UPDATE":
+        data = json.loads(request.data)
+        ret = al.person.update(data)
+    return json.dumps(ret)
+
 
 
