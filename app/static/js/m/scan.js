@@ -13,6 +13,9 @@ $(document).ready(async () => {
     scan_type_options.forEach(l => scan_type_select.add(new Option(l.label, l.value, false, false)));
 
     let ndef = null;
+    const table = document.getElementById("person-table");
+    const scan_cache = JSON.parse(localStorage.getItem("scans")) || {};
+    const type_cache = localStorage.getItem("scan-type") || "";
 
     const meta = await fetch_get("person.meta");
 
@@ -25,9 +28,6 @@ $(document).ready(async () => {
     Rfid.subscribe_state_change_cb(__rfid_status_changed);
     Rfid.set_location(scan_type_select.value);
     Rfid.set_managed_state(true);
-
-    // Show a table of persons
-    const table = document.getElementById("person-table");
 
     // Called by the server when one or more items are updated in the list
     const __socketio_update_persons = (type, msg) => {
@@ -52,7 +52,6 @@ $(document).ready(async () => {
         }
     }
 
-    const scan_cache = JSON.parse(localStorage.getItem("scans")) || {};
     const __socketio_add_to_list = (type, msg) => {
         if (msg.status) {
             scan_list.innerHTML = `${msg.data.checkin_time.substring(11, 19)}, ${msg.data.klasgroep}, ${msg.data.naam} ${msg.data.voornaam}<br><br>` + scan_list.innerHTML;
@@ -75,6 +74,7 @@ $(document).ready(async () => {
     socketio.subscribe_on_receive("alert-popup", __socketio_alert);
 
     scan_type_select.addEventListener("change", async (e) => {
+        localStorage.setItem("scan-type", e.target.value);
         socketio.subscribe_to_room(e.target.value);
         Rfid.set_location(e.target.value);
         if (["null", "test"].includes(e.target.value)) {
@@ -157,6 +157,11 @@ $(document).ready(async () => {
             out.value = "Fout " + error;
         }
     });
+
+    if (type_cache !== "") {
+        scan_type_select.value = type_cache;
+        scan_type_select.dispatchEvent(new Event("change"));
+    }
 
     clear_list_button.addEventListener("click", () => {
         bootbox.confirm("Bent u zeker?", result => {

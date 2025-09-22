@@ -29,8 +29,9 @@ from werkzeug.routing import IntegerConverter
 # 0.17: add support for Android Smartphone
 # 0.18: small udpate
 # 0.19: mobile, added socketio support
+# 0.20: add cache for type-select
 
-version = "0.19"
+version = "0.20"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
