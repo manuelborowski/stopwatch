@@ -32,8 +32,9 @@ from werkzeug.routing import IntegerConverter
 # 0.20: add cache for type-select
 # 0.21: add pdfkit to export results to PDF
 # 0.22: reworked export-to-pdf. Added button to start export
+# 0.23: small bugfix
 
-version = "0.22"
+version = "0.23"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
