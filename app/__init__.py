@@ -31,13 +31,14 @@ from werkzeug.routing import IntegerConverter
 # 0.19: mobile, added socketio support
 # 0.20: add cache for type-select
 # 0.21: add pdfkit to export results to PDF
+# 0.22: reworked export-to-pdf. Added button to start export
 
-version = "0.21"
+version = "0.22"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
 #  enable logging
-top_log_handle = "TICKOFF"
+top_log_handle = "STOPWATCH"
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 # support custom filtering while logging
 class MyLogFilter(logging.Filter):
@@ -74,7 +75,6 @@ login_manager.login_message = 'Je moet aangemeld zijn om deze pagina te zien!'
 login_manager.login_view = 'auth.login'
 
 socketio = SocketIO(app, async_mode=app.config['SOCKETIO_ASYNC_MODE'], cors_allowed_origins="*")
-
 
 def default_db_entries():
     with app.app_context():

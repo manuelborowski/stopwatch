@@ -87,6 +87,6 @@ def result_to_pdf(*args, **kwargs):
     data = json.loads(request.data)
     klasgroep = data["klasgroep"] if "klasgroep" in data else None
     lijst = data["lijst"] if "lijst" in data else None
-    ret = al.person.result_to_pdf(data["geslacht"], klasgroep, lijst)
+    ret = al.person.result_to_pdf(klasgroep, lijst)
     return json.dumps(ret)
 

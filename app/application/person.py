@@ -1,7 +1,7 @@
 from fileinput import filename
 
 from app import data as dl, application as al
-import sys, requests, pdfkit, htmlgenerator as hg
+import sys, requests, pdfkit, htmlgenerator as hg, platform
 
 # logging on file level
 import logging
@@ -13,66 +13,64 @@ from app.application.socketio import send_to_room
 log = logging.getLogger(f"{top_log_handle}.{__name__}")
 log.addFilter(MyLogFilter())
 
-# geslacht: M(an), V(rouw), B(eide)
-def result_to_pdf(geslacht, klasgroep=None, lijst_id=None ):
+
+def result_to_pdf(klasgroep=None, lijst_id=None):
     def __format_millis(ms: int) -> str:
         seconds, milliseconds = divmod(ms, 1000)
         minutes, seconds = divmod(seconds, 60)
         hours, minutes = divmod(minutes, 60)
         return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 
+    def __construct_table_section(persons):
+        if not persons:
+            return None
+        header = hg.THEAD(hg.TR(hg.TH("plaats", style=table_style), hg.TH("tijd", style=table_style),
+                                hg.TH("voornaam", style=table_style), hg.TH("naam", style=table_style), hg.TH("klas", style=table_style)))
+        tbody = hg.TBODY(
+            *[
+                hg.TR(hg.TD(str(i + 1), style=table_style), hg.TD(str(__format_millis(person.result_time) if person.result_time else "-"), style=table_style),
+                      hg.TD(person.roepnaam, style=table_style), hg.TD(person.naam, style=table_style), hg.TD(person.klasgroep, style=table_style))
+                for i, person in enumerate(persons)
+            ]
+        )
+        section = hg.DIV(hg.H2(hg.B("Dames" if persons[0].geslacht == "V" else "Heren")), hg.TABLE(header, tbody, style=table_style))
+        return section
+
     try:
-        options = {
-            # 'page-size': 'Letter',
-            'margin-top': '1in',
-            'margin-right': '0.5in',
-            'margin-bottom': '0.5in',
-            'margin-left': '0.5in',
-            'encoding': "UTF-8",
-            'custom-header': [
-                ('Accept-Encoding', 'gzip')
-            ],
-        }
-        config = pdfkit.configuration(wkhtmltopdf="C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
+        options = {'margin-top': '0.2in', 'margin-right': '0.5in', 'margin-bottom': '0.5in', 'margin-left': '0.5in', 'encoding': "UTF-8", 'custom-header': [('Accept-Encoding', 'gzip')],}
+        if platform.system() == "Windows":
+            config = pdfkit.configuration(wkhtmltopdf="C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
+        else:
+            config = pdfkit.configuration(wkhtmltopdf="/usr/bin/wkhtmltopdf")
+
         table_style = "border: 1px solid black;font-size:x-large;padding: 4px;"
-        geslachten = ["V", "M"] if geslacht == "B" else [geslacht]
         sections = []
         if lijst_id:
             lijst = dl.list.get(("id", "=", lijst_id))
-        for g in geslachten:
-            if klasgroep:
-                persons = dl.person.get_m([("klasgroep", "=", klasgroep), ("geslacht", "=", g)], order_by="result_time")
+            persons = dl.person.get_m(("lijst_id", "=", lijst_id))
+            persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
+            sections = [__construct_table_section(persons)]
+            header_string = f"Uitslag voor lijst {lijst.name}"
+        else:
+            for g in ["V", "M"]:
+                persons = dl.person.get_m([("klasgroep", "=", klasgroep), ("geslacht", "=", g)])
                 if persons:
                     lijst = dl.list.get(("id", "=", persons[0].lijst_id))
                 else:
                     log.error(f'{sys._getframe().f_code.co_name}: No persons in group {klasgroep}')
-                    return {"status": "error", "msg":  f"No persons in group {klasgroep}"}
-            else:
-                persons = dl.person.get_m([("lijst_id", "=", lijst_id), ("geslacht", "=", g)], order_by="result_time")
-            persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
-
-            header = hg.THEAD(hg.TR(hg.TH("plaats", style=table_style), hg.TH("tijd", style=table_style),
-                                    hg.TH("voornaam", style=table_style), hg.TH("naam", style=table_style), hg.TH("klas", style=table_style)))
-            tbody = hg.TBODY(
-                *[
-                    hg.TR(hg.TD(str(i + 1), style=table_style), hg.TD(str(__format_millis(person.result_time) if person.result_time else "-"), style=table_style),
-                          hg.TD(person.roepnaam, style=table_style), hg.TD(person.naam, style=table_style), hg.TD(person.klasgroep, style=table_style))
-                    for i, person in enumerate(persons)
-                ]
-            )
-            sections.append(hg.DIV(hg.H2(hg.B("Dames" if geslacht == "V" else "Heren")), hg.TABLE(header, tbody, style=table_style)))
-
-        if klasgroep:
+                    return {"status": "error", "msg": f"No persons in group {klasgroep}"}
+                persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
+                sections.append(__construct_table_section(persons))
             header_string = f"Uitslag voor klas {klasgroep}"
-        else:
-            header_string = f"Uitslag voor lijst {lijst.name}"
+
         page = hg.HTML(hg.HEAD(), hg.BODY(hg.H1(hg.B(header_string)), *[s for s in sections]), doctype=True)
-        filename = f"{klasgroep if klasgroep else lijst.name}-{geslacht}-{datetime.datetime.now().strftime("%Y%m%d-%H%M")}.pdf"
+        filename = f"{klasgroep if klasgroep else lijst.name}-{datetime.datetime.now().strftime("%Y%m%d-%H%M")}.pdf".replace(" ", "-")
         pdfkit.from_string(hg.render(page, {}), f"app/static/pdf/{filename}", options=options, configuration=config)
-        return {"status": "ok", "msg": filename}
+        return {"filename": f"static/pdf/{filename}"}
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: , {e}')
         return {"status": "error", "msg": str(e)}
+
 
 def update(data):
     try:
@@ -114,6 +112,7 @@ def update(data):
     except Exception as e:
         log.error(f'{sys._getframe().f_code.co_name}: {data}, {e}')
         return {"status": "error", "msg": str(e)}
+
 
 # depending on the "to" parameter, return values are sent to:
 # ip: only to the client/terminal the registration came from.  Used for alerts, messages, ... due to registering

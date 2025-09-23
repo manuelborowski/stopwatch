@@ -1,5 +1,5 @@
-import {datatables_init, datatable_update_cell, datatable_filter, datatable_rows_delete, datatable_rows_add} from "../datatables/dt.js";
-import {fetch_get, fetch_update} from "../common/common.js";
+import {datatables_init, datatable_update_cell, datatable_filter, datatable_rows_delete, datatable_rows_add, datatable_reload_table} from "../datatables/dt.js";
+import {fetch_get, fetch_update, fetch_post} from "../common/common.js";
 import {Rfid} from "../common/rfidusb.js";
 import {socketio} from "../common/socketio.js";
 import {AlertPopup} from "../common/popup.js";
@@ -8,13 +8,20 @@ const meta = await fetch_get("person.meta");
 const lijsten_cache = Object.fromEntries(meta.lijsten.map(l => [l.id, l]));
 
 const __update_filter = (id, value) => {
-    if (value === "all") datatable_filter(id, "");
-    else if (id === "lijst") {
-        const label = lijsten_cache[parseInt(value)].name;
-        datatable_filter(id, label);
-    } else if (id === "klasgroep") {
-        datatable_filter(id, value);
+    if (value === "all") {
+        datatable_filter(id, "");
+    } else {
+        if (id === "lijst") {
+            const label = lijsten_cache[parseInt(value)].name;
+            datatable_filter(id, label);
+        } else {
+            datatable_filter(id, value);
+        }
+        const element = document.getElementById(id === "lijst" ? "klasgroep" : "lijst");
+        element.value = "all";
+        element.dispatchEvent(new Event("change"));
     }
+
 }
 
 const filter_menu_items = [
@@ -133,6 +140,37 @@ const context_menu_items = [
     {type: "item", label: 'Uitslag wissen', iconscout: 'trash-alt', cb: ids => __delete_result(ids), level: 2},
 ]
 
+const export_result = () => {
+    const klasgroep = document.getElementById("klasgroep");
+    const lijst = document.getElementById("lijst");
+    if (lijst.value === "all" && klasgroep.value === "all") {
+        bootbox.alert("Je moet een klasgroep of lijst kiezen aub");
+        return
+    }
+    const title = lijst.value !== "all" ? lijst.options[lijst.selectedIndex].text : klasgroep.options[klasgroep.selectedIndex].text;
+    const body = lijst.value !== "all" ? {lijst: lijst.value} : {klasgroep: klasgroep.value}
+    bootbox.confirm(`Lijst exporteren voor "${title}"?`, async result => {
+        if (result) {
+            const data = await fetch_post("result.result_to_pdf", body);
+            var link = document.createElement("a");
+            //Add a rendom parameter to make sure that not a cached version is returned (filename is always te same)
+            link.href = `${document.location.origin}/${data.filename}?${new Date().getTime()}`;
+            link.target = "_blank";
+            link.click();
+            link.remove();
+        }
+    });
+}
+
+const button_menu_items = [
+    {
+        type: 'button',
+        id: 'result-export',
+        label: 'exporteer naar PDF',
+        cb: () => export_result()
+    },
+]
+
 $(document).ready(async function () {
     filter_menu_items.find(filter => filter.id === "klasgroep").options = [{value: "all", label: "Alles"}].concat(meta.klasgroepen.map(k => ({value: k, label: k})));
     filter_menu_items.find(filter => filter.id === "lijst").options = [{value: "all", label: "Alles"}].concat(meta.lijsten.map(l => ({value: l.id.toString(), label: l.name})));
@@ -141,7 +179,7 @@ $(document).ready(async function () {
     __create_person_cache(persons);
 
     const initial_data = persons.length > 0 ? persons : [];
-    datatables_init({filter_menu_items, initial_data, context_menu_items});
+    datatables_init({filter_menu_items, initial_data, context_menu_items, button_menu_items});
 
     Rfid.init(meta.rfidusb);
     Rfid.set_location("result");

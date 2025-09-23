@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request
 from flask_login import login_required
-
 from app.data.datatables import DatatableConfig
 from app import data as dl, application as al
+import json
 
 #logging on file level
 import logging
@@ -15,6 +15,15 @@ bp_result = Blueprint('result', __name__)
 @login_required
 def show():
     return render_template("result.html", table_config=config.create_table_config())
+
+@bp_result.route('/result/pdf', methods=['POST'])
+@login_required
+def result_to_pdf():
+    data = json.loads(request.data)
+    klasgroep = data["klasgroep"] if "klasgroep" in data else None
+    lijst = data["lijst"] if "lijst" in data else None
+    ret = al.person.result_to_pdf(klasgroep, lijst)
+    return json.dumps(ret)
 
 class Config(DatatableConfig):
     def pre_sql_query(self):
