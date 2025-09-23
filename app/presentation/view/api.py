@@ -81,3 +81,12 @@ def registration_add(*args, **kwargs):
             return json.dumps({"status": False, "data": f'No valid "to" parameter: {item["to"]}'})
     return json.dumps({"status": True})
 
+@bp_api.route('/api/result/pdf', methods=['POST'])
+@level_1
+def result_to_pdf(*args, **kwargs):
+    data = json.loads(request.data)
+    klasgroep = data["klasgroep"] if "klasgroep" in data else None
+    lijst = data["lijst"] if "lijst" in data else None
+    ret = al.person.result_to_pdf(data["geslacht"], klasgroep, lijst)
+    return json.dumps(ret)
+

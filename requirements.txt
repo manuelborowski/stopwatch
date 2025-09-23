@@ -57,6 +57,7 @@ opentelemetry-api==1.29.0
 opentelemetry-sdk==1.29.0
 opentelemetry-semantic-conventions==0.50b0
 pandas==2.2.3
+pdfkit==1.0.0
 pillow==11.1.0
 platformdirs==4.3.6
 portalocker==2.10.1

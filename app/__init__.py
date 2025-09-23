@@ -30,8 +30,9 @@ from werkzeug.routing import IntegerConverter
 # 0.18: small udpate
 # 0.19: mobile, added socketio support
 # 0.20: add cache for type-select
+# 0.21: add pdfkit to export results to PDF
 
-version = "0.20"
+version = "0.21"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
