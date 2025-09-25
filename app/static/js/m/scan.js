@@ -29,6 +29,19 @@ $(document).ready(async () => {
     Rfid.set_location(scan_type_select.value);
     Rfid.set_managed_state(true);
 
+    const __milliseconds2string = ms => {
+        const hours = Math.floor(ms / 3600000);
+        const minutes = Math.floor((ms % 3600000) / 60000);
+        const seconds = Math.floor((ms % 60000) / 1000);
+        const milliseconds = ms % 1000;
+
+        // Pad with zeros
+        const pad = (n, z = 2) => n.toString().padStart(z, '0');
+        const padMs = (n) => n.toString().padStart(3, '0');
+
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}.${padMs(milliseconds)}`;
+    }
+
     // Called by the server when one or more items are updated in the list
     const __socketio_update_persons = (type, msg) => {
         const person = msg.data;
@@ -54,7 +67,10 @@ $(document).ready(async () => {
 
     const __socketio_add_to_list = (type, msg) => {
         if (msg.status) {
-            scan_list.innerHTML = `${msg.data.checkin_time.substring(11, 19)}, ${msg.data.klasgroep}, ${msg.data.naam} ${msg.data.voornaam}<br><br>` + scan_list.innerHTML;
+            if (type === "add-item-to-list-of-results")
+                scan_list.innerHTML = `${__milliseconds2string(msg.data.result_time)}, ${msg.data.klasgroep}, ${msg.data.naam} ${msg.data.voornaam}<br><br>` + scan_list.innerHTML;
+            else
+                scan_list.innerHTML = `${msg.data.checkin_time.substring(11, 19)}, ${msg.data.klasgroep}, ${msg.data.naam} ${msg.data.voornaam}<br><br>` + scan_list.innerHTML;
             scan_cache[scan_type_select.value] = scan_list.innerHTML;
             localStorage.setItem("scans", JSON.stringify(scan_cache));
         } else {

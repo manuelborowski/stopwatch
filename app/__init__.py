@@ -33,8 +33,9 @@ from werkzeug.routing import IntegerConverter
 # 0.21: add pdfkit to export results to PDF
 # 0.22: reworked export-to-pdf. Added button to start export
 # 0.23: small bugfix
+# 0.24: mobile, when scanning results, show the passed time iso the current time
 
-version = "0.23"
+version = "0.24"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
