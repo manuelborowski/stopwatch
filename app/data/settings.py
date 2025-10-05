@@ -101,6 +101,9 @@ default_configuration_settings = {
     "list-colors": ({}, Settings.SETTING_TYPE.E_YAML),
 
     "api-keys": ({}, Settings.SETTING_TYPE.E_YAML),
+
+    'mobile-login-pin': ('', Settings.SETTING_TYPE.E_STRING),
+
 }
 
 

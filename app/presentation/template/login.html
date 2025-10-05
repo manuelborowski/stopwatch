@@ -17,7 +17,8 @@
         <div style="display: flex;flex-wrap: wrap;">
             <div style="display: flex;flex-direction: column;align-items: center">
                 <img id="login-url-img" src="data:image/png;base64,{{ qr }}" alt="QR Code" class="login-image">
-                <b>Mobiele scanner (Android only)</b>
+                <b>Mobiele scanner (Android only)</b><br>
+                <b>Pin: {{ pin }}</b><br>
             </div>
             <div class="login-group">
                 <h2>Aanmelden met gebruikersnaam</h2>
@@ -35,8 +36,7 @@
                     </form>
                 </div>
                 <h2>Of aanmelden via Smartschool</h2>
-                <a href="{{ url_for('auth.login_ss') }}"><img src="static/img/btn_smartschool.png"
-                                                              alt="aanmelden via smartschool"></a>
+                <a href="{{ url_for('auth.login_ss') }}"><img src="static/img/btn_smartschool.png" alt="aanmelden via smartschool"></a>
             </div>
             <img src="static/img/stopwatch.png" class="login-image">
         </div>

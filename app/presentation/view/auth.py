@@ -18,8 +18,6 @@ def login():
         message = None
         user_agent_str = request.headers.get('User-Agent')
         user_agent = parse(user_agent_str)
-        if user_agent.is_mobile:
-            return render_template('m/login.html')
         url = f"{request.root_url}"
         qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4, )
         qr.add_data(url)
@@ -29,22 +27,43 @@ def login():
         img.save(img_io, format="PNG")
         img_io.seek(0)
         img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
+        secret_pin = dl.settings.get_configuration_setting("mobile-login-pin")
         if request.method == "POST":
-            user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
-            if user is not None and user.verify_password(request.form["password"]):
-                login_user(user)
-                log.info(f'user {user.username} logged in')
-                user = dl.user.update(user, {"last_login": datetime.datetime.now()})
-                session["token-login"] = False
-                if not user:
-                    log.error('Could not save timestamp')
-                # Ok, continue
-                return redirect(url_for('person.show'))
+            if user_agent.is_mobile:
+                login_pin = request.form["login-pin"]
+                if secret_pin == login_pin:
+                    user = dl.user.get(("username", "=", "pin"))
+                    login_user(user)
+                    log.info(f'user {user.username} logged in')
+                    user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+                    session["token-login"] = False
+                    if not user:
+                        log.error('Could not save timestamp')
+                    # Ok, continue
+                    return redirect(url_for('mobile.show_scan'))
+                else:
+                    log.error(f'{sys._getframe().f_code.co_name}: Invalid pin')
+                    message = {"status": "error", "data": "Ongeldige pin"}
+                    return render_template('m/login.html', message=message)
             else:
-                log.error(f'{sys._getframe().f_code.co_name}: Invalid username/password')
-                message = {"status": "error", "data": "Ongeldig(e) gebruikersnaam/wachtwoord"}
-                return render_template('login.html', message=message)
-        return render_template('login.html', message=message, qr=img_base64)
+                user = dl.user.get (('username', "c=", request.form["username"])) # c= : case sensitive comparison
+                if user is not None and user.verify_password(request.form["password"]):
+                    login_user(user)
+                    log.info(f'user {user.username} logged in')
+                    user = dl.user.update(user, {"last_login": datetime.datetime.now()})
+                    session["token-login"] = False
+                    if not user:
+                        log.error('Could not save timestamp')
+                    # Ok, continue
+                    return redirect(url_for('person.show'))
+                else:
+                    log.error(f'{sys._getframe().f_code.co_name}: Invalid username/password')
+                    message = {"status": "error", "data": "Ongeldig(e) gebruikersnaam/wachtwoord"}
+                    return render_template('login.html', message=message, qr=img_base64, pin=secret_pin)
+        if user_agent.is_mobile:
+            return render_template('m/login.html')
+        else:
+            return render_template('login.html', message=message, qr=img_base64, pin=secret_pin)
     except Exception as e:
         message = {"status": "error", "data": f"{str(e)}"}
         log.error(f'{sys._getframe().f_code.co_name}: {str(e)}')

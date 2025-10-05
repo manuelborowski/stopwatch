@@ -41,6 +41,11 @@ const template =
                         {label: "YAML", name: "api-keys", type: "textarea"},
                     ]
                 },
+                {
+                    type: "container", label: "Mobiele scanner", save: true, default_collapsed: true, rows: [
+                        {label: "Pin", name: "mobile-login-pin", type: "input"},
+                    ]
+                },
             ]
         }
     ]
