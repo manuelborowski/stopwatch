@@ -129,9 +129,9 @@ def registration_add(location_key, timestamp=None, leerlingnummer=None, rfid=Non
             if person:
                 log.info(f'{sys._getframe().f_code.co_name}: test, {person.informatnummer} at {now}')
                 person.result_time = now
-                return [{"to": "ip", "type": "update-item-in-list-of-tests", "data": {"status": True, "data": person.to_dict()}}]
+                return [{"to": "location", "type": "update-item-in-list-of-tests", "data": {"status": True, "data": person.to_dict()}}]
             else:
-                return [{"to": "ip", "type": "update-item-in-list-of-tests", "data": {"status": False, "data": f"Badge met code {rfid} niet in database"}}]
+                return [{"to": "location", "type": "update-item-in-list-of-tests", "data": {"status": False, "data": f"Badge met code {rfid} niet in database"}}]
         elif location_key == "new-rfid":
             reservation_margin = app.config["NEW_RFID_MARGIN"]
             minimum_reservation_time = now - datetime.timedelta(seconds=reservation_margin)

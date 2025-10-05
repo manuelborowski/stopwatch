@@ -35,6 +35,7 @@ from werkzeug.routing import IntegerConverter
 # 0.23: small bugfix
 # 0.24: mobile, when scanning results, show the passed time iso the current time
 # 0.25: mobile scan, add option to enter with pin
+# 0.25: mobile scan, remove pin from login screen.  Update test-scan
 
 version = "0.25"
 
