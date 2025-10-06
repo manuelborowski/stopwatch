@@ -36,8 +36,9 @@ from werkzeug.routing import IntegerConverter
 # 0.24: mobile, when scanning results, show the passed time iso the current time
 # 0.25: mobile scan, add option to enter with pin
 # 0.25: mobile scan, remove pin from login screen.  Update test-scan
+# 0.26: added multiple pin users, else socketio does not work properly
 
-version = "0.25"
+version = "0.26"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 
@@ -89,7 +90,7 @@ def default_db_entries():
             for user in app.config["DEFAULT_USERS"]:
                 find_user = User.query.filter(User.username == user[0]).first()
                 if not find_user:
-                    new_user = User(username=user[0], password=user[1], level=user[2], user_type=User.USER_TYPE.LOCAL)
+                    new_user = User(username=user[0], password=user[1], level=user[2], first_name=user[3], user_type=User.USER_TYPE.LOCAL)
                     db.session.add(new_user)
             db.session.commit()
         except Exception as e:

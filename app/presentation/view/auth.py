@@ -32,7 +32,8 @@ def login():
             if user_agent.is_mobile:
                 login_pin = request.form["login-pin"]
                 if secret_pin == login_pin:
-                    user = dl.user.get(("username", "=", "pin"))
+                    users = dl.user.get_m(("first_name", "=", "pinlogin"), order_by="last_login")
+                    user = users[0]
                     login_user(user)
                     log.info(f'user {user.username} logged in')
                     user = dl.user.update(user, {"last_login": datetime.datetime.now()})
