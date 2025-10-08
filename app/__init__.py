@@ -37,8 +37,9 @@ from werkzeug.routing import IntegerConverter
 # 0.25: mobile scan, add option to enter with pin
 # 0.25: mobile scan, remove pin from login screen.  Update test-scan
 # 0.26: added multiple pin users, else socketio does not work properly
+# 0.27: spare badges, scroll to top when adding one
 
-version = "0.26"
+version = "0.27"
 
 app = Flask(__name__, instance_relative_config=True, template_folder='presentation/template/')
 

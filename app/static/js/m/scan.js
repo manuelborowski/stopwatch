@@ -61,6 +61,7 @@ $(document).ready(async () => {
             tr.dataset.temp_badge = person_temp_badge;
             td.innerHTML = `(${person_temp_badge}) ` + td.innerHTML;
             td.style.backgroundColor = "yellow";
+            tr.scrollIntoView(true);
             break
         }
     }
