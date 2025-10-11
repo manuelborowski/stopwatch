@@ -21,7 +21,7 @@ def result_to_pdf(klasgroep=None, lijst_id=None):
         hours, minutes = divmod(minutes, 60)
         return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 
-    def __construct_table_section(persons):
+    def __construct_table_section(header_string, persons, last_section=False):
         if not persons:
             return None
         header = hg.THEAD(hg.TR(hg.TH("plaats", style=table_style), hg.TH("tijd", style=table_style),
@@ -33,7 +33,7 @@ def result_to_pdf(klasgroep=None, lijst_id=None):
                 for i, person in enumerate(persons)
             ]
         )
-        section = hg.DIV(hg.H2(hg.B("Dames" if persons[0].geslacht == "V" else "Heren")), hg.TABLE(header, tbody, style=table_style))
+        section = hg.DIV(hg.H1(hg.B(header_string + ("Dames" if persons[0].geslacht == "V" else "Heren"))), hg.TABLE(header, tbody, style=table_style + "" if last_section else "page-break-after:always"))
         return section
 
     try:
@@ -45,26 +45,28 @@ def result_to_pdf(klasgroep=None, lijst_id=None):
 
         table_style = "border: 1px solid black;font-size:x-large;padding: 4px;"
         sections = []
+        list_of_persons = []
         if lijst_id:
             lijst = dl.list.get(("id", "=", lijst_id))
-            persons = dl.person.get_m(("lijst_id", "=", lijst_id))
-            persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
-            sections = [__construct_table_section(persons)]
-            header_string = f"Uitslag voor lijst {lijst.name}"
+            for g in ["V", "M"]:
+                persons = dl.person.get_m([("lijst_id", "=", lijst_id), ("geslacht", "=", g)])
+                if persons:
+                    list_of_persons.append(persons)
+            header_string = f"Uitslag voor lijst {lijst.name}: "
+            filename_prefix = lijst.name
         else:
             for g in ["V", "M"]:
-                persons = dl.person.get_m([("klasgroep", "=", klasgroep), ("geslacht", "=", g)])
-                if persons:
-                    lijst = dl.list.get(("id", "=", persons[0].lijst_id))
-                else:
-                    log.error(f'{sys._getframe().f_code.co_name}: No persons in group {klasgroep}')
-                    return {"status": "error", "msg": f"No persons in group {klasgroep}"}
-                persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
-                sections.append(__construct_table_section(persons))
-            header_string = f"Uitslag voor klas {klasgroep}"
+                list_of_persons.append(dl.person.get_m([("klasgroep", "=", klasgroep), ("geslacht", "=", g)]))
+            header_string = f"Uitslag voor klas {klasgroep}: "
+            filename_prefix = klasgroep
+        for i, persons in enumerate(list_of_persons):
+            persons.sort(key=lambda p: p.result_time if p.result_time else 999999999)
+            section = __construct_table_section(header_string, persons, last_section=(i == (len(list_of_persons) - 1)))
+            if section:
+                sections.append(section)
 
-        page = hg.HTML(hg.HEAD(), hg.BODY(hg.H1(hg.B(header_string)), *[s for s in sections]), doctype=True)
-        filename = f"{klasgroep if klasgroep else lijst.name}-{datetime.datetime.now().strftime("%Y%m%d-%H%M")}.pdf".replace(" ", "-")
+        page = hg.HTML(hg.HEAD(), hg.BODY(*[s for s in sections]), doctype=True)
+        filename = f"{filename_prefix}-{datetime.datetime.now().strftime("%Y%m%d-%H%M")}.pdf".replace(" ", "-")
         pdfkit.from_string(hg.render(page, {}), f"app/static/pdf/{filename}", options=options, configuration=config)
         return {"filename": f"static/pdf/{filename}"}
     except Exception as e:
